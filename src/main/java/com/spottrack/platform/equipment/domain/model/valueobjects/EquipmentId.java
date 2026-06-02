@@ -1,15 +1,21 @@
 package com.spottrack.platform.equipment.domain.model.valueobjects;
 
-public record EquipmentId(String id) {
+import jakarta.persistence.Embeddable;
+
+import java.util.UUID;
+
+
+@Embeddable
+public record EquipmentId(String uuid) {
     private static final String NOT_BLANK= "equipment.error.equipmentId.notBlank";
-    private static final String SIZE_LIMIT_EXCEEDED= "equipment.error.equipmentId.size";
+    private static final String ID_ZERO = "id.error.invalid";
     public EquipmentId {
-        if (id == null || id.isBlank()){
+        if (uuid == null || uuid.isBlank()) {
             throw new IllegalArgumentException(NOT_BLANK);
         }
 
-        if (id.length() > 256){
-            throw new IllegalArgumentException(SIZE_LIMIT_EXCEEDED);
+        if (uuid.isBlank()){
+            throw new IllegalArgumentException(ID_ZERO);
         }
 
 
