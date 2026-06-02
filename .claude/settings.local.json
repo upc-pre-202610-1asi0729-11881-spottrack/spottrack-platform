@@ -13,7 +13,8 @@
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\DELL\\\\Desktop\\\\Mierda2\\\\Estudio\\\\UPC\\\\CICLO 2026 - 1\\\\OPEN SOURCE\\\\spottrack-platform\" -Recurse -Directory)",
       "Bash(Select-Object -ExpandProperty FullName)",
       "WebSearch",
-      "Bash(git reset *)"
+      "Bash(git reset *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\DELL\\\\Desktop\\\\Mierda2\\\\Estudio\\\\UPC\\\\CICLO 2026 - 1\\\\OPEN SOURCE\\\\catch-up-platform-master\" -Recurse -Directory)"
     ]
   }
 }
