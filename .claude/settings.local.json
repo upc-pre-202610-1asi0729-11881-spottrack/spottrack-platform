@@ -11,7 +11,8 @@
       "Bash(git merge *)",
       "Bash(git checkout *)",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\DELL\\\\Desktop\\\\Mierda2\\\\Estudio\\\\UPC\\\\CICLO 2026 - 1\\\\OPEN SOURCE\\\\spottrack-platform\" -Recurse -Directory)",
-      "Bash(Select-Object -ExpandProperty FullName)"
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "WebSearch"
     ]
   }
 }
