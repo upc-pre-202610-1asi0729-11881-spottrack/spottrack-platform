@@ -1,9 +1,10 @@
 package com.spottrack.platform.shared.domain.model.valueobjects;
 
 import jakarta.persistence.Embeddable;
+import lombok.Getter;
 
 import java.math.BigDecimal;
-
+@Getter
 @Embeddable
 public record Money(BigDecimal amount, String currency) {
     public Money {
