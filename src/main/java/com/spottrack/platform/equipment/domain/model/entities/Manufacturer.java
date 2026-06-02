@@ -16,7 +16,7 @@ public class Manufacturer {
      * Class is still missing the contactEmail, this one has to be a valueobject in shared-kernel
      */
 
-    public Manufacturer(String name, String country, String website){
+    protected Manufacturer(String name, String country, String website){
         this.name=name;
         this.country=country;
         this.website=website;
