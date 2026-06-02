@@ -7,10 +7,6 @@ import java.math.BigDecimal;
 @Embeddable
 public record Money(BigDecimal amount, String currency) {
     public Money {
-        if (!currency.matches("[A-Z]{3}")) {
-            throw new IllegalArgumentException("money.error.currency.invalidFormat");
-        }
-
         if (amount == null) {
             throw new IllegalArgumentException("money.error.amount.null");
         }
@@ -20,6 +16,8 @@ public record Money(BigDecimal amount, String currency) {
         if (currency == null || currency.isBlank()) {
             throw new IllegalArgumentException("money.error.currency.blank");
         }
-
+        if (!currency.matches("[A-Z]{3}")) {
+            throw new IllegalArgumentException("money.error.currency.invalidFormat");
+        }
     }
 }
