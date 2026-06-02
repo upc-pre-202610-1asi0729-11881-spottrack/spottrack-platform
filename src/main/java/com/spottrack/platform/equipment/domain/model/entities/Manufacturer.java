@@ -2,9 +2,11 @@ package com.spottrack.platform.equipment.domain.model.entities;
 
 import com.spottrack.platform.equipment.domain.model.valueobjects.ManufacturerId;
 import jakarta.persistence.Embeddable;
+import lombok.Getter;
 
 import java.util.UUID;
 
+@Getter
 @Embeddable
 public class Manufacturer {
     private final ManufacturerId id;

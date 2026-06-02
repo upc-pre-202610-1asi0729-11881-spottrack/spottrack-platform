@@ -5,11 +5,13 @@ import com.spottrack.platform.equipment.domain.model.valueobjects.EquipmentId;
 import com.spottrack.platform.equipment.domain.model.valueobjects.ZoneId;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Embeddable;
+import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+@Getter
 @Embeddable
 public class Zone {
     private final ZoneId id;

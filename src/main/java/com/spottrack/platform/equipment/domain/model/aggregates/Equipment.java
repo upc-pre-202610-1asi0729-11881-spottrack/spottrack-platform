@@ -7,11 +7,13 @@ import com.spottrack.platform.shared.domain.model.aggregates.AbstractDomainAggre
 import com.spottrack.platform.shared.domain.model.valueobjects.Money;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
+import lombok.Getter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
+@Getter
 @Entity
 public class Equipment extends AbstractDomainAggregateRoot<Equipment> {
 
