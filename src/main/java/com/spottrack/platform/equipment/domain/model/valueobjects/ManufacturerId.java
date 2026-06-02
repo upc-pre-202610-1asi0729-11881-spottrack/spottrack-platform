@@ -1,23 +1,20 @@
 package com.spottrack.platform.equipment.domain.model.valueobjects;
 
-import jakarta.persistence.Embeddable;
 
-import java.util.UUID;
+import jakarta.persistence.Embedded;
 
-
-@Embeddable
-public record EquipmentId(String uuid) {
-    private static final String NOT_BLANK= "equipment.error.equipmentId.notBlank";
+public record ManufacturerId( String uuid) {
+    private static final String NOT_BLANK= "manufacturer.error.manufacturerId.notBlank";
     private static final String ID_ZERO = "id.error.invalid";
-    public EquipmentId {
+    public ManufacturerId {
+
+
         if (uuid == null || uuid.isBlank()) {
             throw new IllegalArgumentException(NOT_BLANK);
         }
 
-        if (uuid.isBlank()){
+        if (uuid == "0"){
             throw new IllegalArgumentException(ID_ZERO);
         }
-
-
     }
 }
