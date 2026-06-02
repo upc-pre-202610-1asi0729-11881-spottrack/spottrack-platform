@@ -22,4 +22,6 @@ public class Manufacturer {
         this.website=website;
         this.id = new ManufacturerId( UUID.randomUUID().toString());
     }
+
+
 }
