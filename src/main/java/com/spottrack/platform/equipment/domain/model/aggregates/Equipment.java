@@ -16,6 +16,7 @@ public class Equipment {
     private EquipmentStatus status;
     private String equipmentName;
     private String model;
+
     private Manufacturer manufacturer;
 
     Equipment(EquipmentStatus status, String equipmentName, String model, Manufacturer manufacturer){
@@ -23,6 +24,8 @@ public class Equipment {
         this.equipmentName = equipmentName;
         this.model = model;
         this.manufacturer = manufacturer;
-
+        this.status = status;
     }
+
+
 }

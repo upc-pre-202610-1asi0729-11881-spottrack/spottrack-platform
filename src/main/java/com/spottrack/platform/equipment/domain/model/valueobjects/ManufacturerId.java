@@ -1,5 +1,8 @@
 package com.spottrack.platform.equipment.domain.model.valueobjects;
 
+
+import jakarta.persistence.Embedded;
+
 public record ManufacturerId( String uuid) {
     private static final String NOT_BLANK= "manufacturer.error.manufacturerId.notBlank";
     private static final String ID_ZERO = "id.error.invalid";
@@ -10,7 +13,7 @@ public record ManufacturerId( String uuid) {
             throw new IllegalArgumentException(NOT_BLANK);
         }
 
-        if (uuid.contains("-") || uuid == "0"){
+        if (uuid == "0"){
             throw new IllegalArgumentException(ID_ZERO);
         }
     }
