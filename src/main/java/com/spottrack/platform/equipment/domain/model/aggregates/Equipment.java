@@ -1,5 +1,6 @@
 package com.spottrack.platform.equipment.domain.model.aggregates;
 
+import com.spottrack.platform.equipment.domain.model.commands.RegisterEquipment;
 import com.spottrack.platform.equipment.domain.model.entities.Manufacturer;
 import com.spottrack.platform.equipment.domain.model.valueobjects.EquipmentId;
 import com.spottrack.platform.equipment.domain.model.valueobjects.EquipmentStatus;
@@ -7,10 +8,13 @@ import com.spottrack.platform.shared.domain.model.aggregates.AbstractDomainAggre
 import com.spottrack.platform.shared.domain.model.valueobjects.Money;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
+import lombok.Getter;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.UUID;
 
+@Getter
 @Entity
 public class Equipment extends AbstractDomainAggregateRoot<Equipment> {
 
@@ -21,6 +25,7 @@ public class Equipment extends AbstractDomainAggregateRoot<Equipment> {
     private String model;
     private Money purchasePrice;
     private Manufacturer manufacturer;
+    private LocalDate maintenanceThreshold;
 
     protected Equipment() {}
 
@@ -31,5 +36,21 @@ public class Equipment extends AbstractDomainAggregateRoot<Equipment> {
         this.model = model;
         this.manufacturer = manufacturer;
         this.purchasePrice = new Money(amount, currency);
+        /**
+         * Now is the default date, an Admin must define the date manually
+         */
+        this.maintenanceThreshold = LocalDate.now();
     }
+
+    public Equipment(RegisterEquipment command) {
+        this.id = new EquipmentId(UUID.randomUUID().toString());
+        this.status = command.status();
+        this.equipmentName = command.equipmentName();
+        this.model = command.model();
+        this.manufacturer = new Manufacturer(command.manufacturerName(), command.manufacturerCountry(), command.manufacturerWebsite());
+        this.purchasePrice = command.purchasePrice();
+        this.maintenanceThreshold = LocalDate.now();
+    }
+
+
 }

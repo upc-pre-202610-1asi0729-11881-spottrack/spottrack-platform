@@ -2,9 +2,11 @@ package com.spottrack.platform.equipment.domain.model.entities;
 
 import com.spottrack.platform.equipment.domain.model.valueobjects.ManufacturerId;
 import jakarta.persistence.Embeddable;
+import lombok.Getter;
 
 import java.util.UUID;
 
+@Getter
 @Embeddable
 public class Manufacturer {
     private final ManufacturerId id;
@@ -16,7 +18,7 @@ public class Manufacturer {
      * Class is still missing the contactEmail, this one has to be a valueobject in shared-kernel
      */
 
-    protected Manufacturer(String name, String country, String website){
+    public Manufacturer(String name, String country, String website){
         this.name=name;
         this.country=country;
         this.website=website;
