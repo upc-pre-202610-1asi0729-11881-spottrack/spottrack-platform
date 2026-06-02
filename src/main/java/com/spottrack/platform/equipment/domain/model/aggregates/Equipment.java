@@ -9,7 +9,7 @@ import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
@@ -22,7 +22,7 @@ public class Equipment extends AbstractDomainAggregateRoot<Equipment> {
     private String model;
     private Money purchasePrice;
     private Manufacturer manufacturer;
-    private Date maintenanceThreshold;
+    private LocalDate maintenanceThreshold;
 
     protected Equipment() {}
 
@@ -33,6 +33,9 @@ public class Equipment extends AbstractDomainAggregateRoot<Equipment> {
         this.model = model;
         this.manufacturer = manufacturer;
         this.purchasePrice = new Money(amount, currency);
-        this.maintenanceThreshold = new Date();
+        /**
+         * Now is the default date, an Admin must define the date manually
+         */
+        this.maintenanceThreshold = LocalDate.now();
     }
 }
