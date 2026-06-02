@@ -7,6 +7,7 @@ import com.spottrack.platform.shared.domain.model.valueobjects.Money;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 
@@ -20,12 +21,13 @@ public class Equipment {
     private Money purchasePrice;
     private Manufacturer manufacturer;
 
-    Equipment(EquipmentStatus status, String equipmentName, String model, Manufacturer manufacturer){
+    Equipment(EquipmentStatus status, String equipmentName, String model, Manufacturer manufacturer, BigDecimal amount, String currency){
         this.id = new EquipmentId(UUID.randomUUID().toString());
         this.equipmentName = equipmentName;
         this.model = model;
         this.manufacturer = manufacturer;
         this.status = status;
+        this.purchasePrice = new Money(amount, currency);
     }
 
 
