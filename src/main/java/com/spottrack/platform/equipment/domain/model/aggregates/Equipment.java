@@ -9,6 +9,7 @@ import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.UUID;
 
 @Entity
@@ -21,6 +22,7 @@ public class Equipment extends AbstractDomainAggregateRoot<Equipment> {
     private String model;
     private Money purchasePrice;
     private Manufacturer manufacturer;
+    private Date maintenanceThreshold;
 
     protected Equipment() {}
 
@@ -31,5 +33,6 @@ public class Equipment extends AbstractDomainAggregateRoot<Equipment> {
         this.model = model;
         this.manufacturer = manufacturer;
         this.purchasePrice = new Money(amount, currency);
+        this.maintenanceThreshold = new Date();
     }
 }
