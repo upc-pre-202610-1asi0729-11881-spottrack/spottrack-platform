@@ -3,10 +3,10 @@ package com.spottrack.platform.equipment.domain.model.valueobjects;
 import jakarta.persistence.Embeddable;
 
 @Embeddable
-public record ZoneId(String uuid) {
-    private static final String NOT_BLANK = "zone.error.zoneId.notBlank";
+public record GymId(String uuid) {
+    private static final String NOT_BLANK = "gym.error.gymId.notBlank";
 
-    public ZoneId {
+    public GymId {
         if (uuid == null || uuid.isBlank()) {
             throw new IllegalArgumentException(NOT_BLANK);
         }
