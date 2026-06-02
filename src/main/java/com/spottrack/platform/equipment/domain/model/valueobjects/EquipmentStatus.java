@@ -6,5 +6,7 @@ import jakarta.persistence.Embeddable;
 public enum EquipmentStatus {
     AVAILABLE,
     OUT_OF_SERVICE,
-    IN_MAINTENANCE
+    MAINTENANCE,
+    ACTIVE,
+    OCCUPIED
 }
