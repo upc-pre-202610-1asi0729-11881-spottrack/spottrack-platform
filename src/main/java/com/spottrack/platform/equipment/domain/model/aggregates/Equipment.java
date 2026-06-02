@@ -1,5 +1,6 @@
 package com.spottrack.platform.equipment.domain.model.aggregates;
 
+import com.spottrack.platform.equipment.domain.model.commands.RegisterEquipment;
 import com.spottrack.platform.equipment.domain.model.entities.Manufacturer;
 import com.spottrack.platform.equipment.domain.model.valueobjects.EquipmentId;
 import com.spottrack.platform.equipment.domain.model.valueobjects.EquipmentStatus;
@@ -40,4 +41,16 @@ public class Equipment extends AbstractDomainAggregateRoot<Equipment> {
          */
         this.maintenanceThreshold = LocalDate.now();
     }
+
+    public Equipment(RegisterEquipment command) {
+        this.id = new EquipmentId(UUID.randomUUID().toString());
+        this.status = command.status();
+        this.equipmentName = command.equipmentName();
+        this.model = command.model();
+        this.manufacturer = new Manufacturer(command.manufacturerName(), command.manufacturerCountry(), command.manufacturerWebsite());
+        this.purchasePrice = command.purchasePrice();
+        this.maintenanceThreshold = LocalDate.now();
+    }
+
+
 }
