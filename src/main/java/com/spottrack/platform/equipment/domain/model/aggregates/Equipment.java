@@ -3,6 +3,7 @@ package com.spottrack.platform.equipment.domain.model.aggregates;
 import com.spottrack.platform.equipment.domain.model.entities.Manufacturer;
 import com.spottrack.platform.equipment.domain.model.valueobjects.EquipmentId;
 import com.spottrack.platform.equipment.domain.model.valueobjects.EquipmentStatus;
+import com.spottrack.platform.shared.domain.model.valueobjects.Money;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 
@@ -16,7 +17,7 @@ public class Equipment {
     private EquipmentStatus status;
     private String equipmentName;
     private String model;
-
+    private Money purchasePrice;
     private Manufacturer manufacturer;
 
     Equipment(EquipmentStatus status, String equipmentName, String model, Manufacturer manufacturer){
