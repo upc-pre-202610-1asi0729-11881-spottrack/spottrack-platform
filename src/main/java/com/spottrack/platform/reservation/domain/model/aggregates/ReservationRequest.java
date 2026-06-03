@@ -3,6 +3,8 @@ package com.spottrack.platform.reservation.domain.model.aggregates;
 import com.spottrack.platform.reservation.domain.model.commands.RequestAlternativeEquipment;
 import com.spottrack.platform.reservation.domain.model.commands.RequestEquipmentStatusChangeToAvailable;
 import com.spottrack.platform.reservation.domain.model.commands.SubmitRequestOccupyEquipment;
+import com.spottrack.platform.reservation.domain.model.events.EquipmentStatusChangeToAvailableRequestedEvent;
+import com.spottrack.platform.reservation.domain.model.events.RequestOccupyEquipmentSubmittedEvent;
 import com.spottrack.platform.reservation.domain.model.valueobjects.ReservationRequestId;
 import com.spottrack.platform.reservation.domain.model.valueobjects.ReservationRequestStatus;
 import com.spottrack.platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
@@ -49,6 +51,7 @@ public class ReservationRequest extends AbstractDomainAggregateRoot<ReservationR
         this.equipmentId = command.equipmentId();
         this.status = ReservationRequestStatus.SUBMITTED;
         this.requestedAt = LocalDateTime.now();
+        registerDomainEvent(new RequestOccupyEquipmentSubmittedEvent(this.id.uuid(), this.equipmentId, this.clientId));
     }
 
     /**
@@ -68,5 +71,6 @@ public class ReservationRequest extends AbstractDomainAggregateRoot<ReservationR
      */
     public void requestEquipmentRelease(RequestEquipmentStatusChangeToAvailable command) {
         this.status = ReservationRequestStatus.AVAILABLE_REQUESTED;
+        registerDomainEvent(new EquipmentStatusChangeToAvailableRequestedEvent(this.id.uuid(), this.equipmentId));
     }
 }

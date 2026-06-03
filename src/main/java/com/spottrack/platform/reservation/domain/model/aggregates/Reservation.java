@@ -1,6 +1,9 @@
 package com.spottrack.platform.reservation.domain.model.aggregates;
 
 import com.spottrack.platform.reservation.domain.model.commands.InitiateExpressReservation;
+import com.spottrack.platform.reservation.domain.model.events.ReservationCancelledEvent;
+import com.spottrack.platform.reservation.domain.model.events.ReservationEndedEvent;
+import com.spottrack.platform.reservation.domain.model.events.ReservationTimerStartedEvent;
 import com.spottrack.platform.reservation.domain.model.valueobjects.ReservationId;
 import com.spottrack.platform.reservation.domain.model.valueobjects.ReservationRequestId;
 import com.spottrack.platform.reservation.domain.model.valueobjects.ReservationStatus;
@@ -61,6 +64,7 @@ public class Reservation extends AbstractDomainAggregateRoot<Reservation> {
             throw new IllegalStateException("reservation.error.timerOnlyForActive");
         }
         this.timerExpiry = LocalDateTime.now().plusMinutes(durationMinutes);
+        registerDomainEvent(new ReservationTimerStartedEvent(this.id.uuid(), this.equipmentId, this.timerExpiry));
     }
 
     /**
@@ -71,6 +75,7 @@ public class Reservation extends AbstractDomainAggregateRoot<Reservation> {
             throw new IllegalStateException("reservation.error.cancelOnlyForActive");
         }
         this.status = ReservationStatus.CANCELLED;
+        registerDomainEvent(new ReservationCancelledEvent(this.id.uuid(), this.equipmentId, this.clientId));
     }
 
     /**
@@ -81,5 +86,6 @@ public class Reservation extends AbstractDomainAggregateRoot<Reservation> {
             throw new IllegalStateException("reservation.error.endOnlyForActive");
         }
         this.status = ReservationStatus.ENDED;
+        registerDomainEvent(new ReservationEndedEvent(this.id.uuid(), this.equipmentId, this.clientId));
     }
 }
