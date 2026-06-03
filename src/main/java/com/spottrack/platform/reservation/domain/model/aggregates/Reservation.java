@@ -1,0 +1,85 @@
+package com.spottrack.platform.reservation.domain.model.aggregates;
+
+import com.spottrack.platform.reservation.domain.model.commands.InitiateExpressReservation;
+import com.spottrack.platform.reservation.domain.model.valueobjects.ReservationId;
+import com.spottrack.platform.reservation.domain.model.valueobjects.ReservationRequestId;
+import com.spottrack.platform.reservation.domain.model.valueobjects.ReservationStatus;
+import com.spottrack.platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
+import jakarta.persistence.EmbeddedId;
+import jakarta.persistence.Entity;
+import lombok.Getter;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+/**
+ * Aggregate root representing an active equipment reservation.
+ * Can be created via express flow (no prior request) or from a submitted ReservationRequest.
+ *
+ * The timer tracks how long the client has to use the equipment.
+ * When the timer expires, a policy triggers RequestEquipmentStatusChangeToAvailable.
+ */
+@Getter
+@Entity
+public class Reservation extends AbstractDomainAggregateRoot<Reservation> {
+
+    @EmbeddedId
+    private ReservationId id;
+
+    private String clientId;
+
+    // String reference to Equipment bounded context
+    private String equipmentId;
+
+    private ReservationStatus status;
+
+    private LocalDateTime startedAt;
+
+    // Set when StartReservationTimer is handled — null until the timer begins
+    private LocalDateTime timerExpiry;
+
+    protected Reservation() {}
+
+    /**
+     * Express reservation: client skips the request flow and reserves equipment directly.
+     * Starts in ACTIVE status with the timer not yet running.
+     */
+    public Reservation(InitiateExpressReservation command) {
+        this.id = new ReservationId(UUID.randomUUID().toString());
+        this.clientId = command.clientId();
+        this.equipmentId = command.equipmentId();
+        this.status = ReservationStatus.ACTIVE;
+        this.startedAt = LocalDateTime.now();
+    }
+
+    /**
+     * Sets the timer expiry. Only makes sense when the reservation is ACTIVE.
+     * durationMinutes comes from the StartReservationTimer command.
+     */
+    public void startTimer(int durationMinutes) {
+        if (this.status != ReservationStatus.ACTIVE) {
+            throw new IllegalStateException("reservation.error.timerOnlyForActive");
+        }
+        this.timerExpiry = LocalDateTime.now().plusMinutes(durationMinutes);
+    }
+
+    /**
+     * Client cancels the reservation. Equipment should be released after this.
+     */
+    public void cancel() {
+        if (this.status != ReservationStatus.ACTIVE) {
+            throw new IllegalStateException("reservation.error.cancelOnlyForActive");
+        }
+        this.status = ReservationStatus.CANCELLED;
+    }
+
+    /**
+     * Client ends the reservation early. Triggers a notification to the Alerts context.
+     */
+    public void end() {
+        if (this.status != ReservationStatus.ACTIVE) {
+            throw new IllegalStateException("reservation.error.endOnlyForActive");
+        }
+        this.status = ReservationStatus.ENDED;
+    }
+}
