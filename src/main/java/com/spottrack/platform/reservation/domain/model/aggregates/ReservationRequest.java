@@ -8,8 +8,11 @@ import com.spottrack.platform.reservation.domain.model.events.RequestOccupyEquip
 import com.spottrack.platform.reservation.domain.model.valueobjects.ReservationRequestId;
 import com.spottrack.platform.reservation.domain.model.valueobjects.ReservationRequestStatus;
 import com.spottrack.platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
+import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -30,13 +33,18 @@ public class ReservationRequest extends AbstractDomainAggregateRoot<ReservationR
     @EmbeddedId
     private ReservationRequestId id;
 
+    @Column(nullable = false)
     private String clientId;
 
     // String reference to Equipment bounded context — no direct object dependency
+    @Column(nullable = false)
     private String equipmentId;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private ReservationRequestStatus status;
 
+    @Column(nullable = false)
     private LocalDateTime requestedAt;
 
     protected ReservationRequest() {}

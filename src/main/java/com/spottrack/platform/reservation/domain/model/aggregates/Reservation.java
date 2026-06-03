@@ -5,11 +5,13 @@ import com.spottrack.platform.reservation.domain.model.events.ReservationCancell
 import com.spottrack.platform.reservation.domain.model.events.ReservationEndedEvent;
 import com.spottrack.platform.reservation.domain.model.events.ReservationTimerStartedEvent;
 import com.spottrack.platform.reservation.domain.model.valueobjects.ReservationId;
-import com.spottrack.platform.reservation.domain.model.valueobjects.ReservationRequestId;
 import com.spottrack.platform.reservation.domain.model.valueobjects.ReservationStatus;
 import com.spottrack.platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
+import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -29,16 +31,22 @@ public class Reservation extends AbstractDomainAggregateRoot<Reservation> {
     @EmbeddedId
     private ReservationId id;
 
+    @Column(nullable = false)
     private String clientId;
 
     // String reference to Equipment bounded context
+    @Column(nullable = false)
     private String equipmentId;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private ReservationStatus status;
 
+    @Column(nullable = false)
     private LocalDateTime startedAt;
 
     // Set when StartReservationTimer is handled — null until the timer begins
+    @Column(nullable = true)
     private LocalDateTime timerExpiry;
 
     protected Reservation() {}
