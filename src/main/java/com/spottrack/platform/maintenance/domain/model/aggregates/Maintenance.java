@@ -1,0 +1,47 @@
+package com.spottrack.platform.maintenance.domain.model.aggregates;
+
+import com.spottrack.platform.maintenance.domain.model.commands.RequestMaintenance;
+import com.spottrack.platform.maintenance.domain.model.events.MaintenanceRequestedEvent;
+import com.spottrack.platform.maintenance.domain.model.valueobjects.MaintenanceId;
+import com.spottrack.platform.maintenance.domain.model.valueobjects.MaintenanceStatus;
+import com.spottrack.platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
+import jakarta.persistence.Column;
+import jakarta.persistence.EmbeddedId;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import lombok.Getter;
+
+import java.util.UUID;
+
+@Getter
+@Entity
+public class Maintenance extends AbstractDomainAggregateRoot<Maintenance> {
+
+    @EmbeddedId
+    private MaintenanceId id;
+
+    @Column(nullable = false)
+    private String equipmentId;
+
+    @Column(nullable = false)
+    private String requestedBy;
+
+    @Column(nullable = false)
+    private String description;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private MaintenanceStatus status;
+
+    protected Maintenance() {}
+
+    public Maintenance(RequestMaintenance command) {
+        this.id = new MaintenanceId(UUID.randomUUID().toString());
+        this.equipmentId = command.equipmentId();
+        this.requestedBy = command.requestedBy();
+        this.description = command.description();
+        this.status = MaintenanceStatus.REQUESTED;
+        registerDomainEvent(new MaintenanceRequestedEvent(this.id.uuid(), this.equipmentId, this.requestedBy));
+    }
+}
