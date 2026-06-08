@@ -1,4 +1,4 @@
 package com.spottrack.platform.routine.domain.model.queries;
 
-public class GetAllRoutinesByProfileIdQuery {
-}
+public record GetAllRoutinesByProfileIdQuery(Long profileId) { }
+

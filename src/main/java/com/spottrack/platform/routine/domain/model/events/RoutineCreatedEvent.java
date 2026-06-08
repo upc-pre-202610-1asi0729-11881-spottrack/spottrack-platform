@@ -1,4 +1,17 @@
 package com.spottrack.platform.routine.domain.model.events;
 
-public class RoutineCreatedEvent {
+import com.spottrack.platform.routine.domain.model.aggregates.Routine;
+
+public record RoutineCreatedEvent(
+        Long routineId,
+        String routineName,
+        Long profileId
+) {
+    public static RoutineCreatedEvent from(Routine routine) {
+        return new RoutineCreatedEvent(
+                routine.getId(),
+                routine.getName().routineName(),
+                routine.getProfileId().profileId()
+        );
+    }
 }
