@@ -10,7 +10,7 @@ public record RoutineCreatedEvent(
     public static RoutineCreatedEvent from(Routine routine) {
         return new RoutineCreatedEvent(
                 routine.getId(),
-                routine.getName().routineName(),
+                routine.getRoutineName().routineName(),
                 routine.getProfileId().profileId()
         );
     }

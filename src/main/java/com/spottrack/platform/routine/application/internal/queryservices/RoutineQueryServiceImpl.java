@@ -4,7 +4,6 @@ import com.spottrack.platform.routine.application.queryservices.RoutineQueryServ
 import com.spottrack.platform.routine.domain.model.aggregates.Routine;
 import com.spottrack.platform.routine.domain.model.queries.GetAllRoutinesByProfileIdQuery;
 import com.spottrack.platform.routine.domain.model.queries.GetRoutineByIdQuery;
-import com.spottrack.platform.routine.domain.model.valueobjects.ProfileId;
 import com.spottrack.platform.routine.domain.repositories.RoutineRepository;
 import org.springframework.stereotype.Service;
 
