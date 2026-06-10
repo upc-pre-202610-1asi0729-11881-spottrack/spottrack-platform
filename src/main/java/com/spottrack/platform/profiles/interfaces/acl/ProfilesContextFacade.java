@@ -1,4 +1,6 @@
 package com.spottrack.platform.profiles.interfaces.acl;
 
-public class ProfilesContextFacade {
+public interface ProfilesContextFacade {
+    Long fetchClientIdByEmail(String email);
+    Long fetchAdminIdByEmail(String email);
 }

@@ -1,4 +1,11 @@
 package com.spottrack.platform.profiles.interfaces.events;
 
-public class RoleAssignedIntegrationEvent {
+public record RoleAssignedIntegrationEvent(
+        Long userId,
+        String email,
+        String role,
+        String firstName,
+        String lastName,
+        String phoneNumber,
+        String dni) {
 }
