@@ -1,4 +1,6 @@
 package com.spottrack.platform.profiles.domain.model.queries;
 
-public class GetClientByEmailQuery {
+import com.spottrack.platform.profiles.domain.model.valueobjects.EmailAddress;
+
+public record GetClientByEmailQuery(EmailAddress emailAddress) {
 }
