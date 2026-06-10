@@ -1,4 +1,4 @@
 package com.spottrack.platform.profiles.interfaces.rest;
 
-public class ProfilesController {
+public class ClientsController {
 }
