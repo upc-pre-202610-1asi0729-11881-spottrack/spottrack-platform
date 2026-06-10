@@ -1,0 +1,56 @@
+package com.spottrack.platform.profiles.domain.model.aggregates;
+
+import com.spottrack.platform.profiles.domain.model.commands.CreateAdminCommand;
+import com.spottrack.platform.profiles.domain.model.commands.UpdateAdminProfileCommand;
+import com.spottrack.platform.profiles.domain.model.events.AdminRegisteredEvent;
+import com.spottrack.platform.profiles.domain.model.valueobjects.EmailAddress;
+import com.spottrack.platform.profiles.domain.model.valueobjects.PersonInfo;
+import com.spottrack.platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.util.Objects;
+
+public class Admin extends AbstractDomainAggregateRoot<Admin> {
+    @Getter
+    @Setter
+    private Long id;
+
+    @Getter
+    private Long userId;
+
+    @Getter
+    private PersonInfo personInfo;
+
+    private EmailAddress emailAddress;
+
+    public Admin(Long id, Long userId, PersonInfo personInfo, EmailAddress emailAddress){
+        this.id = id;
+        this.userId = userId;
+        this.personInfo = Objects.requireNonNull(personInfo, "PersonInfo must not be null");
+        this.emailAddress = Objects.requireNonNull(emailAddress,"Email must not be null");
+    }
+    public Admin(CreateAdminCommand command){
+        this(
+                null,
+                command.userId(),
+                new PersonInfo(command.firstName(), command.lastName(), command.phoneNumber(), command.dni()),
+                command.emailAddress()
+        );
+    }
+
+    public void updateProfile(UpdateAdminProfileCommand command) {
+        this.personInfo = new PersonInfo(command.firstName(),command.lastName(),command.phoneNumber(), this.personInfo.dni());
+    }
+
+    public PersonInfo getPersonInfo(){return personInfo;}
+
+    public String getFullName(){return personInfo.getFullName();}
+
+    public String getEmailAddress() {return emailAddress.address();}
+
+    public void onCreated() {
+        registerDomainEvent(AdminRegisteredEvent.from(this));
+    }
+
+}
