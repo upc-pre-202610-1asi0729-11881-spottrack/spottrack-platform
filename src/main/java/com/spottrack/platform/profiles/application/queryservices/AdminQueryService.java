@@ -1,4 +1,12 @@
 package com.spottrack.platform.profiles.application.queryservices;
 
-public class AdminQueryService {
+import com.spottrack.platform.profiles.domain.model.aggregates.Admin;
+import com.spottrack.platform.profiles.domain.model.queries.GetAdminByEmailQuery;
+import com.spottrack.platform.profiles.domain.model.queries.GetAdminByIdQuery;
+
+import java.util.Optional;
+
+public interface AdminQueryService {
+    Optional<Admin> handle(GetAdminByIdQuery query);
+    Optional<Admin> handle(GetAdminByEmailQuery query);
 }
