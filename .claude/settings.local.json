@@ -49,7 +49,10 @@
       "Bash(Select-Object Name)",
       "Bash(mvn compile *)",
       "Bash(./mvnw compile *)",
-      "Bash(bash mvnw compile -q)"
+      "Bash(bash mvnw compile -q)",
+      "Bash(chmod +x /Users/orion10_/IdeaProjects/spottrack-platform/mvnw)",
+      "Bash(/Users/orion10_/IdeaProjects/spottrack-platform/mvnw compile *)",
+      "Bash(git -C /Users/orion10_/IdeaProjects/spottrack-platform status --short)"
     ]
   }
 }
