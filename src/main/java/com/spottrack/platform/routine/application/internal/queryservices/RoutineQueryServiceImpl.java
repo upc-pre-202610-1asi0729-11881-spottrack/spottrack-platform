@@ -2,7 +2,7 @@ package com.spottrack.platform.routine.application.internal.queryservices;
 
 import com.spottrack.platform.routine.application.queryservices.RoutineQueryService;
 import com.spottrack.platform.routine.domain.model.aggregates.Routine;
-import com.spottrack.platform.routine.domain.model.queries.GetAllRoutinesByProfileIdQuery;
+import com.spottrack.platform.routine.domain.model.queries.GetAllRoutinesByClientIdQuery;
 import com.spottrack.platform.routine.domain.model.queries.GetRoutineByIdQuery;
 import com.spottrack.platform.routine.domain.repositories.RoutineRepository;
 import org.springframework.stereotype.Service;
@@ -21,7 +21,7 @@ public class RoutineQueryServiceImpl implements RoutineQueryService {
         return routineRepository.findById(query.routineId());
     }
     @Override
-    public List<Routine> handle(GetAllRoutinesByProfileIdQuery query) {
-        return routineRepository.findAllByProfileId((query.profileId()));
+    public List<Routine> handle(GetAllRoutinesByClientIdQuery query) {
+        return routineRepository.findAllByClientId((query.clientId()));
     }
 }
