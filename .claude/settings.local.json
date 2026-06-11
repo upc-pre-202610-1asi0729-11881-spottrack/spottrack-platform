@@ -46,7 +46,13 @@
       "Bash(dir C:\\\\Users\\\\DELL\\\\Desktop\\\\Mierda2\\\\Estudio\\\\UPC\\\\CICLO 2026 - 1\\\\OPEN SOURCE\\\\catch-up-platform-master\\\\src\\\\main\\\\java\\\\com\\\\acme\\\\catchup\\\\platform\\\\shared\\\\interfaces *)",
       "Bash(dir C:\\\\Users\\\\DELL\\\\Desktop\\\\Mierda2\\\\Estudio\\\\UPC\\\\CICLO 2026 - 1\\\\OPEN SOURCE\\\\catch-up-platform-master\\\\src\\\\main\\\\java\\\\com\\\\acme\\\\catchup\\\\platform\\\\shared\\\\interfaces\\\\rest *)",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\DELL\\\\Desktop\\\\Mierda2\\\\Estudio\\\\UPC\\\\CICLO 2026 - 1\\\\OPEN SOURCE\\\\spottrack-platform\" -Directory)",
-      "Bash(Select-Object Name)"
+      "Bash(Select-Object Name)",
+      "Bash(mvn compile *)",
+      "Bash(./mvnw compile *)",
+      "Bash(bash mvnw compile -q)",
+      "Bash(chmod +x /Users/orion10_/IdeaProjects/spottrack-platform/mvnw)",
+      "Bash(/Users/orion10_/IdeaProjects/spottrack-platform/mvnw compile *)",
+      "Bash(git -C /Users/orion10_/IdeaProjects/spottrack-platform status --short)"
     ]
   }
 }
