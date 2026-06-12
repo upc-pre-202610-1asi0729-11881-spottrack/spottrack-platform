@@ -22,8 +22,8 @@ import java.time.LocalDate;
 public class EquipmentPersistenceEntity extends AuditableAbstractPersistenceEntity {
 
 
-    @Column(nullable = false)
-    private EquipmentId id;
+    @Column(nullable = false, unique = true)
+    private String equipmentId;
 
     @Column(nullable = false)
     private EquipmentStatus status;
@@ -36,7 +36,8 @@ public class EquipmentPersistenceEntity extends AuditableAbstractPersistenceEnti
     @Column(nullable = false)
     private Money purchasePrice;
 
-    @OneToMany
+    @Embedded
+    @AttributeOverride(name = "uuid", column = @Column(name = "manufacturer_id", nullable = false))
     private ManufacturerId manufacturerId;
 
     @Column(nullable = true)
