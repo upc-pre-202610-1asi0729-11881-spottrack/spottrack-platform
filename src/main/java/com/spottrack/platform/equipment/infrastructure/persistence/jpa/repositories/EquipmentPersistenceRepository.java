@@ -1,4 +1,4 @@
-package com.spottrack.platform.equipment.infrastructure.persistence.jpa;
+package com.spottrack.platform.equipment.infrastructure.persistence.jpa.repositories;
 
 import com.spottrack.platform.equipment.domain.model.aggregates.Equipment;
 import com.spottrack.platform.equipment.domain.model.valueobjects.EquipmentId;

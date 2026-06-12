@@ -1,0 +1,44 @@
+package com.spottrack.platform.equipment.infrastructure.persistence.jpa.entities;
+
+
+import com.spottrack.platform.equipment.domain.model.entities.Manufacturer;
+import com.spottrack.platform.equipment.domain.model.valueobjects.EquipmentId;
+import com.spottrack.platform.equipment.domain.model.valueobjects.EquipmentStatus;
+import com.spottrack.platform.equipment.domain.model.valueobjects.ManufacturerId;
+import com.spottrack.platform.shared.domain.model.valueobjects.Money;
+import com.spottrack.platform.shared.infrastructure.persistence.jpa.entities.AuditableAbstractPersistenceEntity;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.time.LocalDate;
+
+@Entity
+@Table(name="equipments")
+@Getter
+@Setter
+@NoArgsConstructor
+public class EquipmentPersistenceEntity extends AuditableAbstractPersistenceEntity {
+
+
+    @Column(nullable = false)
+    private EquipmentId id;
+
+    @Column(nullable = false)
+    private EquipmentStatus status;
+
+    @Column(nullable = false)
+    private String equipmentName;
+    @Column(nullable = false)
+    private String model;
+
+    @Column(nullable = false)
+    private Money purchasePrice;
+
+    @OneToMany
+    private ManufacturerId manufacturerId;
+
+    @Column(nullable = true)
+    private LocalDate maintenanceThreshold;
+}

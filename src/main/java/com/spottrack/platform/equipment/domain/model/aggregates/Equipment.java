@@ -19,7 +19,6 @@ import java.util.UUID;
 @Entity
 public class Equipment extends AbstractDomainAggregateRoot<Equipment> {
 
-    @EmbeddedId
     private EquipmentId id;
     private EquipmentStatus status;
 
@@ -27,7 +26,6 @@ public class Equipment extends AbstractDomainAggregateRoot<Equipment> {
     private String model;
     private Money purchasePrice;
 
-    @ManyToOne
     private Manufacturer manufacturer;
     private LocalDate maintenanceThreshold;
 
