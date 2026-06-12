@@ -4,13 +4,16 @@ import com.spottrack.platform.equipment.domain.model.aggregates.Equipment;
 import com.spottrack.platform.equipment.domain.model.valueobjects.EquipmentId;
 import com.spottrack.platform.equipment.domain.model.valueobjects.EquipmentStatus;
 import com.spottrack.platform.equipment.domain.repositories.EquipmentRepository;
+import com.spottrack.platform.equipment.infrastructure.persistence.jpa.repositories.EquipmentPersistenceRepository;
 
 import java.util.Optional;
 
 public class EquipmentRepositoryImpl implements EquipmentRepository {
+    EquipmentPersistenceRepository equipmentPersistenceRepository;
+
     @Override
     public Optional<Equipment> findById(EquipmentId equipmentId) {
-        return Optional.empty();
+        return equipmentPersistenceRepository.findByEquipmentId(equipmentId.uuid()).map(EquipmentPersi);
     }
 
     @Override

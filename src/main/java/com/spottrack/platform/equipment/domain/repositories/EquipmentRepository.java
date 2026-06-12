@@ -4,6 +4,7 @@ import com.spottrack.platform.equipment.domain.model.aggregates.Equipment;
 import com.spottrack.platform.equipment.domain.model.valueobjects.EquipmentId;
 import com.spottrack.platform.equipment.domain.model.valueobjects.EquipmentStatus;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -11,7 +12,9 @@ import java.util.Optional;
  */
 public interface EquipmentRepository {
     Optional<Equipment> findById(EquipmentId equipmentId);
-    Optional<Equipment> findByStatus(EquipmentStatus status);
-    Optional<Equipment> findByName(String equipmentName);
+    List<Equipment> findByStatus(EquipmentStatus status);
+    List<Equipment> findByName(String equipmentName);
+    List<Equipment> findAll();
     Equipment save(Equipment equipment);
+
 }

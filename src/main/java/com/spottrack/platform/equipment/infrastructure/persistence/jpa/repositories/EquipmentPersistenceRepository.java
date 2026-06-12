@@ -6,10 +6,11 @@ import com.spottrack.platform.equipment.domain.model.valueobjects.EquipmentStatu
 import com.spottrack.platform.equipment.infrastructure.persistence.jpa.entities.EquipmentPersistenceEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface EquipmentPersistenceRepository extends JpaRepository<EquipmentPersistenceEntity, Long> {
     Optional<EquipmentPersistenceEntity> findByEquipmentId(String equipmentId);
-    Optional<EquipmentPersistenceEntity> findByEquipmentName(String equipmentName);
-    Optional<EquipmentStatus> findByStatus(String equipmentStatus);
+    List<EquipmentPersistenceEntity> findByEquipmentName(String equipmentName);
+    List<EquipmentStatus> findByStatus(String equipmentStatus);
 }

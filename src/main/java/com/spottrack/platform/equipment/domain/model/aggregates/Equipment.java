@@ -4,18 +4,21 @@ import com.spottrack.platform.equipment.domain.model.commands.RegisterEquipment;
 import com.spottrack.platform.equipment.domain.model.entities.Manufacturer;
 import com.spottrack.platform.equipment.domain.model.valueobjects.EquipmentId;
 import com.spottrack.platform.equipment.domain.model.valueobjects.EquipmentStatus;
+import com.spottrack.platform.equipment.domain.model.valueobjects.ManufacturerId;
 import com.spottrack.platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
 import com.spottrack.platform.shared.domain.model.valueobjects.Money;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
 @Getter
+@Setter
 @Entity
 public class Equipment extends AbstractDomainAggregateRoot<Equipment> {
 
@@ -26,17 +29,17 @@ public class Equipment extends AbstractDomainAggregateRoot<Equipment> {
     private String model;
     private Money purchasePrice;
 
-    private Manufacturer manufacturer;
+    private ManufacturerId manufacturerId;
     private LocalDate maintenanceThreshold;
 
-    protected Equipment() {}
+    public Equipment() {}
 
-    public Equipment(EquipmentStatus status, String equipmentName, String model, Manufacturer manufacturer, BigDecimal amount, String currency) {
+    public Equipment(EquipmentStatus status, String equipmentName, String model, ManufacturerId manufacturerId, BigDecimal amount, String currency) {
         this.id = new EquipmentId(UUID.randomUUID().toString());
         this.status = status;
         this.equipmentName = equipmentName;
         this.model = model;
-        this.manufacturer = manufacturer;
+        this.manufacturerId = manufacturerId;
         this.purchasePrice = new Money(amount, currency);
         /**
          * Now is the default date, an Admin must define the date manually
@@ -49,7 +52,7 @@ public class Equipment extends AbstractDomainAggregateRoot<Equipment> {
         this.status = command.status();
         this.equipmentName = command.equipmentName();
         this.model = command.model();
-        this.manufacturer = new Manufacturer(command.manufacturerName(), command.manufacturerCountry(), command.manufacturerWebsite());
+        this.manufacturerId = command.manufacturerId();
         this.purchasePrice = command.purchasePrice();
         this.maintenanceThreshold = LocalDate.now();
     }
