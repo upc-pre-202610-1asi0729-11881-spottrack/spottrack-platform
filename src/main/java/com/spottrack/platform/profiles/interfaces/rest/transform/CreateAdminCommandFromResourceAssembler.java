@@ -1,7 +1,7 @@
 package com.spottrack.platform.profiles.interfaces.rest.transform;
 
 import com.spottrack.platform.profiles.domain.model.commands.CreateAdminCommand;
-import com.spottrack.platform.profiles.domain.model.valueobjects.DNI;
+import com.spottrack.platform.profiles.domain.model.valueobjects.Dni;
 import com.spottrack.platform.profiles.domain.model.valueobjects.EmailAddress;
 import com.spottrack.platform.profiles.domain.model.valueobjects.PhoneNumber;
 import com.spottrack.platform.profiles.interfaces.rest.resources.CreateAdminResource;
@@ -15,6 +15,6 @@ public class CreateAdminCommandFromResourceAssembler {
                 resource.firstName(),
                 resource.lastName(),
                 new PhoneNumber(resource.phoneNumber()),
-                new DNI(resource.dni()));
+                new Dni(resource.dni()));
     }
 }

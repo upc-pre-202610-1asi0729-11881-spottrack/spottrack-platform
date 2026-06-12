@@ -1,7 +1,7 @@
 package com.spottrack.platform.profiles.infrastructure.persistence.jpa.assemblers;
 
 import com.spottrack.platform.profiles.domain.model.aggregates.Admin;
-import com.spottrack.platform.profiles.domain.model.valueobjects.DNI;
+import com.spottrack.platform.profiles.domain.model.valueobjects.Dni;
 import com.spottrack.platform.profiles.domain.model.valueobjects.EmailAddress;
 import com.spottrack.platform.profiles.domain.model.valueobjects.PersonInfo;
 import com.spottrack.platform.profiles.domain.model.valueobjects.PhoneNumber;
@@ -36,7 +36,7 @@ public final class AdminPersistenceAssembler {
                 embeddable.getFirstName(),
                 embeddable.getLastName(),
                 new PhoneNumber(embeddable.getPhoneNumber()),
-                new DNI(embeddable.getDni()));
+                new Dni(embeddable.getDni()));
     }
 
     private static PersonInfoPersistenceEmbeddable toPersistencePersonInfo(PersonInfo personInfo) {
