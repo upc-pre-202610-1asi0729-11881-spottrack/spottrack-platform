@@ -43,8 +43,8 @@ public class EquipmentsController {
     }
 
     @GetMapping("/{equipmentId}")
-    public ResponseEntity<?> getEquipmentById(EquipmentId id) {
-        var getEquipmentbyId = new GetEquipmentById(id);
+    public ResponseEntity<?> getEquipmentById(@PathVariable String equipmentId) {
+        var getEquipmentbyId = new GetEquipmentById(new EquipmentId(equipmentId));
         var equipment = equipmentQueryService.handle(getEquipmentbyId);
         if (equipment.isEmpty()) return ResponseEntity.notFound().build();
         var equipmentEntity = equipment.get();
