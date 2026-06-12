@@ -8,6 +8,7 @@ import com.spottrack.platform.shared.domain.model.aggregates.AbstractDomainAggre
 import com.spottrack.platform.shared.domain.model.valueobjects.Money;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
+import jakarta.persistence.ManyToOne;
 import lombok.Getter;
 
 import java.math.BigDecimal;
@@ -21,9 +22,12 @@ public class Equipment extends AbstractDomainAggregateRoot<Equipment> {
     @EmbeddedId
     private EquipmentId id;
     private EquipmentStatus status;
+
     private String equipmentName;
     private String model;
     private Money purchasePrice;
+
+    @ManyToOne
     private Manufacturer manufacturer;
     private LocalDate maintenanceThreshold;
 

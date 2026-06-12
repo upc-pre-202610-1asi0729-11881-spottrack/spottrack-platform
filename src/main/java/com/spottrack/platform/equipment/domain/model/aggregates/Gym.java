@@ -6,6 +6,7 @@ import com.spottrack.platform.shared.domain.model.aggregates.AbstractDomainAggre
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
+import jakarta.persistence.OneToMany;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,12 +15,13 @@ import java.util.UUID;
 @Entity
 public class Gym extends AbstractDomainAggregateRoot<Gym> {
 
+    @OneToMany
+    private List<Branch> branchList;
+
     @EmbeddedId
     private GymId id;
     private String name;
 
-    @ElementCollection
-    private List<Branch> branchList;
 
     protected Gym() {}
 
