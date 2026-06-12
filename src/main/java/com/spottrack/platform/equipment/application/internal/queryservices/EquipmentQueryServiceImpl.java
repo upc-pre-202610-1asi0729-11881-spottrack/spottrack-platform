@@ -6,6 +6,7 @@ import com.spottrack.platform.equipment.domain.model.queries.GetEquipmentStatus;
 import com.spottrack.platform.equipment.domain.model.queries.GetEquipments;
 import com.spottrack.platform.equipment.domain.model.queries.GetEquipmentById;
 import com.spottrack.platform.equipment.domain.model.queries.GetEquipmentByName;
+import com.spottrack.platform.equipment.domain.model.valueobjects.EquipmentId;
 import com.spottrack.platform.equipment.infrastructure.persistence.jpa.assemblers.EquipmentPersistenceAssembler;
 import com.spottrack.platform.equipment.infrastructure.persistence.jpa.entities.EquipmentPersistenceEntity;
 import com.spottrack.platform.equipment.infrastructure.persistence.jpa.repositories.EquipmentPersistenceRepository;
@@ -25,18 +26,21 @@ public class EquipmentQueryServiceImpl implements EquipmentQueryService {
 
     @Override
     public Optional<Equipment> handle(GetEquipmentById query) {
-        return Optional.of();
+        var equipment = equipmentPersistenceRepository.findByEquipmentId(query.id().uuid()).map(EquipmentPersistenceAssembler::toDomainFromPersistence);
+        return equipment;
     }
 
     @Override
     public Optional<Equipment> handle(GetEquipmentByName query) {
-        return List.of();
+        var equipment = equipmentPersistenceRepository.findByEquipmentName(query.equipmentName()).map(EquipmentPersistenceAssembler::toDomainFromPersistence);
+        return equipment;
     }
 
     @Override
     public Optional<Equipment> handle(GetEquipmentStatus query) {
-        return List.of();
+        return equipmentPersistenceRepository.findByEquipmentId(query.equipmentId().uuid()).map(EquipmentPersistenceAssembler::toDomainFromPersistence);
     }
+
 
     @Override
     public List<Equipment> handle(GetEquipments query) {
