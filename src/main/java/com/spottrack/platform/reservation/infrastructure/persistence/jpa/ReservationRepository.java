@@ -9,5 +9,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * save(), findById(), findAll() etc. are provided by JpaRepository — no need to redeclare them.
  * Add custom query methods here only when needed (e.g. findByEquipmentIdAndStatus).
  */
-public interface ReservationRepository extends JpaRepository<Reservation, ReservationId> {
+public interface giutReservationRepository extends JpaRepository<Reservation, ReservationId> {
 }
