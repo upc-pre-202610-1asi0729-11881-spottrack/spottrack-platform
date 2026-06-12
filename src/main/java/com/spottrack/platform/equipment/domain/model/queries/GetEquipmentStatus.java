@@ -1,10 +1,13 @@
 package com.spottrack.platform.equipment.domain.model.queries;
 
 import com.spottrack.platform.equipment.domain.model.valueobjects.EquipmentId;
+import com.spottrack.platform.equipment.domain.model.valueobjects.EquipmentStatus;
 
-public record GetEquipmentsById(EquipmentId id) {
-    public GetEquipmentsById {
-        if (id == null){
+public record GetEquipmentStatus(
+        EquipmentId equipmentId
+) {
+    public GetEquipmentStatus {
+        if (equipmentId == null){
             throw new IllegalArgumentException("id must not be null");
         }
     }
