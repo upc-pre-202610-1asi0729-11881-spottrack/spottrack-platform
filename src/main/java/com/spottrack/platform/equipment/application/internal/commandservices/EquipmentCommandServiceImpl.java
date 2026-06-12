@@ -5,7 +5,7 @@ import com.spottrack.platform.equipment.domain.model.aggregates.Equipment;
 import com.spottrack.platform.equipment.domain.model.commands.DefineMaintenanceThreshold;
 import com.spottrack.platform.equipment.domain.model.commands.MarkEquipmentOutOfService;
 import com.spottrack.platform.equipment.domain.model.commands.RegisterEquipment;
-import com.spottrack.platform.equipment.infrastructure.persistence.jpa.EquipmentPersistenceRepository;
+import com.spottrack.platform.equipment.infrastructure.persistence.jpa.repositories.EquipmentPersistenceRepository;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
 import jakarta.transaction.Transactional;

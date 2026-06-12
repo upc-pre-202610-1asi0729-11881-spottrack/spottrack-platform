@@ -14,7 +14,7 @@ public record ManufacturerId( String uuid) {
             throw new IllegalArgumentException(NOT_BLANK);
         }
 
-        if (uuid == "0"){
+        if (uuid.equals("0")){
             throw new IllegalArgumentException(ID_ZERO);
         }
     }

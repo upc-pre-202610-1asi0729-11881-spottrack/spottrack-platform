@@ -1,6 +1,7 @@
 package com.spottrack.platform.equipment.domain.model.commands;
 
 import com.spottrack.platform.equipment.domain.model.valueobjects.EquipmentStatus;
+import com.spottrack.platform.equipment.domain.model.valueobjects.ManufacturerId;
 import com.spottrack.platform.shared.domain.model.valueobjects.Money;
 
 import java.math.BigDecimal;
@@ -9,9 +10,7 @@ public record RegisterEquipment(
         String equipmentName,
         EquipmentStatus status,
         String model,
-        String manufacturerName,
-        String manufacturerCountry,
-        String manufacturerWebsite,
+        ManufacturerId manufacturerId,
         Money purchasePrice
 ) {
     public RegisterEquipment {
@@ -24,12 +23,11 @@ public record RegisterEquipment(
         if (status == null) {
             throw new IllegalArgumentException("equipment.command.registerEquipment.status.notNull");
         }
-        if (manufacturerName == null || manufacturerName.isBlank()) {
-            throw new IllegalArgumentException("equipment.command.registerEquipment.manufacturerName.notBlank");
+
+        if (manufacturerId == null){
+            throw new IllegalArgumentException("manufacturer id must not be null");
         }
-        if (manufacturerCountry == null || manufacturerCountry.isBlank()) {
-            throw new IllegalArgumentException("equipment.command.registerEquipment.manufacturerCountry.notBlank");
-        }
+
         if (purchasePrice == null) {
             throw new IllegalArgumentException("equipment.command.registerEquipment.purchaseAmount.notNull");
         }
