@@ -19,7 +19,6 @@ import java.util.UUID;
 
 @Getter
 @Setter
-@Entity
 public class Equipment extends AbstractDomainAggregateRoot<Equipment> {
 
     private EquipmentId id;

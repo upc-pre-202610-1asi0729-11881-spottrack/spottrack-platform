@@ -11,6 +11,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import tools.jackson.databind.annotation.JsonAppend;
 
 import java.time.LocalDate;
 
@@ -21,10 +22,10 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class EquipmentPersistenceEntity extends AuditableAbstractPersistenceEntity {
 
-
     @Column(nullable = false, unique = true)
     private String equipmentId;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private EquipmentStatus status;
 
@@ -33,7 +34,9 @@ public class EquipmentPersistenceEntity extends AuditableAbstractPersistenceEnti
     @Column(nullable = false)
     private String model;
 
-    @Column(nullable = false)
+    @Embedded
+    @AttributeOverride(name = "amount",   column = @Column(name = "purchase_amount",   nullable = false))
+    @AttributeOverride(name = "currency", column = @Column(name = "purchase_currency", nullable = false))
     private Money purchasePrice;
 
     @Embedded

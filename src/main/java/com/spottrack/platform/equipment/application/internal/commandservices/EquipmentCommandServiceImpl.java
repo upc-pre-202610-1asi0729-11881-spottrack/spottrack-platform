@@ -5,6 +5,8 @@ import com.spottrack.platform.equipment.domain.model.aggregates.Equipment;
 import com.spottrack.platform.equipment.domain.model.commands.DefineMaintenanceThreshold;
 import com.spottrack.platform.equipment.domain.model.commands.MarkEquipmentOutOfService;
 import com.spottrack.platform.equipment.domain.model.commands.RegisterEquipment;
+import com.spottrack.platform.equipment.infrastructure.persistence.jpa.assemblers.EquipmentPersistenceAssembler;
+import com.spottrack.platform.equipment.infrastructure.persistence.jpa.entities.EquipmentPersistenceEntity;
 import com.spottrack.platform.equipment.infrastructure.persistence.jpa.repositories.EquipmentPersistenceRepository;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
@@ -23,8 +25,11 @@ public class EquipmentCommandServiceImpl implements EquipmentCommandService {
     @Override
     public Result<Equipment, ApplicationError> handle(RegisterEquipment command){
         var equipment = new Equipment(command);
-        var saved = equipmentRepository.save(equipment);
-        return Result.success(saved);
+        var entity = EquipmentPersistenceAssembler.toPersistenceFromDomain(equipment);
+        var savedEntity = equipmentRepository.save(entity);
+        var savedEquipment = EquipmentPersistenceAssembler.toDomainFromPersistence(savedEntity);
+
+        return Result.success(savedEquipment);
     }
 
     @Override

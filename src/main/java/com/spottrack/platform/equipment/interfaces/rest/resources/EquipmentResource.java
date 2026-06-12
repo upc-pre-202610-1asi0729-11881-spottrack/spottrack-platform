@@ -1,26 +1,17 @@
 package com.spottrack.platform.equipment.interfaces.rest.resources;
 
 import com.spottrack.platform.equipment.domain.model.valueobjects.EquipmentStatus;
+import com.spottrack.platform.equipment.domain.model.valueobjects.ManufacturerId;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.math.BigDecimal;
 
 public record EquipmentResource(
-        @Schema
         String equipmentName,
-        @Schema
         EquipmentStatus status,
-        @Schema
         String model,
-        @Schema
-        String manufacturerName,
-        @Schema
-        String manufacturerCountry,
-        @Schema
-        String manufacturerWebsite,
-        @Schema
+        String  manufacturerId,
         String purchaseCurrency,
-        @Schema
         BigDecimal purchaseAmount
 
 ) {

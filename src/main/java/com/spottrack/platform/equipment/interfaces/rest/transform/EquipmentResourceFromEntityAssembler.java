@@ -9,9 +9,7 @@ public class EquipmentResourceFromEntityAssembler {
                 equipment.getEquipmentName(),
                 equipment.getStatus(),
                 equipment.getModel(),
-                equipment.getManufacturer().getName(),
-                equipment.getManufacturer().getCountry(),
-                equipment.getManufacturer().getWebsite(),
+                equipment.getManufacturerId().uuid(),
                 equipment.getPurchasePrice().currency(),
                 equipment.getPurchasePrice().amount()
 
