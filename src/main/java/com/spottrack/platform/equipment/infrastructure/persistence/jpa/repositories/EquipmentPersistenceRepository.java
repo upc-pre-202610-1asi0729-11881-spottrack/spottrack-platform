@@ -11,6 +11,6 @@ import java.util.Optional;
 
 public interface EquipmentPersistenceRepository extends JpaRepository<EquipmentPersistenceEntity, Long> {
     Optional<EquipmentPersistenceEntity> findByEquipmentId(String equipmentId);
-    List<EquipmentPersistenceEntity> findByEquipmentName(String equipmentName);
-    List<EquipmentStatus> findByStatus(String equipmentStatus);
+    Optional<EquipmentPersistenceEntity> findByEquipmentName(String equipmentName);
+    Optional<EquipmentPersistenceEntity> findByStatus(EquipmentStatus equipmentStatus);
 }

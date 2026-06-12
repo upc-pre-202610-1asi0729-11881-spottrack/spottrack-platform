@@ -4,8 +4,11 @@ import com.spottrack.platform.equipment.domain.model.aggregates.Equipment;
 import com.spottrack.platform.equipment.domain.model.valueobjects.EquipmentId;
 import com.spottrack.platform.equipment.domain.model.valueobjects.EquipmentStatus;
 import com.spottrack.platform.equipment.domain.repositories.EquipmentRepository;
+import com.spottrack.platform.equipment.infrastructure.persistence.jpa.assemblers.EquipmentPersistenceAssembler;
+import com.spottrack.platform.equipment.infrastructure.persistence.jpa.entities.EquipmentPersistenceEntity;
 import com.spottrack.platform.equipment.infrastructure.persistence.jpa.repositories.EquipmentPersistenceRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 public class EquipmentRepositoryImpl implements EquipmentRepository {
@@ -13,17 +16,22 @@ public class EquipmentRepositoryImpl implements EquipmentRepository {
 
     @Override
     public Optional<Equipment> findById(EquipmentId equipmentId) {
-        return equipmentPersistenceRepository.findByEquipmentId(equipmentId.uuid()).map(EquipmentPersi);
+        return equipmentPersistenceRepository.findByEquipmentId(equipmentId.uuid()).map(EquipmentPersistenceAssembler::toDomainFromPersistence);
     }
 
     @Override
-    public Optional<Equipment> findByStatus(EquipmentStatus status) {
-        return Optional.empty();
+    public List<Equipment> findByStatus(EquipmentStatus status) {
+        return null;
     }
 
     @Override
-    public Optional<Equipment> findByName(String equipmentName) {
-        return Optional.empty();
+    public List<Equipment> findByName(String equipmentName) {
+        return null;
+    }
+
+    @Override
+    public List<Equipment> findAll() {
+        return List.of();
     }
 
     @Override

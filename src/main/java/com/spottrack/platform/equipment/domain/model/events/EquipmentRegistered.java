@@ -19,7 +19,7 @@ public class EquipmentRegistered extends ApplicationEvent {
      */
     public EquipmentRegistered(EquipmentId id, Object source){
         super(source);
-        id = this.equipmentId;
+        this.equipmentId = id;
     }
 
 }

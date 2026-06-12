@@ -3,6 +3,7 @@ package com.spottrack.platform.equipment.interfaces.rest.controllers;
 
 import com.spottrack.platform.equipment.application.commandServices.EquipmentCommandService;
 import com.spottrack.platform.equipment.domain.model.aggregates.Equipment;
+import com.spottrack.platform.equipment.domain.model.valueobjects.EquipmentId;
 import com.spottrack.platform.equipment.interfaces.rest.resources.RegisterEquipmentResource;
 import com.spottrack.platform.equipment.interfaces.rest.transform.EquipmentResourceFromEntityAssembler;
 import com.spottrack.platform.equipment.interfaces.rest.transform.RegisterEquipmentCommandFromResourceAssembler;
@@ -11,10 +12,7 @@ import com.spottrack.platform.shared.application.result.Result;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/equipments")
@@ -38,5 +36,11 @@ public class EquipmentsController {
             case Result.Failure<Equipment, ApplicationError> f ->
                 ResponseEntity.badRequest().body(f.error());
         };
+    }
+
+
+    @GetMapping("{id}")
+    public ResponseEntity<?> getEquipmentById(EquipmentId id) {
+        var equipment = GetEquipmentById
     }
 }

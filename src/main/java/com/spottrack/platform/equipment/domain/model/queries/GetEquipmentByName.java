@@ -1,7 +1,7 @@
 package com.spottrack.platform.equipment.domain.model.queries;
 
-public record GetEquipmentsByName(String equipmentName) {
-    public GetEquipmentsByName{
+public record GetEquipmentByName(String equipmentName) {
+    public GetEquipmentByName {
         if (equipmentName == null || equipmentName.isBlank()) {
             throw new IllegalArgumentException("name must not be null or blank");
         }
