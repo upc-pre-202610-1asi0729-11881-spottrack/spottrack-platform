@@ -2,7 +2,9 @@ package com.spottrack.platform.equipment.interfaces.rest.controllers;
 
 
 import com.spottrack.platform.equipment.application.commandServices.EquipmentCommandService;
+import com.spottrack.platform.equipment.application.queryservices.EquipmentQueryService;
 import com.spottrack.platform.equipment.domain.model.aggregates.Equipment;
+import com.spottrack.platform.equipment.domain.model.queries.GetEquipmentById;
 import com.spottrack.platform.equipment.domain.model.valueobjects.EquipmentId;
 import com.spottrack.platform.equipment.interfaces.rest.resources.RegisterEquipmentResource;
 import com.spottrack.platform.equipment.interfaces.rest.transform.EquipmentResourceFromEntityAssembler;
@@ -19,9 +21,11 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name="Equipments")
 public class EquipmentsController {
     private final EquipmentCommandService commandService;
+    private final EquipmentQueryService equipmentQueryService;
 
-    public EquipmentsController(EquipmentCommandService commandService){
+    public EquipmentsController(EquipmentCommandService commandService, EquipmentQueryService queryService){
         this.commandService = commandService;
+        this.equipmentQueryService =  queryService;
     }
 
     @PostMapping
@@ -38,9 +42,14 @@ public class EquipmentsController {
         };
     }
 
-
-    @GetMapping("{id}")
+    @GetMapping("/{equipmentId}")
     public ResponseEntity<?> getEquipmentById(EquipmentId id) {
-        var equipment = GetEquipmentById
+        var getEquipmentbyId = new GetEquipmentById(id);
+        var equipment = equipmentQueryService.handle(getEquipmentbyId);
+        if (equipment.isEmpty()) return ResponseEntity.notFound().build();
+        var equipmentEntity = equipment.get();
+        var equipmentResource = EquipmentResourceFromEntityAssembler.toResourceFromEntity(equipmentEntity);
+        return ResponseEntity.ok(equipmentResource);
     }
+
 }
