@@ -21,4 +21,5 @@ public class EquipmentRegistered extends ApplicationEvent {
         super(source);
         id = this.equipmentId;
     }
+
 }
