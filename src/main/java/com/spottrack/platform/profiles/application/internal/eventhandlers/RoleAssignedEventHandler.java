@@ -4,7 +4,7 @@ import com.spottrack.platform.profiles.application.commandservices.AdminCommandS
 import com.spottrack.platform.profiles.application.commandservices.ClientCommandService;
 import com.spottrack.platform.profiles.domain.model.commands.CreateAdminCommand;
 import com.spottrack.platform.profiles.domain.model.commands.CreateClientCommand;
-import com.spottrack.platform.profiles.domain.model.valueobjects.DNI;
+import com.spottrack.platform.profiles.domain.model.valueobjects.Dni;
 import com.spottrack.platform.profiles.domain.model.valueobjects.EmailAddress;
 import com.spottrack.platform.profiles.domain.model.valueobjects.PhoneNumber;
 import com.spottrack.platform.profiles.interfaces.events.RoleAssignedIntegrationEvent;
@@ -28,7 +28,7 @@ public class RoleAssignedEventHandler {
     public void on(RoleAssignedIntegrationEvent event) {
         var email = new EmailAddress(event.email());
         var phone = new PhoneNumber(event.phoneNumber());
-        var dni = new DNI(event.dni());
+        var dni = new Dni(event.dni());
 
         switch (event.role()) {
             case "ROLE_CLIENT" -> {

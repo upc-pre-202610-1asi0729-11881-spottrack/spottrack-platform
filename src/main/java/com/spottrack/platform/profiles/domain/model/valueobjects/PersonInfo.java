@@ -1,6 +1,6 @@
 package com.spottrack.platform.profiles.domain.model.valueobjects;
 
-public record PersonInfo(String firstName, String lastName, PhoneNumber phoneNumber, DNI dni) {
+public record PersonInfo(String firstName, String lastName, PhoneNumber phoneNumber, Dni dni) {
 
     public PersonInfo{
         if (firstName == null || firstName.isBlank()){

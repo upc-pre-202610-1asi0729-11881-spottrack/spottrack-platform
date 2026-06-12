@@ -21,7 +21,6 @@ public class RoutineSession extends AbstractDomainAggregateRoot<RoutineSession> 
 
     @Getter
     private Long routineId;
-
     private ClientId clientId;
 
     @Getter

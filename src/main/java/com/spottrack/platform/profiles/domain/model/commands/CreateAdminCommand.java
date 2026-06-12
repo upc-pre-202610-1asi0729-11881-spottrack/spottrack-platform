@@ -1,6 +1,6 @@
 package com.spottrack.platform.profiles.domain.model.commands;
 
-import com.spottrack.platform.profiles.domain.model.valueobjects.DNI;
+import com.spottrack.platform.profiles.domain.model.valueobjects.Dni;
 import com.spottrack.platform.profiles.domain.model.valueobjects.EmailAddress;
 import com.spottrack.platform.profiles.domain.model.valueobjects.PhoneNumber;
 
@@ -10,5 +10,5 @@ public record CreateAdminCommand(
         String firstName,
         String lastName,
         PhoneNumber phoneNumber,
-        DNI dni
+        Dni dni
 ) {}
