@@ -2,11 +2,14 @@ package com.spottrack.platform.shared.domain.model.valueobjects;
 
 import jakarta.persistence.Embeddable;
 import lombok.Getter;
-
 import java.math.BigDecimal;
-@Getter
+
 @Embeddable
-public record Money(BigDecimal amount, String currency) {
+public record Money(
+        @Getter
+        BigDecimal amount,
+        @Getter
+        String currency) {
     public Money {
         if (amount == null) {
             throw new IllegalArgumentException("money.error.amount.null");

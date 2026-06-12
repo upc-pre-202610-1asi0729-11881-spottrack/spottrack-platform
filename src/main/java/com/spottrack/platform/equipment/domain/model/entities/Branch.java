@@ -1,8 +1,7 @@
 package com.spottrack.platform.equipment.domain.model.entities;
 
 import com.spottrack.platform.equipment.domain.model.valueobjects.BranchId;
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.Embeddable;
+import jakarta.persistence.*;
 import lombok.Getter;
 
 import java.util.ArrayList;
@@ -10,13 +9,15 @@ import java.util.List;
 import java.util.UUID;
 
 @Getter
-@Embeddable
+@Entity
 public class Branch {
+
+    @EmbeddedId
     private final BranchId id;
     private String name;
     private String address;
-    @ElementCollection
 
+    @OneToMany
     private List<Zone> zoneList;
     protected Branch() {
         this.id = null;

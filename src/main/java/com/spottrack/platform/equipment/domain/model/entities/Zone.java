@@ -3,8 +3,7 @@ package com.spottrack.platform.equipment.domain.model.entities;
 import com.spottrack.platform.equipment.domain.model.valueobjects.BranchId;
 import com.spottrack.platform.equipment.domain.model.valueobjects.EquipmentId;
 import com.spottrack.platform.equipment.domain.model.valueobjects.ZoneId;
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.Embeddable;
+import jakarta.persistence.*;
 import lombok.Getter;
 
 import java.util.ArrayList;
@@ -12,12 +11,18 @@ import java.util.List;
 import java.util.UUID;
 
 @Getter
-@Embeddable
+@Entity
 public class Zone {
+    @EmbeddedId
     private final ZoneId id;
+
+
     private String name;
     private int maximumOccupancy;
+
+    @AttributeOverride(name = "uuid", column = @Column(name="branch_uuid"))
     private BranchId branch;
+
     @ElementCollection
     private List<EquipmentId> equipmentList;
 
