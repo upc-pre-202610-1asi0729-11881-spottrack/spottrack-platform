@@ -8,5 +8,6 @@ public enum EquipmentStatus {
     OUT_OF_SERVICE,
     MAINTENANCE,
     ACTIVE,
-    OCCUPIED
+    OCCUPIED,
+    DECOMMISSIONED
 }

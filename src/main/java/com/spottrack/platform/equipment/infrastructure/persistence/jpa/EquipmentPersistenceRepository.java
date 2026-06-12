@@ -4,5 +4,6 @@ import com.spottrack.platform.equipment.domain.model.aggregates.Equipment;
 import com.spottrack.platform.equipment.domain.model.valueobjects.EquipmentId;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface EquipmentRepository extends JpaRepository<Equipment, EquipmentId> {
+public interface EquipmentPersistenceRepository extends JpaRepository<Equipment, EquipmentId> {
+
 }

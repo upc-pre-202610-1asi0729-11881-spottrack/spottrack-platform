@@ -5,20 +5,17 @@ import com.spottrack.platform.equipment.domain.model.aggregates.Equipment;
 import com.spottrack.platform.equipment.domain.model.commands.DefineMaintenanceThreshold;
 import com.spottrack.platform.equipment.domain.model.commands.MarkEquipmentOutOfService;
 import com.spottrack.platform.equipment.domain.model.commands.RegisterEquipment;
-import com.spottrack.platform.equipment.infrastructure.persistence.jpa.EquipmentRepository;
-import com.spottrack.platform.equipment.interfaces.rest.controllers.EquipmentsController;
+import com.spottrack.platform.equipment.infrastructure.persistence.jpa.EquipmentPersistenceRepository;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
-import java.beans.Transient;
-
 @Service
 public class EquipmentCommandServiceImpl implements EquipmentCommandService {
-    private final EquipmentRepository equipmentRepository;
+    private final EquipmentPersistenceRepository equipmentRepository;
 
-    public EquipmentCommandServiceImpl(EquipmentRepository equipmentRepository){
+    public EquipmentCommandServiceImpl(EquipmentPersistenceRepository equipmentRepository){
         this.equipmentRepository = equipmentRepository;
     }
 
