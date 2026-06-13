@@ -11,11 +11,7 @@ import com.spottrack.platform.gym.domain.model.valueobjects.EquipmentId;
 import com.spottrack.platform.gym.domain.model.valueobjects.EquipmentStatus;
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.assemblers.EquipmentPersistenceAssembler;
 import com.spottrack.platform.gym.interfaces.rest.resources.*;
-import com.spottrack.platform.gym.interfaces.rest.transform.EquipmentMarkOutOfServiceFromResourceAssembler;
-import com.spottrack.platform.gym.interfaces.rest.transform.EquipmentResourceFromEntityAssembler;
-import com.spottrack.platform.gym.interfaces.rest.transform.RelocateEquipmentCommandFromResourceAssembler;
-import com.spottrack.platform.gym.interfaces.rest.transform.RegisterEquipmentCommandFromResourceAssembler;
-import com.spottrack.platform.gym.interfaces.rest.transform.UpdateEquipmentStatusCommandFromResourceAssembler;
+import com.spottrack.platform.gym.interfaces.rest.transform.*;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -100,7 +96,5 @@ public class EquipmentsController {
         };
     }
 
-    @PostMapping
-    public ResponseEntity<?> createEquipment(@RequestBody CreateGymResource resource){
-    }
+
 }
