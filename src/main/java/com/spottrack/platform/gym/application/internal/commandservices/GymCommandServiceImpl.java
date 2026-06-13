@@ -3,9 +3,13 @@ package com.spottrack.platform.gym.application.internal.commandservices;
 import com.spottrack.platform.gym.application.commandServices.GymCommandService;
 import com.spottrack.platform.gym.domain.model.aggregates.Equipment;
 import com.spottrack.platform.gym.domain.model.aggregates.Gym;
+import com.spottrack.platform.gym.domain.model.commands.AddBranchCommand;
 import com.spottrack.platform.gym.domain.model.commands.CreateGym;
 import com.spottrack.platform.gym.domain.model.commands.RequestEquipmentRelocation;
+import com.spottrack.platform.gym.domain.model.entities.Branch;
+import com.spottrack.platform.gym.infrastructure.persistence.jpa.assemblers.BranchPersistenceAssembler;
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.assemblers.GymPersistenceAssembler;
+import com.spottrack.platform.gym.infrastructure.persistence.jpa.repositories.BranchPersistenceRepository;
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.repositories.EquipmentPersistenceRepository;
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.repositories.GymPersistenceRepository;
 import com.spottrack.platform.shared.application.result.ApplicationError;
@@ -17,10 +21,12 @@ import org.springframework.stereotype.Service;
 public class GymCommandServiceImpl implements GymCommandService {
     GymPersistenceRepository gymPersistenceRepository;
     EquipmentPersistenceRepository equipmentPersistenceRepository;
+    BranchPersistenceRepository branchPersistenceRepository;
 
-    public GymCommandServiceImpl(GymPersistenceRepository gymPersistenceRepository, EquipmentPersistenceRepository equipmentPersistenceRepository){
+    public GymCommandServiceImpl(GymPersistenceRepository gymPersistenceRepository, EquipmentPersistenceRepository equipmentPersistenceRepository, BranchPersistenceRepository branchPersistenceRepository){
         this.gymPersistenceRepository = gymPersistenceRepository;
         this.equipmentPersistenceRepository = equipmentPersistenceRepository;
+        this.branchPersistenceRepository = branchPersistenceRepository;
     }
 
     @Override
@@ -35,5 +41,14 @@ public class GymCommandServiceImpl implements GymCommandService {
         var gymEntity = GymPersistenceAssembler.toPersistenceFromDomain(gym);
         gymPersistenceRepository.save(gymEntity);
         return Result.success(gym);
+    }
+
+    @Transactional
+    @Override
+    public Result<Branch, ApplicationError> handle(AddBranchCommand command) {
+        var branch = new Branch(command.name(), command.address());
+        var branchEntity = BranchPersistenceAssembler.toPersistenceFromDomain(branch);
+        branchPersistenceRepository.save(branchEntity);
+        return Result.success(branch);
     }
 }

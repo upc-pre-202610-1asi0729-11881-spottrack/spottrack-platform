@@ -18,8 +18,6 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 public class ZonePersistenceEntity extends AuditableAbstractPersistenceEntity {
-    @Column(nullable = false, unique = true)
-    private String id;
 
 
     @Column(nullable = false)
