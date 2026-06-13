@@ -1,0 +1,44 @@
+package com.spottrack.platform.gym.infrastructure.persistence.jpa.assemblers;
+
+import com.spottrack.platform.gym.domain.model.aggregates.Equipment;
+import com.spottrack.platform.gym.domain.model.valueobjects.EquipmentId;
+import com.spottrack.platform.gym.domain.model.valueobjects.ManufacturerId;
+import com.spottrack.platform.gym.domain.model.valueobjects.ZoneId;
+import com.spottrack.platform.gym.infrastructure.persistence.jpa.entities.EquipmentPersistenceEntity;
+
+public class EquipmentPersistenceAssembler {
+    private  EquipmentPersistenceAssembler(){
+
+    }
+
+    public static Equipment toDomainFromPersistence(EquipmentPersistenceEntity entity){
+        var equipment = new Equipment();
+        var equipmentId = new EquipmentId(entity.getEquipmentId());
+        equipment.setId(equipmentId);
+        equipment.setEquipmentName(entity.getEquipmentName());
+        equipment.setModel(entity.getModel());
+        equipment.setStatus(entity.getStatus());
+        equipment.setManufacturerId(entity.getManufacturerId());
+        equipment.setZoneId(new ZoneId(entity.getZoneId()));
+        equipment.setPurchasePrice(entity.getPurchasePrice());
+        equipment.setMaintenanceThreshold(entity.getMaintenanceThreshold());
+        return equipment;
+
+    }
+
+
+    public static EquipmentPersistenceEntity toPersistenceFromDomain (Equipment domain){
+        var equipment = new EquipmentPersistenceEntity();
+        equipment.setEquipmentId(domain.getId().uuid());
+        equipment.setEquipmentName(domain.getEquipmentName());
+        equipment.setStatus(domain.getStatus());
+        equipment.setModel(domain.getModel());
+        equipment.setManufacturerId(domain.getManufacturerId());
+        equipment.setZoneId(domain.getZoneId().uuid());
+        equipment.setPurchasePrice(domain.getPurchasePrice());
+        equipment.setMaintenanceThreshold(domain.getMaintenanceThreshold());
+
+        return equipment;
+    }
+
+}
