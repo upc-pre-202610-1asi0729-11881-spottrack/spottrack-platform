@@ -15,17 +15,17 @@ import org.springframework.stereotype.Service;
 @Service
 public class EquipmentCommandServiceImpl implements EquipmentCommandService {
     private final EquipmentPersistenceRepository equipmentRepository;
-      
 
-    public EquipmentCommandServiceImpl(EquipmentPersistenceRepository equipmentRepository){
+
+    public EquipmentCommandServiceImpl(EquipmentPersistenceRepository equipmentRepository) {
         this.equipmentRepository = equipmentRepository;
-        
-      
+
+
     }
 
     @Transactional
     @Override
-    public Result<Equipment, ApplicationError> handle(RegisterEquipment command){
+    public Result<Equipment, ApplicationError> handle(RegisterEquipment command) {
         var equipment = new Equipment(command);
         var entity = EquipmentPersistenceAssembler.toPersistenceFromDomain(equipment);
         var savedEntity = equipmentRepository.save(entity);
@@ -35,10 +35,11 @@ public class EquipmentCommandServiceImpl implements EquipmentCommandService {
     }
 
     @Override
-    public Result<Equipment, ApplicationError> handle(DefineMaintenanceThreshold command){
+    public Result<Equipment, ApplicationError> handle(DefineMaintenanceThreshold command) {
         return Result.failure(ApplicationError.unexpected("DefineMaintenanceThreshold", "Not implemented yet"));
 
     }
+
     @Override
     public Result<Equipment, ApplicationError> handle(MarkEquipmentOutOfService command) {
         var entity = equipmentRepository.findByEquipmentId(command.id().uuid());
@@ -62,7 +63,7 @@ public class EquipmentCommandServiceImpl implements EquipmentCommandService {
     }
 
     @Override
-        public Result<Equipment, ApplicationError> handle(RelocateEquipment command) {
+    public Result<Equipment, ApplicationError> handle(RelocateEquipment command) {
         var entity = equipmentRepository.findByEquipmentId(command.equipmentId().uuid());
 
         var domain = EquipmentPersistenceAssembler.toDomainFromPersistence(entity.get());
@@ -71,6 +72,17 @@ public class EquipmentCommandServiceImpl implements EquipmentCommandService {
         var updatedEntity = EquipmentPersistenceAssembler.toPersistenceFromDomain(domain);
         equipmentRepository.save(updatedEntity);
         return Result.success(domain);
-        }
     }
 
+    @Transactional
+    @Override
+    public Result<Equipment, ApplicationError> handle(DecomissionEquipment command) {
+        var entity = equipmentRepository.findByEquipmentId(command.equipmentId().uuid());
+        var equipment = EquipmentPersistenceAssembler.toDomainFromPersistence(entity.get());
+        equipment.updateStatus(command.equipmentStatus());
+        var updatedEntity = EquipmentPersistenceAssembler.toPersistenceFromDomain(equipment);
+        updatedEntity.setId(entity.get().getId());
+        equipmentRepository.save(updatedEntity);
+        return Result.success(equipment);
+    }
+}
