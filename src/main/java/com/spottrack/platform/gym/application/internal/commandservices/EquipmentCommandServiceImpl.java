@@ -1,0 +1,76 @@
+package com.spottrack.platform.gym.application.internal.commandservices;
+
+import com.spottrack.platform.gym.application.commandServices.EquipmentCommandService;
+import com.spottrack.platform.gym.domain.model.aggregates.Equipment;
+import com.spottrack.platform.gym.domain.model.commands.*;
+import com.spottrack.platform.gym.domain.model.queries.GetEquipmentById;
+import com.spottrack.platform.gym.infrastructure.persistence.jpa.assemblers.EquipmentPersistenceAssembler;
+import com.spottrack.platform.gym.infrastructure.persistence.jpa.entities.EquipmentPersistenceEntity;
+import com.spottrack.platform.gym.infrastructure.persistence.jpa.repositories.EquipmentPersistenceRepository;
+import com.spottrack.platform.shared.application.result.ApplicationError;
+import com.spottrack.platform.shared.application.result.Result;
+import jakarta.transaction.Transactional;
+import org.springframework.stereotype.Service;
+
+@Service
+public class EquipmentCommandServiceImpl implements EquipmentCommandService {
+    private final EquipmentPersistenceRepository equipmentRepository;
+      
+
+    public EquipmentCommandServiceImpl(EquipmentPersistenceRepository equipmentRepository){
+        this.equipmentRepository = equipmentRepository;
+        
+      
+    }
+
+    @Transactional
+    @Override
+    public Result<Equipment, ApplicationError> handle(RegisterEquipment command){
+        var equipment = new Equipment(command);
+        var entity = EquipmentPersistenceAssembler.toPersistenceFromDomain(equipment);
+        var savedEntity = equipmentRepository.save(entity);
+        var savedEquipment = EquipmentPersistenceAssembler.toDomainFromPersistence(savedEntity);
+
+        return Result.success(savedEquipment);
+    }
+
+    @Override
+    public Result<Equipment, ApplicationError> handle(DefineMaintenanceThreshold command){
+        return Result.failure(ApplicationError.unexpected("DefineMaintenanceThreshold", "Not implemented yet"));
+
+    }
+    @Override
+    public Result<Equipment, ApplicationError> handle(MarkEquipmentOutOfService command) {
+        var entity = equipmentRepository.findByEquipmentId(command.id().uuid());
+        var equipment = EquipmentPersistenceAssembler.toDomainFromPersistence(entity.get());
+        equipment.markEquipmentOutOfService();
+        var updatedEntity = EquipmentPersistenceAssembler.toPersistenceFromDomain(equipment);
+        updatedEntity.setId(entity.get().getId());
+        equipmentRepository.save(updatedEntity);
+        return Result.success(equipment);
+    }
+
+    @Override
+    public Result<Equipment, ApplicationError> handle(UpdateEquipmentStatus command) {
+        var entity = equipmentRepository.findByEquipmentId(command.id());
+        var equipment = EquipmentPersistenceAssembler.toDomainFromPersistence(entity.get());
+        equipment.updateStatus(command.status());
+        var updatedEntity = EquipmentPersistenceAssembler.toPersistenceFromDomain(equipment);
+        updatedEntity.setId(entity.get().getId());
+        equipmentRepository.save(updatedEntity);
+        return Result.success(equipment);
+    }
+
+    @Override
+        public Result<Equipment, ApplicationError> handle(RelocateEquipment command) {
+        var entity = equipmentRepository.findByEquipmentId(command.equipmentId().uuid());
+
+        var domain = EquipmentPersistenceAssembler.toDomainFromPersistence(entity.get());
+
+        domain.relocateEquipment(command.zoneId());
+        var updatedEntity = EquipmentPersistenceAssembler.toPersistenceFromDomain(domain);
+        equipmentRepository.save(updatedEntity);
+        return Result.success(domain);
+        }
+    }
+
