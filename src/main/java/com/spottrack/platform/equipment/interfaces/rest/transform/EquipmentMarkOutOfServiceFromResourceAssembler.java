@@ -5,6 +5,6 @@ import com.spottrack.platform.equipment.interfaces.rest.resources.MarkEquipmentO
 
 public class EquipmentMarkOutOfServiceFromResourceAssembler {
     public static MarkEquipmentOutOfService toCommandFromResource(MarkEquipmentOutOfServiceResource resource){
-        return new MarkEquipmentOutOfService(resource.equipmentId(), resource.equipmentStatus());
+        return new MarkEquipmentOutOfService(resource.equipmentId());
     }
 }
