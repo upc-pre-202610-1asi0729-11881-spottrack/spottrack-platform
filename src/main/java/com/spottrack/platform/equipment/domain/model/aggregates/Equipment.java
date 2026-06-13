@@ -5,6 +5,7 @@ import com.spottrack.platform.equipment.domain.model.entities.Manufacturer;
 import com.spottrack.platform.equipment.domain.model.valueobjects.EquipmentId;
 import com.spottrack.platform.equipment.domain.model.valueobjects.EquipmentStatus;
 import com.spottrack.platform.equipment.domain.model.valueobjects.ManufacturerId;
+import com.spottrack.platform.equipment.domain.model.valueobjects.ZoneId;
 import com.spottrack.platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
 import com.spottrack.platform.shared.domain.model.valueobjects.Money;
 import jakarta.persistence.EmbeddedId;
@@ -30,10 +31,11 @@ public class Equipment extends AbstractDomainAggregateRoot<Equipment> {
 
     private ManufacturerId manufacturerId;
     private LocalDate maintenanceThreshold;
+    private ZoneId zoneId;
 
     public Equipment() {}
 
-    public Equipment(EquipmentStatus status, String equipmentName, String model, ManufacturerId manufacturerId, BigDecimal amount, String currency) {
+    public Equipment(EquipmentStatus status, String equipmentName, String model, ManufacturerId manufacturerId, BigDecimal amount, String currency, ZoneId zoneId) {
         this.id = new EquipmentId(UUID.randomUUID().toString());
         this.status = status;
         this.equipmentName = equipmentName;
@@ -44,6 +46,7 @@ public class Equipment extends AbstractDomainAggregateRoot<Equipment> {
          * Now is the default date, an Admin must define the date manually
          */
         this.maintenanceThreshold = LocalDate.now();
+        this.zoneId = zoneId;
     }
 
     public Equipment(RegisterEquipment command) {
