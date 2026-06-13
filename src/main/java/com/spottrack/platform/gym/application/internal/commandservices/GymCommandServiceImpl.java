@@ -38,7 +38,7 @@ public class GymCommandServiceImpl implements GymCommandService {
     public Result<Gym, ApplicationError> handle(CreateGym command) {
         var gym = new Gym(command.gymName());
         var gymEntity = GymPersistenceAssembler.toPersistenceFromDomain(gym);
-        var savedEntity = gymPersistenceRepository.save(gymEntity);
+        gymPersistenceRepository.save(gymEntity);
         return Result.success(gym);
     }
 
