@@ -6,6 +6,7 @@ import com.spottrack.platform.equipment.interfaces.rest.resources.EquipmentResou
 public class EquipmentResourceFromEntityAssembler {
     public static EquipmentResource toResourceFromEntity(Equipment equipment){
         return new EquipmentResource(
+                equipment.getId().uuid(),
                 equipment.getEquipmentName(),
                 equipment.getStatus(),
                 equipment.getModel(),

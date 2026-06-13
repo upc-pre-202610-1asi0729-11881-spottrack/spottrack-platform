@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 
 public record EquipmentResource(
+        String equipmentId,
         String equipmentName,
         EquipmentStatus status,
         String model,

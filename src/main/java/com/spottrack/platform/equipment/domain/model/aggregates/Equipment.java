@@ -57,4 +57,9 @@ public class Equipment extends AbstractDomainAggregateRoot<Equipment> {
     }
 
 
+    public void markEquipmentOutOfService(){
+        this.status = EquipmentStatus.OUT_OF_SERVICE;
+    }
+
+
 }
