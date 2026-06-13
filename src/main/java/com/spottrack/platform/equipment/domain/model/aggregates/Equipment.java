@@ -57,4 +57,14 @@ public class Equipment extends AbstractDomainAggregateRoot<Equipment> {
     }
 
 
+    public void markEquipmentOutOfService(EquipmentId equipmentId, EquipmentStatus equipmentStatus){
+        if (equipmentId == null){
+            throw new IllegalArgumentException("equipmentId must not be null");
+        }
+        if (this.id == equipmentId){
+            this.status = equipmentStatus;
+        }
+    }
+
+
 }
