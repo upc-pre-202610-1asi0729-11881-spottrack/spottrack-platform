@@ -1,6 +1,7 @@
 package com.spottrack.platform.equipment.infrastructure.persistence.jpa.entities;
 
 import com.spottrack.platform.equipment.domain.model.entities.Branch;
+import com.spottrack.platform.shared.infrastructure.persistence.jpa.entities.AuditableAbstractPersistenceEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
@@ -16,7 +17,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @Table(name="gyms")
-public class GymPersistenceEntity {
+public class GymPersistenceEntity extends AuditableAbstractPersistenceEntity {
     @Column(nullable = false, unique = true)
     private String gymId;
 
@@ -24,8 +25,6 @@ public class GymPersistenceEntity {
     private String name;
 
 
-    @OneToMany
-    private List<Branch> branchList;
 
 }
 

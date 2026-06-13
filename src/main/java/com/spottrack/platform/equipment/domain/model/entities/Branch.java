@@ -9,15 +9,12 @@ import java.util.List;
 import java.util.UUID;
 
 @Getter
-@Entity
 public class Branch {
 
-    @EmbeddedId
     private final BranchId id;
     private String name;
     private String address;
 
-    @OneToMany
     private List<Zone> zoneList;
     protected Branch() {
         this.id = null;
