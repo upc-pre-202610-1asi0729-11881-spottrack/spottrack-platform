@@ -4,15 +4,13 @@ package com.spottrack.platform.gym.interfaces.rest.controllers;
 import com.spottrack.platform.gym.application.commandServices.EquipmentCommandService;
 import com.spottrack.platform.gym.application.queryservices.EquipmentQueryService;
 import com.spottrack.platform.gym.domain.model.aggregates.Equipment;
+import com.spottrack.platform.gym.domain.model.commands.CreateGym;
 import com.spottrack.platform.gym.domain.model.commands.MarkEquipmentOutOfService;
 import com.spottrack.platform.gym.domain.model.queries.GetEquipmentById;
 import com.spottrack.platform.gym.domain.model.valueobjects.EquipmentId;
 import com.spottrack.platform.gym.domain.model.valueobjects.EquipmentStatus;
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.assemblers.EquipmentPersistenceAssembler;
-import com.spottrack.platform.gym.interfaces.rest.resources.MarkEquipmentOutOfServiceResource;
-import com.spottrack.platform.gym.interfaces.rest.resources.RegisterEquipmentResource;
-import com.spottrack.platform.gym.interfaces.rest.resources.RelocateEquipmentResource;
-import com.spottrack.platform.gym.interfaces.rest.resources.UpdateEquipmentStatusResource;
+import com.spottrack.platform.gym.interfaces.rest.resources.*;
 import com.spottrack.platform.gym.interfaces.rest.transform.EquipmentMarkOutOfServiceFromResourceAssembler;
 import com.spottrack.platform.gym.interfaces.rest.transform.EquipmentResourceFromEntityAssembler;
 import com.spottrack.platform.gym.interfaces.rest.transform.RelocateEquipmentCommandFromResourceAssembler;
@@ -100,5 +98,9 @@ public class EquipmentsController {
             case Result.Failure<Equipment, ApplicationError> f ->
                     ResponseEntity.badRequest().body(f.error());
         };
+    }
+
+    @PostMapping
+    public ResponseEntity<?> createEquipment(@RequestBody CreateGymResource resource){
     }
 }
