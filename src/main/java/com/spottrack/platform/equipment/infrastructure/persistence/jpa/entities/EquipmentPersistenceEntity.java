@@ -1,8 +1,6 @@
 package com.spottrack.platform.equipment.infrastructure.persistence.jpa.entities;
 
 
-import com.spottrack.platform.equipment.domain.model.entities.Manufacturer;
-import com.spottrack.platform.equipment.domain.model.valueobjects.EquipmentId;
 import com.spottrack.platform.equipment.domain.model.valueobjects.EquipmentStatus;
 import com.spottrack.platform.equipment.domain.model.valueobjects.ManufacturerId;
 import com.spottrack.platform.shared.domain.model.valueobjects.Money;
@@ -45,4 +43,7 @@ public class EquipmentPersistenceEntity extends AuditableAbstractPersistenceEnti
 
     @Column(nullable = true)
     private LocalDate maintenanceThreshold;
+
+    @Column(nullable = false)
+    private String zoneId;
 }

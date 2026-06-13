@@ -11,9 +11,9 @@ public record EquipmentResource(
         String equipmentName,
         EquipmentStatus status,
         String model,
-        String  manufacturerId,
+        String manufacturerId,
+        String zoneId,
         String purchaseCurrency,
         BigDecimal purchaseAmount
-
 ) {
 }

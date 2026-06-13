@@ -17,9 +17,10 @@ public record RegisterEquipmentResource(
         @Schema
         String manufacturerId,
         @Schema
+        String zoneId,
+        @Schema
         String purchaseCurrency,
         @Schema
         BigDecimal purchaseAmount
-
 ) {
 }

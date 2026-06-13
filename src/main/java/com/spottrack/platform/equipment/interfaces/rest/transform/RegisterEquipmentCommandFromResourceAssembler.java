@@ -2,6 +2,7 @@ package com.spottrack.platform.equipment.interfaces.rest.transform;
 
 import com.spottrack.platform.equipment.domain.model.commands.RegisterEquipment;
 import com.spottrack.platform.equipment.domain.model.valueobjects.ManufacturerId;
+import com.spottrack.platform.equipment.domain.model.valueobjects.ZoneId;
 import com.spottrack.platform.equipment.interfaces.rest.resources.RegisterEquipmentResource;
 import com.spottrack.platform.shared.domain.model.valueobjects.Money;
 
@@ -12,6 +13,7 @@ public class RegisterEquipmentCommandFromResourceAssembler {
                 resource.status(),
                 resource.model(),
                 new ManufacturerId(resource.manufacturerId()),
+                new ZoneId(resource.zoneId()),
                 new Money(resource.purchaseAmount(), resource.purchaseCurrency())
         );
     }
