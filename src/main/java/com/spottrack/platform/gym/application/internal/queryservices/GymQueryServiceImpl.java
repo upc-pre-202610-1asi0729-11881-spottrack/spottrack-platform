@@ -19,7 +19,7 @@ public class GymQueryServiceImpl implements GymQueryService {
     @Override
     public Optional<Gym> handle(GetGymById query) {
         var gymEntity = gymPersistenceRepository.findByGymId(query.id().uuid());
-        var gym = GymPersistenceAssembler.toDomainFromPersistence(gymEntity.get());
+        var gym = gymEntity.map(GymPersistenceAssembler::toDomainFromPersistence);
         return gym;
     }
 }
