@@ -11,9 +11,9 @@ public class EquipmentResourceFromEntityAssembler {
                 equipment.getStatus(),
                 equipment.getModel(),
                 equipment.getManufacturerId().uuid(),
+                equipment.getZoneId().uuid(),
                 equipment.getPurchasePrice().currency(),
                 equipment.getPurchasePrice().amount()
-
         );
     }
 }

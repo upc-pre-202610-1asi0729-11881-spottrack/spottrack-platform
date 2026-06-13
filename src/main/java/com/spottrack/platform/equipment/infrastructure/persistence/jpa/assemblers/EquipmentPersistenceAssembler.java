@@ -3,6 +3,7 @@ package com.spottrack.platform.equipment.infrastructure.persistence.jpa.assemble
 import com.spottrack.platform.equipment.domain.model.aggregates.Equipment;
 import com.spottrack.platform.equipment.domain.model.valueobjects.EquipmentId;
 import com.spottrack.platform.equipment.domain.model.valueobjects.ManufacturerId;
+import com.spottrack.platform.equipment.domain.model.valueobjects.ZoneId;
 import com.spottrack.platform.equipment.infrastructure.persistence.jpa.entities.EquipmentPersistenceEntity;
 
 public class EquipmentPersistenceAssembler {
@@ -18,6 +19,7 @@ public class EquipmentPersistenceAssembler {
         equipment.setModel(entity.getModel());
         equipment.setStatus(entity.getStatus());
         equipment.setManufacturerId(entity.getManufacturerId());
+        equipment.setZoneId(new ZoneId(entity.getZoneId()));
         equipment.setPurchasePrice(entity.getPurchasePrice());
         equipment.setMaintenanceThreshold(entity.getMaintenanceThreshold());
         return equipment;
@@ -32,6 +34,7 @@ public class EquipmentPersistenceAssembler {
         equipment.setStatus(domain.getStatus());
         equipment.setModel(domain.getModel());
         equipment.setManufacturerId(domain.getManufacturerId());
+        equipment.setZoneId(domain.getZoneId().uuid());
         equipment.setPurchasePrice(domain.getPurchasePrice());
         equipment.setMaintenanceThreshold(domain.getMaintenanceThreshold());
 
