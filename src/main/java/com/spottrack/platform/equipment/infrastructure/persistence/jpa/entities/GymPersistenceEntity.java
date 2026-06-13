@@ -26,7 +26,6 @@ public class GymPersistenceEntity extends AuditableAbstractPersistenceEntity {
     @OneToMany
     List<BranchPersistenceEntity> branches;
 
-
 }
 
 

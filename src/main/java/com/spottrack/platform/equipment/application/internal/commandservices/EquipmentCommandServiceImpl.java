@@ -2,10 +2,7 @@ package com.spottrack.platform.equipment.application.internal.commandservices;
 
 import com.spottrack.platform.equipment.application.commandServices.EquipmentCommandService;
 import com.spottrack.platform.equipment.domain.model.aggregates.Equipment;
-import com.spottrack.platform.equipment.domain.model.commands.DefineMaintenanceThreshold;
-import com.spottrack.platform.equipment.domain.model.commands.MarkEquipmentOutOfService;
-import com.spottrack.platform.equipment.domain.model.commands.RegisterEquipment;
-import com.spottrack.platform.equipment.domain.model.commands.UpdateEquipmentStatus;
+import com.spottrack.platform.equipment.domain.model.commands.*;
 import com.spottrack.platform.equipment.domain.model.queries.GetEquipmentById;
 import com.spottrack.platform.equipment.infrastructure.persistence.jpa.assemblers.EquipmentPersistenceAssembler;
 import com.spottrack.platform.equipment.infrastructure.persistence.jpa.entities.EquipmentPersistenceEntity;
@@ -18,9 +15,12 @@ import org.springframework.stereotype.Service;
 @Service
 public class EquipmentCommandServiceImpl implements EquipmentCommandService {
     private final EquipmentPersistenceRepository equipmentRepository;
+      
 
     public EquipmentCommandServiceImpl(EquipmentPersistenceRepository equipmentRepository){
         this.equipmentRepository = equipmentRepository;
+        
+      
     }
 
     @Transactional
@@ -60,4 +60,17 @@ public class EquipmentCommandServiceImpl implements EquipmentCommandService {
         equipmentRepository.save(updatedEntity);
         return Result.success(equipment);
     }
-}
+
+    @Override
+        public Result<Equipment, ApplicationError> handle(RelocateEquipment command) {
+        var entity = equipmentRepository.findByEquipmentId(command.equipmentId().uuid());
+
+        var domain = EquipmentPersistenceAssembler.toDomainFromPersistence(entity.get());
+
+        domain.relocateEquipment(command.zoneId());
+        var updatedEntity = EquipmentPersistenceAssembler.toPersistenceFromDomain(domain);
+        equipmentRepository.save(updatedEntity);
+        return Result.success(domain);
+        }
+    }
+

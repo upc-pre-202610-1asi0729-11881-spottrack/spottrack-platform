@@ -9,5 +9,6 @@ public record RelocateEquipment(EquipmentId equipmentId, GymId gymId, ZoneId zon
         if (equipmentId == null) throw new IllegalArgumentException("equipmentId must not be null");
         if (gymId == null) throw new IllegalArgumentException("gymId must not be null");
         if (zoneId == null) throw new IllegalArgumentException("zoneId must not be null");
+        
     }
 }
