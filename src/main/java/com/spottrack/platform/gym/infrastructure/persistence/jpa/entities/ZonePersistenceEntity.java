@@ -26,7 +26,7 @@ public class ZonePersistenceEntity extends AuditableAbstractPersistenceEntity {
     @Column(nullable = false)
     private int maximumOccupancy;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String branchId;
 
     @OneToMany

@@ -78,11 +78,10 @@ public class EquipmentCommandServiceImpl implements EquipmentCommandService {
     @Override
     public Result<Equipment, ApplicationError> handle(DecomissionEquipment command) {
         var entity = equipmentRepository.findByEquipmentId(command.equipmentId().uuid());
-        var equipment = EquipmentPersistenceAssembler.toDomainFromPersistence(entity.get());
-        equipment.updateStatus(command.equipmentStatus());
-        var updatedEntity = EquipmentPersistenceAssembler.toPersistenceFromDomain(equipment);
-        updatedEntity.setId(entity.get().getId());
-        equipmentRepository.save(updatedEntity);
+        var persistenceEntity = entity.get();
+        persistenceEntity.setStatus(command.equipmentStatus());
+        equipmentRepository.save(persistenceEntity);
+        var equipment = EquipmentPersistenceAssembler.toDomainFromPersistence(persistenceEntity);
         return Result.success(equipment);
     }
 }
