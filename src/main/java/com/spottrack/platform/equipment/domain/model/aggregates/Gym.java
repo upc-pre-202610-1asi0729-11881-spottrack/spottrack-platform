@@ -15,10 +15,8 @@ import java.util.UUID;
 @Entity
 public class Gym extends AbstractDomainAggregateRoot<Gym> {
 
-    @OneToMany
     private List<Branch> branchList;
 
-    @EmbeddedId
     private GymId id;
     private String name;
 

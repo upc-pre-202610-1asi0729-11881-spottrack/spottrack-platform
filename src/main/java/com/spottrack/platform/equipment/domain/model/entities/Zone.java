@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.UUID;
 
 @Getter
-@Entity
 public class Zone {
     @EmbeddedId
     private final ZoneId id;
@@ -20,10 +19,8 @@ public class Zone {
     private String name;
     private int maximumOccupancy;
 
-    @AttributeOverride(name = "uuid", column = @Column(name="branch_uuid"))
     private BranchId branch;
 
-    @ElementCollection
     private List<EquipmentId> equipmentList;
 
     protected Zone() {
