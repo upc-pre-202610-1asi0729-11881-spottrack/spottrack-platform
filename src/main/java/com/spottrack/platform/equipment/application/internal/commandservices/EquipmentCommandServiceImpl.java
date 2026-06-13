@@ -5,6 +5,7 @@ import com.spottrack.platform.equipment.domain.model.aggregates.Equipment;
 import com.spottrack.platform.equipment.domain.model.commands.DefineMaintenanceThreshold;
 import com.spottrack.platform.equipment.domain.model.commands.MarkEquipmentOutOfService;
 import com.spottrack.platform.equipment.domain.model.commands.RegisterEquipment;
+import com.spottrack.platform.equipment.domain.model.commands.UpdateEquipmentStatus;
 import com.spottrack.platform.equipment.domain.model.queries.GetEquipmentById;
 import com.spottrack.platform.equipment.infrastructure.persistence.jpa.assemblers.EquipmentPersistenceAssembler;
 import com.spottrack.platform.equipment.infrastructure.persistence.jpa.entities.EquipmentPersistenceEntity;
@@ -40,9 +41,23 @@ public class EquipmentCommandServiceImpl implements EquipmentCommandService {
     }
     @Override
     public Result<Equipment, ApplicationError> handle(MarkEquipmentOutOfService command) {
-        var equipment = equipmentRepository.findByEquipmentId(command.id().uuid());
-        var domain = EquipmentPersistenceAssembler.toDomainFromPersistence(equipment.get());
-        domain.markEquipmentOutOfService();
-        return Result.success(domain);
+        var entity = equipmentRepository.findByEquipmentId(command.id().uuid());
+        var equipment = EquipmentPersistenceAssembler.toDomainFromPersistence(entity.get());
+        equipment.markEquipmentOutOfService();
+        var updatedEntity = EquipmentPersistenceAssembler.toPersistenceFromDomain(equipment);
+        updatedEntity.setId(entity.get().getId());
+        equipmentRepository.save(updatedEntity);
+        return Result.success(equipment);
+    }
+
+    @Override
+    public Result<Equipment, ApplicationError> handle(UpdateEquipmentStatus command) {
+        var entity = equipmentRepository.findByEquipmentId(command.id());
+        var equipment = EquipmentPersistenceAssembler.toDomainFromPersistence(entity.get());
+        equipment.updateStatus(command.status());
+        var updatedEntity = EquipmentPersistenceAssembler.toPersistenceFromDomain(equipment);
+        updatedEntity.setId(entity.get().getId());
+        equipmentRepository.save(updatedEntity);
+        return Result.success(equipment);
     }
 }
