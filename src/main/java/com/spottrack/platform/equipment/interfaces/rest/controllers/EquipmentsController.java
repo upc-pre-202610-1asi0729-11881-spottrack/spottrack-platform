@@ -11,9 +11,11 @@ import com.spottrack.platform.equipment.domain.model.valueobjects.EquipmentStatu
 import com.spottrack.platform.equipment.infrastructure.persistence.jpa.assemblers.EquipmentPersistenceAssembler;
 import com.spottrack.platform.equipment.interfaces.rest.resources.MarkEquipmentOutOfServiceResource;
 import com.spottrack.platform.equipment.interfaces.rest.resources.RegisterEquipmentResource;
+import com.spottrack.platform.equipment.interfaces.rest.resources.UpdateEquipmentStatusResource;
 import com.spottrack.platform.equipment.interfaces.rest.transform.EquipmentMarkOutOfServiceFromResourceAssembler;
 import com.spottrack.platform.equipment.interfaces.rest.transform.EquipmentResourceFromEntityAssembler;
 import com.spottrack.platform.equipment.interfaces.rest.transform.RegisterEquipmentCommandFromResourceAssembler;
+import com.spottrack.platform.equipment.interfaces.rest.transform.UpdateEquipmentStatusCommandFromResourceAssembler;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -64,6 +66,19 @@ public class EquipmentsController {
         return switch(result) {
             case Result.Success<Equipment, ApplicationError> s ->
                 ResponseEntity.status(HttpStatus.OK).body(EquipmentResourceFromEntityAssembler.toResourceFromEntity(s.value()));
+
+            case Result.Failure<Equipment, ApplicationError> f ->
+                    ResponseEntity.badRequest().body(f.error());
+        };
+    }
+
+    @PatchMapping("/{equipmentId}")
+    public ResponseEntity<?> UpdateEquipmentStatus(@RequestBody UpdateEquipmentStatusResource resource) {
+        var command = UpdateEquipmentStatusCommandFromResourceAssembler.toCommandFromResource(resource);
+        var result = commandService.handle(command);
+        return switch(result) {
+            case Result.Success<Equipment, ApplicationError> s ->
+                    ResponseEntity.status(HttpStatus.OK).body(EquipmentResourceFromEntityAssembler.toResourceFromEntity(s.value()));
 
             case Result.Failure<Equipment, ApplicationError> f ->
                     ResponseEntity.badRequest().body(f.error());
