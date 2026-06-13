@@ -1,23 +1,22 @@
 package com.spottrack.platform.equipment.infrastructure.persistence.jpa.entities;
 
 import com.spottrack.platform.equipment.domain.model.valueobjects.BranchId;
+import com.spottrack.platform.equipment.domain.model.valueobjects.EquipmentId;
+import com.spottrack.platform.equipment.domain.model.valueobjects.ZoneId;
 import com.spottrack.platform.shared.infrastructure.persistence.jpa.entities.AuditableAbstractPersistenceEntity;
-import jakarta.persistence.Column;
 import jakarta.persistence.OneToMany;
 
 import java.util.List;
 
-public class BranchPersistenceEntity extends AuditableAbstractPersistenceEntity {
-    @Column(nullable = false, unique = true)
+public class ZonePersistenceEntity extends AuditableAbstractPersistenceEntity {
+    private String id;
+
+
+    private String name;
+    private int maximumOccupancy;
+
     private String branchId;
 
-    @Column(nullable = false)
-    private String name;
-
-    @Column(nullable = false)
-    private String address;
-
     @OneToMany
-    List<ZonePersistenceEntity> zones;
-
+    private List<EquipmentPersistenceEntity> equipmentList;
 }

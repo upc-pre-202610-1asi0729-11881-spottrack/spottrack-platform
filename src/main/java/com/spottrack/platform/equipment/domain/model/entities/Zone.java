@@ -12,7 +12,6 @@ import java.util.UUID;
 
 @Getter
 public class Zone {
-    @EmbeddedId
     private final ZoneId id;
 
 
