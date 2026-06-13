@@ -7,4 +7,11 @@ public class AddBranchCommandFromResourceAssembler {
     public static AddBranchCommand toCommandFromResource(String gymId, AddBranchResource resource) {
         return new AddBranchCommand(gymId, resource.name(), resource.address());
     }
+
+    public static AddBranchResource toResourceFromCommand(String gymId, AddBranchCommand command){
+        var resource = new AddBranchResource(command.name(), command.address());
+        return resource;
+    }
 }
+
+
