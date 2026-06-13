@@ -5,7 +5,7 @@ import com.spottrack.platform.gym.interfaces.rest.resources.AddBranchResource;
 
 public class AddBranchCommandFromResourceAssembler {
     public static AddBranchCommand toCommandFromResource(String gymId, AddBranchResource resource) {
-        return new AddBranchCommand(gymId, resource.name(), resource.address());
+        return new AddBranchCommand( gymId,resource.name(), resource.address());
     }
 
     public static AddBranchResource toResourceFromCommand(String gymId, AddBranchCommand command){

@@ -3,7 +3,10 @@ package com.spottrack.platform.gym.interfaces.rest.controllers;
 import com.spottrack.platform.gym.application.commandServices.GymCommandService;
 import com.spottrack.platform.gym.domain.model.aggregates.Equipment;
 import com.spottrack.platform.gym.domain.model.aggregates.Gym;
+import com.spottrack.platform.gym.domain.model.entities.Branch;
+import com.spottrack.platform.gym.interfaces.rest.resources.AddBranchResource;
 import com.spottrack.platform.gym.interfaces.rest.resources.CreateGymResource;
+import com.spottrack.platform.gym.interfaces.rest.transform.AddBranchCommandFromResourceAssembler;
 import com.spottrack.platform.gym.interfaces.rest.transform.CreateGymCommandFromResourceAssembler;
 import com.spottrack.platform.gym.interfaces.rest.transform.EquipmentResourceFromEntityAssembler;
 import com.spottrack.platform.gym.interfaces.rest.transform.GymResourceFromEntityAssembler;
@@ -35,5 +38,11 @@ public class GymController {
             case Result.Failure<Gym, ApplicationError> f ->
                     ResponseEntity.badRequest().body(f.error());
         };
+    }
+
+    @PostMapping("{/gyms/{gymId}/branches")
+    public ResponseEntity<?> addBranch(@RequestBody AddBranchResource resource){
+        var gym =
+        var command = AddBranchCommandFromResourceAssembler.toCommandFromResource(resource.);
     }
 }
