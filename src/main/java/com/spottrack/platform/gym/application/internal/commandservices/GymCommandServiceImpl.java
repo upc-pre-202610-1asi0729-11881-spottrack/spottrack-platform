@@ -4,11 +4,8 @@ import com.spottrack.platform.gym.application.commandServices.GymCommandService;
 import com.spottrack.platform.gym.domain.model.aggregates.Equipment;
 import com.spottrack.platform.gym.domain.model.aggregates.Gym;
 import com.spottrack.platform.gym.domain.model.commands.CreateGym;
-import com.spottrack.platform.gym.domain.model.commands.RelocateEquipment;
 import com.spottrack.platform.gym.domain.model.commands.RequestEquipmentRelocation;
-import com.spottrack.platform.gym.infrastructure.persistence.jpa.assemblers.EquipmentPersistenceAssembler;
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.assemblers.GymPersistenceAssembler;
-import com.spottrack.platform.gym.infrastructure.persistence.jpa.entities.GymPersistenceEntity;
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.repositories.EquipmentPersistenceRepository;
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.repositories.GymPersistenceRepository;
 import com.spottrack.platform.shared.application.result.ApplicationError;
@@ -26,8 +23,6 @@ public class GymCommandServiceImpl implements GymCommandService {
         this.equipmentPersistenceRepository = equipmentPersistenceRepository;
     }
 
-
-
     @Override
     public Result<Equipment, ApplicationError> handle(RequestEquipmentRelocation command) {
         return null;
@@ -41,5 +36,4 @@ public class GymCommandServiceImpl implements GymCommandService {
         gymPersistenceRepository.save(gymEntity);
         return Result.success(gym);
     }
-
 }
