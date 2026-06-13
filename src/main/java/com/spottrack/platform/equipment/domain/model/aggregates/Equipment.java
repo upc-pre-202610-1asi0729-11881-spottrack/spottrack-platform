@@ -61,5 +61,8 @@ public class Equipment extends AbstractDomainAggregateRoot<Equipment> {
         this.status = EquipmentStatus.OUT_OF_SERVICE;
     }
 
+    public void updateStatus(EquipmentStatus status){
+        this.status = status;
+    }
 
 }
