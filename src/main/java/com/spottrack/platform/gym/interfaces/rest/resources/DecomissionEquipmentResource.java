@@ -1,6 +1,6 @@
 package com.spottrack.platform.gym.interfaces.rest.resources;
 
-import com.spottrack.platform.gym.domain.model.valueobjects.EquipmentStatus;
+import com.spottrack.platform.gym.domain.model.valueobjects.EquipmentId;
 
-public record DecomissionEquipmentResource(String equipmentId) {
+public record DecomissionEquipmentResource(EquipmentId equipmentId) {
 }

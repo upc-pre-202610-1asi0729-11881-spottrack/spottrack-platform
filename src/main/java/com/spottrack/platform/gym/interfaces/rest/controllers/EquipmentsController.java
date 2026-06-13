@@ -96,5 +96,16 @@ public class EquipmentsController {
         };
     }
 
+    @PatchMapping("/{equipmentId}/decomission")
+    public ResponseEntity<?> decomissionEquipment(@RequestBody DecomissionEquipmentResource resource) {
+        var command = DecomissionEquipmentCommandFromResourceAssembler.toCommandFromResource(resource);
+        var result = commandService.handle(command);
+        return switch (result) {
+            case Result.Success<Equipment, ApplicationError> s ->
+                    ResponseEntity.status(HttpStatus.OK).body(EquipmentResourceFromEntityAssembler.toResourceFromEntity(s.value()));
+            case Result.Failure<Equipment, ApplicationError> f ->
+                    ResponseEntity.badRequest().body(f.error());
+        };
+    }
 
 }
