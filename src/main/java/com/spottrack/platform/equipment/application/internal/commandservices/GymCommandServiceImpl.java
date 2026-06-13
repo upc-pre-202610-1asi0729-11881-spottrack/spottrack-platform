@@ -23,7 +23,10 @@ public class GymCommandServiceImpl implements GymCommandService {
     public Result<Equipment, ApplicationError> handle(RelocateEquipment command) {
         var entity = equipmentPersistenceRepository.findByEquipmentId(command.equipmentId().uuid());
         var domain = EquipmentPersistenceAssembler.toDomainFromPersistence(entity.get());
-
+        domain.relocateEquipment(command.zoneId());
+        var updatedEntity = EquipmentPersistenceAssembler.toPersistenceFromDomain(domain);
+        equipmentPersistenceRepository.save(updatedEntity);
+        return Result.success(domain);
     }
 
     @Override
