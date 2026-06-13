@@ -5,6 +5,7 @@ import com.spottrack.platform.equipment.domain.model.valueobjects.ZoneId;
 
 import java.security.PrivilegedActionException;
 
+
 public record RelocateEquipment(EquipmentId equipmentId, ZoneId zoneId) {
     public RelocateEquipment{
         if (equipmentId == null){

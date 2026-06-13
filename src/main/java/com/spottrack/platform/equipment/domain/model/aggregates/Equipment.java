@@ -69,4 +69,11 @@ public class Equipment extends AbstractDomainAggregateRoot<Equipment> {
         this.status = status;
     }
 
+    public void relocateEquipment(ZoneId zoneId) {
+        if (zoneId != null){
+            this.zoneId = zoneId;
+        } else {
+            throw new IllegalArgumentException("zoneId must not be null");
+        }
+    }
 }
