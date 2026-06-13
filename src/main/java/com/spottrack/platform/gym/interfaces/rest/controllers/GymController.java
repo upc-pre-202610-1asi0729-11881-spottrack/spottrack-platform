@@ -6,6 +6,7 @@ import com.spottrack.platform.gym.domain.model.aggregates.Gym;
 import com.spottrack.platform.gym.interfaces.rest.resources.CreateGymResource;
 import com.spottrack.platform.gym.interfaces.rest.transform.CreateGymCommandFromResourceAssembler;
 import com.spottrack.platform.gym.interfaces.rest.transform.EquipmentResourceFromEntityAssembler;
+import com.spottrack.platform.gym.interfaces.rest.transform.GymResourceFromEntityAssembler;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
 import org.springframework.http.HttpStatus;
@@ -22,6 +23,11 @@ public class GymController {
     public ResponseEntity<?> createEquipment(@RequestBody CreateGymResource resource){
         var command = CreateGymCommandFromResourceAssembler.toCommandFromResource(resource);
         var result = commandService.handle(command);
-
+        return switch(result) {
+            case Result.Success<Gym, ApplicationError> s ->
+                    ResponseEntity.status(HttpStatus.CREATED).body(GymResourceFromEntityAssembler.toResourceFromEntity(s.value()));
+            case Result.Failure<Gym, ApplicationError> f ->
+                    ResponseEntity.badRequest().body(f.error());
+        };
     }
 }
