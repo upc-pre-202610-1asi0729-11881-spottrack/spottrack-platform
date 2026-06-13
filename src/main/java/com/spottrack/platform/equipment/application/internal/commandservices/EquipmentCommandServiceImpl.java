@@ -42,7 +42,7 @@ public class EquipmentCommandServiceImpl implements EquipmentCommandService {
     public Result<Equipment, ApplicationError> handle(MarkEquipmentOutOfService command) {
         var equipment = equipmentRepository.findByEquipmentId(command.id().uuid());
         var domain = EquipmentPersistenceAssembler.toDomainFromPersistence(equipment.get());
-        domain.markEquipmentOutOfService(domain.getId(), domain.getStatus());
-        return Result.failure(ApplicationError.unexpected("MarkEquipmentOutOfService", "Not implemented yet"));
+        domain.markEquipmentOutOfService();
+        return Result.success(domain);
     }
 }
