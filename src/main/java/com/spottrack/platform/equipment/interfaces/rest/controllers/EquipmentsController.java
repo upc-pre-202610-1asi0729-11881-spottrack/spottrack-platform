@@ -59,7 +59,7 @@ public class EquipmentsController {
         return ResponseEntity.ok(equipmentResource);
     }
 
-    @PatchMapping("/{equipmentId}")
+    @PatchMapping("/{equipmentId}/out-of-service")
     public ResponseEntity<?> markEquipmentOutOfService(@RequestBody MarkEquipmentOutOfServiceResource resource) {
         var command = EquipmentMarkOutOfServiceFromResourceAssembler.toCommandFromResource(resource);
         var result = commandService.handle(command);
@@ -72,7 +72,8 @@ public class EquipmentsController {
         };
     }
 
-    @PatchMapping("/{equipmentId}")
+
+    @PatchMapping("/{equipmentId}/status")
     public ResponseEntity<?> UpdateEquipmentStatus(@RequestBody UpdateEquipmentStatusResource resource) {
         var command = UpdateEquipmentStatusCommandFromResourceAssembler.toCommandFromResource(resource);
         var result = commandService.handle(command);
