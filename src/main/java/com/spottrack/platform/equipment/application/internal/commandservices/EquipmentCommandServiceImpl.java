@@ -49,7 +49,7 @@ public class EquipmentCommandServiceImpl implements EquipmentCommandService {
 
     @Override
     public Result<Equipment, ApplicationError> handle(UpdateEquipmentStatus command) {
-        var entity = equipmentRepository.findByEquipmentId(command.id().uuid());
+        var entity = equipmentRepository.findByEquipmentId(command.id());
         var equipment = EquipmentPersistenceAssembler.toDomainFromPersistence(entity.get());
         equipment.updateStatus(command.status());
         return Result.success(equipment);
