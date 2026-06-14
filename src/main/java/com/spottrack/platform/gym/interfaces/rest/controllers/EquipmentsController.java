@@ -28,12 +28,11 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name="Equipments")
 public class EquipmentsController {
     private final EquipmentCommandService commandService;
-    private final GymCommandService gymCommandService;
+
     private final EquipmentQueryService equipmentQueryService;
 
-    public EquipmentsController(EquipmentCommandService commandService, EquipmentQueryService queryService, GymCommandService gymCommandService){
+    public EquipmentsController(EquipmentCommandService commandService, EquipmentQueryService queryService){
         this.commandService = commandService;
-        this.gymCommandService = gymCommandService;
         this.equipmentQueryService =  queryService;
     }
 
@@ -51,13 +50,7 @@ public class EquipmentsController {
         };
     }
 
-    @PostMapping
-    public ResponseEntity<?> addZone(@RequestBody AddZoneResource resource){
-        var command = AddZoneCommandFromResourceAssembler.toCommandFromResource(resource);
-        var result = gymCommandService.handle(command);
 
-    }
-    }
 
     @GetMapping("/{equipmentId}")
     public ResponseEntity<?> getEquipmentById(@PathVariable String equipmentId) {

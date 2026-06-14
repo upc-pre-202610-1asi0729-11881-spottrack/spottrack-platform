@@ -4,14 +4,13 @@ import com.spottrack.platform.gym.application.commandServices.GymCommandService;
 import com.spottrack.platform.gym.application.queryservices.GymQueryService;
 import com.spottrack.platform.gym.domain.model.aggregates.Gym;
 import com.spottrack.platform.gym.domain.model.entities.Branch;
+import com.spottrack.platform.gym.domain.model.entities.Zone;
 import com.spottrack.platform.gym.domain.model.queries.GetGymById;
 import com.spottrack.platform.gym.domain.model.valueobjects.GymId;
 import com.spottrack.platform.gym.interfaces.rest.resources.AddBranchResource;
+import com.spottrack.platform.gym.interfaces.rest.resources.AddZoneResource;
 import com.spottrack.platform.gym.interfaces.rest.resources.CreateGymResource;
-import com.spottrack.platform.gym.interfaces.rest.transform.AddBranchCommandFromResourceAssembler;
-import com.spottrack.platform.gym.interfaces.rest.transform.BranchResourceFromEntityAssembler;
-import com.spottrack.platform.gym.interfaces.rest.transform.CreateGymCommandFromResourceAssembler;
-import com.spottrack.platform.gym.interfaces.rest.transform.GymResourceFromEntityAssembler;
+import com.spottrack.platform.gym.interfaces.rest.transform.*;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -54,6 +53,17 @@ public class GymController {
                     ResponseEntity.status(HttpStatus.CREATED).body(BranchResourceFromEntityAssembler.toResourceFromEntity(s.value()));
             case Result.Failure<Branch, ApplicationError> f ->
                     ResponseEntity.badRequest().body(f.error());
+        };
+    }
+
+
+    @PostMapping
+    public ResponseEntity<?> addZone(@RequestBody AddZoneResource resource){
+        var command = AddZoneCommandFromResourceAssembler.toCommandFromResource(resource);
+        var result = commandService.handle(command);
+        return switch(result) {
+            case Result.Success<Zone, ApplicationError> s -> ResponseEntity.status(HttpStatus.CREATED).body(ZoneResourceFromEntityAssembler.toResourceFromEntity(s.value()));
+            case Result.Failure<Zone, ApplicationError> f -> ResponseEntity.badRequest().body(f.error());
         };
     }
 }
