@@ -16,6 +16,7 @@ import com.spottrack.platform.gym.infrastructure.persistence.jpa.entities.ZonePe
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.repositories.BranchPersistenceRepository;
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.repositories.EquipmentPersistenceRepository;
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.repositories.GymPersistenceRepository;
+import com.spottrack.platform.gym.infrastructure.persistence.jpa.repositories.ZonePersistenceRepository;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
 import jakarta.transaction.Transactional;
@@ -26,11 +27,14 @@ public class GymCommandServiceImpl implements GymCommandService {
     GymPersistenceRepository gymPersistenceRepository;
     EquipmentPersistenceRepository equipmentPersistenceRepository;
     BranchPersistenceRepository branchPersistenceRepository;
+    ZonePersistenceRepository zonePersistenceRepository;
 
-    public GymCommandServiceImpl(GymPersistenceRepository gymPersistenceRepository, EquipmentPersistenceRepository equipmentPersistenceRepository, BranchPersistenceRepository branchPersistenceRepository){
+    public GymCommandServiceImpl(GymPersistenceRepository gymPersistenceRepository, EquipmentPersistenceRepository equipmentPersistenceRepository, BranchPersistenceRepository branchPersistenceRepository, ZonePersistenceRepository zonePersistenceRepository){
         this.gymPersistenceRepository = gymPersistenceRepository;
+        this.zonePersistenceRepository = zonePersistenceRepository;
         this.equipmentPersistenceRepository = equipmentPersistenceRepository;
         this.branchPersistenceRepository = branchPersistenceRepository;
+
     }
 
     @Override
@@ -56,11 +60,14 @@ public class GymCommandServiceImpl implements GymCommandService {
         return Result.success(branch);
     }
 
+    @Transactional
     @Override
     public Result<Zone, ApplicationError> handle(AddZoneCommand command) {
         var zone = new Zone(command.zoneName(), command.maximumOccupancy(), command.branchId());
         var zoneEntity = ZonePersistenceAssembler.toPersistenceFromDomain(zone);
-        
+        zonePersistenceRepository.save(zoneEntity);
+        var savedZone = ZonePersistenceAssembler.toDomainFromPersistence(zoneEntity);
+        return Result.success(savedZone);
     }
 
 
