@@ -51,4 +51,5 @@ public class GymCommandServiceImpl implements GymCommandService {
         branchPersistenceRepository.save(branchEntity);
         return Result.success(branch);
     }
+
 }

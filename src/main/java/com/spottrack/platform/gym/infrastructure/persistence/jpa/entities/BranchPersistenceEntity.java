@@ -18,7 +18,7 @@ import java.util.List;
 @Table(name="branches")
 
 public class BranchPersistenceEntity extends AuditableAbstractPersistenceEntity {
-    @Column(nullable = false, unique = true)
+    @Column(nullable = true, unique = true)
     private String branchId;
 
     @Column(nullable = false)
