@@ -34,11 +34,7 @@ public class EquipmentCommandServiceImpl implements EquipmentCommandService {
         return Result.success(savedEquipment);
     }
 
-    @Override
-    public Result<Equipment, ApplicationError> handle(DefineMaintenanceThreshold command) {
-        return Result.failure(ApplicationError.unexpected("DefineMaintenanceThreshold", "Not implemented yet"));
 
-    }
 
     @Override
     public Result<Equipment, ApplicationError> handle(MarkEquipmentOutOfService command) {
@@ -84,4 +80,17 @@ public class EquipmentCommandServiceImpl implements EquipmentCommandService {
         var equipment = EquipmentPersistenceAssembler.toDomainFromPersistence(persistenceEntity);
         return Result.success(equipment);
     }
+
+    @Override
+    public Result<Equipment, ApplicationError> handle(DefineMaintenanceThresholdCommand command) {
+        var entity = equipmentRepository.findByEquipmentId(command.equipmentId().uuid());
+        var persistenceEntity = entity.get();
+        var domainEntity = EquipmentPersistenceAssembler.toDomainFromPersistence(persistenceEntity);
+        domainEntity.setMaintenanceThreshold(command.threshold());
+        var updatedEntity = EquipmentPersistenceAssembler.toPersistenceFromDomain(domainEntity);
+        updatedEntity.setId(persistenceEntity.getId());
+        equipmentRepository.save(updatedEntity);
+        return Result.success(domainEntity);
+    }
+
 }

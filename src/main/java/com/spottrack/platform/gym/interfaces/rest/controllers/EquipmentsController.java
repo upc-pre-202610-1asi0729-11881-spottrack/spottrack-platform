@@ -5,6 +5,7 @@ import com.spottrack.platform.gym.application.commandServices.EquipmentCommandSe
 import com.spottrack.platform.gym.application.queryservices.EquipmentQueryService;
 import com.spottrack.platform.gym.domain.model.aggregates.Equipment;
 import com.spottrack.platform.gym.domain.model.commands.CreateGym;
+import com.spottrack.platform.gym.domain.model.commands.DefineMaintenanceThresholdCommand;
 import com.spottrack.platform.gym.domain.model.commands.MarkEquipmentOutOfService;
 import com.spottrack.platform.gym.domain.model.queries.GetEquipmentById;
 import com.spottrack.platform.gym.domain.model.valueobjects.EquipmentId;
@@ -103,6 +104,17 @@ public class EquipmentsController {
         return switch (result) {
             case Result.Success<Equipment, ApplicationError> s ->
                     ResponseEntity.status(HttpStatus.OK).body(EquipmentResourceFromEntityAssembler.toResourceFromEntity(s.value()));
+            case Result.Failure<Equipment, ApplicationError> f ->
+                    ResponseEntity.badRequest().body(f.error());
+        };
+    }
+
+    @PatchMapping("/{equipmentId}/maintenance-threshold")
+    public ResponseEntity<?> defineMaintenanceThreshold(@RequestBody DefineMaintenanceThresholdResource resource){
+        var command = DefineMaintenanceThresholdCommandFromResourceAssembler.toCommandFromResource(resource);
+        var result = commandService.handle(command);
+        return switch(result) {
+            case Result.Success<Equipment, ApplicationError>  s -> ResponseEntity.status(HttpStatus.OK).body(EquipmentResourceFromEntityAssembler.toResourceFromEntity(s.value()));
             case Result.Failure<Equipment, ApplicationError> f ->
                     ResponseEntity.badRequest().body(f.error());
         };

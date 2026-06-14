@@ -4,8 +4,8 @@ import com.spottrack.platform.gym.domain.model.valueobjects.EquipmentId;
 
 import java.time.LocalDate;
 
-public record DefineMaintenanceThreshold(EquipmentId equipmentId, LocalDate threshold) {
-    public DefineMaintenanceThreshold {
+public record DefineMaintenanceThresholdCommand(EquipmentId equipmentId, LocalDate threshold) {
+    public DefineMaintenanceThresholdCommand {
         if (equipmentId == null) {
             throw new IllegalArgumentException("equipment.command.defineMaintenanceThreshold.equipmentId.notNull");
         }
