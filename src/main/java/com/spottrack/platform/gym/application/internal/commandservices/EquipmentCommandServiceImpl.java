@@ -34,11 +34,7 @@ public class EquipmentCommandServiceImpl implements EquipmentCommandService {
         return Result.success(savedEquipment);
     }
 
-    @Override
-    public Result<Equipment, ApplicationError> handle(DefineMaintenanceThreshold command) {
-        return Result.failure(ApplicationError.unexpected("DefineMaintenanceThreshold", "Not implemented yet"));
 
-    }
 
     @Override
     public Result<Equipment, ApplicationError> handle(MarkEquipmentOutOfService command) {
