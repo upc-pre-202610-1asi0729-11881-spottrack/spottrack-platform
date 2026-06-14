@@ -57,7 +57,7 @@ public class GymController {
     }
 
 
-    @PostMapping
+    @PostMapping("/{gymId}/branches/{branchId}/zones")
     public ResponseEntity<?> addZone(@RequestBody AddZoneResource resource){
         var command = AddZoneCommandFromResourceAssembler.toCommandFromResource(resource);
         var result = commandService.handle(command);

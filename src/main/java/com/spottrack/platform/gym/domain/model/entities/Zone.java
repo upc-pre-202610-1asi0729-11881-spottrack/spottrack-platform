@@ -32,7 +32,6 @@ public class Zone {
         this.maximumOccupancy = maximumOccupancy;
         this.equipmentList = new ArrayList<EquipmentId>();
         this.branchId = branchId;
-
-
     }
+
 }

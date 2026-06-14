@@ -4,7 +4,7 @@ import com.spottrack.platform.gym.domain.model.commands.AddZoneCommand;
 import com.spottrack.platform.gym.interfaces.rest.resources.AddZoneResource;
 
 public class AddZoneCommandFromResourceAssembler {
-    public static AddZoneCommand toCommandFromResource(AddZoneResource resource){
+    public static AddZoneCommand toCommandFromResource(AddZoneResource resource) {
         return new AddZoneCommand(resource.zoneName(), resource.maximumOccupancy(), resource.branchId());
     }
 }
