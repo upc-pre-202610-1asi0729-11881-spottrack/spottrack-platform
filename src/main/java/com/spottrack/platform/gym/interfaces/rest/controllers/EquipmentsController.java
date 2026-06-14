@@ -2,11 +2,13 @@ package com.spottrack.platform.gym.interfaces.rest.controllers;
 
 
 import com.spottrack.platform.gym.application.commandServices.EquipmentCommandService;
+import com.spottrack.platform.gym.application.commandServices.GymCommandService;
 import com.spottrack.platform.gym.application.queryservices.EquipmentQueryService;
 import com.spottrack.platform.gym.domain.model.aggregates.Equipment;
 import com.spottrack.platform.gym.domain.model.commands.CreateGym;
 import com.spottrack.platform.gym.domain.model.commands.DefineMaintenanceThresholdCommand;
 import com.spottrack.platform.gym.domain.model.commands.MarkEquipmentOutOfService;
+import com.spottrack.platform.gym.domain.model.entities.Zone;
 import com.spottrack.platform.gym.domain.model.queries.GetEquipmentById;
 import com.spottrack.platform.gym.domain.model.valueobjects.EquipmentId;
 import com.spottrack.platform.gym.domain.model.valueobjects.EquipmentStatus;
@@ -16,6 +18,7 @@ import com.spottrack.platform.gym.interfaces.rest.transform.*;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name="Equipments")
 public class EquipmentsController {
     private final EquipmentCommandService commandService;
+
     private final EquipmentQueryService equipmentQueryService;
 
     public EquipmentsController(EquipmentCommandService commandService, EquipmentQueryService queryService){
@@ -45,6 +49,8 @@ public class EquipmentsController {
                 ResponseEntity.badRequest().body(f.error());
         };
     }
+
+
 
     @GetMapping("/{equipmentId}")
     public ResponseEntity<?> getEquipmentById(@PathVariable String equipmentId) {
