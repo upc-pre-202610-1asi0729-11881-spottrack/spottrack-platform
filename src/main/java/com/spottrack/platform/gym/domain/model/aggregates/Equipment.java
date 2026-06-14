@@ -33,6 +33,7 @@ public class Equipment extends AbstractDomainAggregateRoot<Equipment> {
     private LocalDate maintenanceThreshold;
     private ZoneId zoneId;
 
+
     public Equipment() {}
 
     public Equipment(EquipmentStatus status, String equipmentName, String model, ManufacturerId manufacturerId, BigDecimal amount, String currency, ZoneId zoneId) {
