@@ -13,6 +13,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.cglib.core.Local;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -76,5 +77,9 @@ public class Equipment extends AbstractDomainAggregateRoot<Equipment> {
         } else {
             throw new IllegalArgumentException("zoneId must not be null");
         }
+    }
+
+    public void setMaintenanceThreshold(LocalDate date){
+        this.maintenanceThreshold = date;
     }
 }

@@ -11,5 +11,5 @@ public interface EquipmentCommandService {
    public Result<Equipment, ApplicationError> handle(UpdateEquipmentStatus command);
    public Result<Equipment, ApplicationError> handle(RelocateEquipment command);
    public Result<Equipment, ApplicationError> handle(DecomissionEquipment command);
-   public Result<Equipment, ApplicationError> handle(DefineMaintenanceThresholdCommand command)
+   public Result<Equipment, ApplicationError> handle(DefineMaintenanceThresholdCommand command);
 }
