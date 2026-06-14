@@ -18,7 +18,7 @@ public class Zone {
     private String name;
     private int maximumOccupancy;
 
-    private BranchId branch;
+    private BranchId branchId;
 
     private List<EquipmentId> equipmentList;
 
@@ -26,10 +26,13 @@ public class Zone {
         this.id = null;
     }
 
-    public Zone(String name, int maximumOccupancy) {
+    public Zone(String name, int maximumOccupancy, BranchId branchId) {
         this.id = new ZoneId(UUID.randomUUID().toString());
         this.name = name;
         this.maximumOccupancy = maximumOccupancy;
         this.equipmentList = new ArrayList<EquipmentId>();
+        this.branchId = branchId;
+
+
     }
 }
