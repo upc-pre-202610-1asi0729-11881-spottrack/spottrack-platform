@@ -11,6 +11,7 @@ import com.spottrack.platform.gym.domain.model.entities.Branch;
 import com.spottrack.platform.gym.domain.model.entities.Zone;
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.assemblers.BranchPersistenceAssembler;
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.assemblers.GymPersistenceAssembler;
+import com.spottrack.platform.gym.infrastructure.persistence.jpa.assemblers.ZonePersistenceAssembler;
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.entities.ZonePersistenceEntity;
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.repositories.BranchPersistenceRepository;
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.repositories.EquipmentPersistenceRepository;
@@ -57,7 +58,9 @@ public class GymCommandServiceImpl implements GymCommandService {
 
     @Override
     public Result<Zone, ApplicationError> handle(AddZoneCommand command) {
-        return null;
+        var zone = new Zone(command.zoneName(), command.maximumOccupancy(), command.branchId());
+        var zoneEntity = ZonePersistenceAssembler.toPersistenceFromDomain(zone);
+        
     }
 
 
