@@ -91,6 +91,8 @@ public class EquipmentCommandServiceImpl implements EquipmentCommandService {
         var persistenceEntity = entity.get();
         var domainEntity = EquipmentPersistenceAssembler.toDomainFromPersistence(persistenceEntity);
         domainEntity.setMaintenanceThreshold(command.threshold());
+        var updatedEntity = EquipmentPersistenceAssembler.toPersistenceFromDomain(domainEntity);
+        equipmentRepository.save(updatedEntity);
         return Result.success(domainEntity);
     }
 }
