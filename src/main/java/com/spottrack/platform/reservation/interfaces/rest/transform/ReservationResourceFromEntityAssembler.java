@@ -14,9 +14,11 @@ public class ReservationResourceFromEntityAssembler {
                 reservation.getId().uuid(),
                 reservation.getClientId(),
                 reservation.getEquipmentId(),
-                reservation.getStatus(),
+                reservation.getStatus().name(),
                 reservation.getStartedAt(),
-                reservation.getTimerExpiry()
+                reservation.getTimerExpiry(),
+                reservation.getTimeInterval().startTime().toString(),
+                reservation.getTimeInterval().endTime().toString()
         );
     }
 }

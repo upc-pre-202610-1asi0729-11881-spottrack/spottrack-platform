@@ -12,8 +12,9 @@ public record ReservationResource(
         String id,
         String clientId,
         String equipmentId,
-        ReservationStatus status,
+        String status,
         LocalDateTime startedAt,
-        LocalDateTime timerExpiry
-) {
-}
+        LocalDateTime timerExpiry,
+        String startTime,   // from timeInterval
+        String endTime      // from timeInterval
+) {}

@@ -8,5 +8,10 @@ import com.spottrack.platform.reservation.domain.model.valueobjects.TimeInterval
  * Request body for POST /api/v1/reservations
  * clientId and equipmentId are plain string references — no domain objects cross the HTTP boundary.
  */
-public record InitiateExpressReservationResource(ClientId clientId, EquipmentId equipmentId, TimeInterval timeInterval, String status) {
-}
+public record InitiateExpressReservationResource(
+        String clientId,
+        String equipmentId,
+        String startTime,   // format: HH:mm:ss
+        String endTime,     // format: HH:mm:ss
+        String status
+) {}

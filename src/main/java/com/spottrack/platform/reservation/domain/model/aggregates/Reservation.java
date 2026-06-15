@@ -6,12 +6,9 @@ import com.spottrack.platform.reservation.domain.model.events.ReservationEndedEv
 import com.spottrack.platform.reservation.domain.model.events.ReservationTimerStartedEvent;
 import com.spottrack.platform.reservation.domain.model.valueobjects.ReservationId;
 import com.spottrack.platform.reservation.domain.model.valueobjects.ReservationStatus;
+import com.spottrack.platform.reservation.domain.model.valueobjects.TimeInterval;
 import com.spottrack.platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
-import jakarta.persistence.Column;
-import jakarta.persistence.EmbeddedId;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
+import jakarta.persistence.*;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -49,6 +46,9 @@ public class Reservation extends AbstractDomainAggregateRoot<Reservation> {
     @Column(nullable = true)
     private LocalDateTime timerExpiry;
 
+    @Embedded
+    private TimeInterval timeInterval;
+
     protected Reservation() {}
 
     /**
@@ -61,10 +61,11 @@ public class Reservation extends AbstractDomainAggregateRoot<Reservation> {
         this.equipmentId = command.equipmentId().uuid();
         this.status = ReservationStatus.ACTIVE;
         this.startedAt = LocalDateTime.now();
+        this.timeInterval = command.timeInterval(); // add this
     }
 
     /**
-     * Sets the timer expiry. Only makes sense when the reservation is ACTIVE.
+     *  Sets the timer expiry. Only makes sense when the reservation is ACTIVE.
      * durationMinutes comes from the StartReservationTimer command.
      */
     public void startTimer(int durationMinutes) {
