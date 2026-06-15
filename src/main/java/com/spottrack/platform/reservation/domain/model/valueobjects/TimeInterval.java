@@ -7,8 +7,6 @@ import lombok.NoArgsConstructor;
 import java.sql.Time;
 
 @Embeddable
-@Getter
-@NoArgsConstructor
 public record TimeInterval(Time startTime, Time endTime) {
     private static final Time MIN_TIME = Time.valueOf("00:00:00");
     private static final Time MAX_TIME = Time.valueOf("23:59:00");
