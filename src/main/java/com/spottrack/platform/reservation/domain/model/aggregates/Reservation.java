@@ -12,6 +12,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.sql.Time;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -57,6 +58,16 @@ public class Reservation extends AbstractDomainAggregateRoot<Reservation> {
         this.timeInterval = command.timeInterval(); // add this
     }
 
+
+    public Reservation(String id, String clientId, String equipmentId, String status, LocalDateTime startedAt, LocalDateTime timerExpiry,  TimeInterval timeInterval){
+        this.id = new ReservationId(id);  // String → ReservationId value object
+        this.clientId = clientId;
+        this.equipmentId = equipmentId;
+        this.status = ReservationStatus.valueOf(status);  // String → Enum
+        this.timerExpiry = timerExpiry;
+        this.startedAt = startedAt;
+        this.timeInterval = timeInterval;
+    }
     /**
      *  Sets the timer expiry. Only makes sense when the reservation is ACTIVE.
      * durationMinutes comes from the StartReservationTimer command.

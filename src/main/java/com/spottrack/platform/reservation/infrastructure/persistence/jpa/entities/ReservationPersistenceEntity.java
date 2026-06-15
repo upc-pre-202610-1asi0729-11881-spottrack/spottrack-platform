@@ -7,6 +7,7 @@ import com.spottrack.platform.shared.infrastructure.persistence.jpa.entities.Aud
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
@@ -14,6 +15,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "reservations")
 @Getter
+@Setter
 @NoArgsConstructor
 public class ReservationPersistenceEntity extends AuditableAbstractPersistenceEntity {
 
