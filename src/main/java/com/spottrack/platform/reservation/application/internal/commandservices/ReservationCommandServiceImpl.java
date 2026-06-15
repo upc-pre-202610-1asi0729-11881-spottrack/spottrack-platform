@@ -6,9 +6,8 @@ import com.spottrack.platform.reservation.domain.model.commands.CancelReservatio
 import com.spottrack.platform.reservation.domain.model.commands.EndReservation;
 import com.spottrack.platform.reservation.domain.model.commands.InitiateExpressReservation;
 import com.spottrack.platform.reservation.domain.model.commands.StartReservationTimer;
-import com.spottrack.platform.reservation.infrastructure.persistence.jpa.ReservationRepository;
+import com.spottrack.platform.reservation.infrastructure.persistence.jpa.ReservationPersistenceRepository;
 import com.spottrack.platform.reservation.infrastructure.persistence.jpa.assemblers.ReservationPersistenceAssembler;
-import com.spottrack.platform.reservation.infrastructure.persistence.jpa.entities.ReservationPersistenceEntity;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
 import org.springframework.stereotype.Service;
@@ -17,9 +16,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class ReservationCommandServiceImpl implements ReservationCommandService {
 
-    private final ReservationRepository reservationRepository;
+    private final ReservationPersistenceRepository reservationRepository;
 
-    public ReservationCommandServiceImpl(ReservationRepository reservationRepository) {
+    public ReservationCommandServiceImpl(ReservationPersistenceRepository reservationRepository) {
         this.reservationRepository = reservationRepository;
     }
 
