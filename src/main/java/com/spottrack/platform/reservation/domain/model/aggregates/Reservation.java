@@ -59,14 +59,14 @@ public class Reservation extends AbstractDomainAggregateRoot<Reservation> {
     }
 
 
-    public Reservation(String id, String clientId, String equipmentId, String status, LocalDateTime startedAt, LocalDateTime timerExpiry,  TimeInterval timeInterval){
+    public Reservation(String id, String clientId, String equipmentId, String status, LocalDateTime startedAt, LocalDateTime timerExpiry,  Time startTime, Time endTime){
         this.id = new ReservationId(id);  // String → ReservationId value object
         this.clientId = clientId;
         this.equipmentId = equipmentId;
         this.status = ReservationStatus.valueOf(status);  // String → Enum
         this.timerExpiry = timerExpiry;
         this.startedAt = startedAt;
-        this.timeInterval = timeInterval;
+        this.timeInterval = new TimeInterval(startTime, endTime); // construct the whole object
     }
     /**
      *  Sets the timer expiry. Only makes sense when the reservation is ACTIVE.

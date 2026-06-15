@@ -8,7 +8,6 @@ import jakarta.persistence.Embeddable;
  */
 @Embeddable
 public record ReservationId(String uuid) {
-
     public ReservationId {
         if (uuid == null || uuid.isBlank()) {
             throw new IllegalArgumentException("reservation.error.reservationId.notBlank");
