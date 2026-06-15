@@ -18,7 +18,8 @@ public record TimeInterval(Time startTime, Time endTime) {
         if (startTime.before(MIN_TIME) || startTime.after(MAX_TIME))
             throw new IllegalArgumentException("Start time must be between 00:00:00 and 23:59:00");
 
-        if (endTime.before(MIN_TIME) || endTime.after(MAX_TIME))
-            throw new
+        if (endTime.before(MIN_TIME) || endTime.after(MAX_TIME)) {
+            throw new IllegalArgumentException("End time must be between 00:00:00 and 23:59:00");
+        }
     }
 }
