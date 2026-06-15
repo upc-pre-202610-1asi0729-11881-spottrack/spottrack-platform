@@ -1,5 +1,4 @@
 package com.spottrack.platform.maintenance.domain.model.commands;
-
 public record RequestMaintenance(
         String equipmentId,
         String requestedBy,
