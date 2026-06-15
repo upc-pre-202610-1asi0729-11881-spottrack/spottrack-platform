@@ -26,6 +26,7 @@ public class ReservationPersistenceAssembler {
         persistence.setClientId(entity.getClientId());
         persistence.setEquipmentId(entity.getEquipmentId());
         persistence.setStatus(entity.getStatus());
+        persistence.setStartedAt(entity.getStartedAt());
         persistence.setStartTime(entity.getTimeInterval().startTime());
         persistence.setEndTime(entity.getTimeInterval().endTime());
         persistence.setTimerExpiry(entity.getTimerExpiry());

@@ -39,7 +39,7 @@ public class ReservationCommandServiceImpl implements ReservationCommandService 
     @Transactional
     @Override
     public Result<Reservation, ApplicationError> handle(CancelReservation command) {
-        var found = reservationPersistenceRepository.findByReservationUuid(command.reservationId().uuid());
+        var found = reservationPersistenceRepository.findByUuid(command.reservationId().uuid());
         if (found.isEmpty())
             return Result.failure(ApplicationError.notFound("Reservation", command.reservationId().uuid()));
 
@@ -52,7 +52,7 @@ public class ReservationCommandServiceImpl implements ReservationCommandService 
     @Transactional
     @Override
     public Result<Reservation, ApplicationError> handle(StartReservationTimer command) {
-        var found = reservationPersistenceRepository.findByReservationUuid(command.reservationId().uuid());
+        var found = reservationPersistenceRepository.findByUuid(command.reservationId().uuid());
         if (found.isEmpty())
             return Result.failure(ApplicationError.notFound("Reservation", command.reservationId().uuid()));
 
@@ -65,7 +65,7 @@ public class ReservationCommandServiceImpl implements ReservationCommandService 
     @Transactional
     @Override
     public Result<Reservation, ApplicationError> handle(EndReservation command) {
-        var found = reservationPersistenceRepository.findByReservationUuid(command.reservationId().uuid());
+        var found = reservationPersistenceRepository.findByUuid(command.reservationId().uuid());
         if (found.isEmpty())
             return Result.failure(ApplicationError.notFound("Reservation", command.reservationId().uuid()));
 

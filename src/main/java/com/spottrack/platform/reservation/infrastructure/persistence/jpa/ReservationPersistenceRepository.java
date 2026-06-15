@@ -11,6 +11,6 @@ import java.util.Optional;
  * Add custom query methods here only when needed (e.g. findByEquipmentIdAndStatus).
  */
 public interface ReservationPersistenceRepository extends JpaRepository<ReservationPersistenceEntity, Long> {
-    Optional<ReservationPersistenceEntity> findByReservationUuid(String uuid);
+    Optional<ReservationPersistenceEntity> findByUuid(String uuid);  // matches field name
     Optional<ReservationPersistenceEntity> findById(Long id);
 }

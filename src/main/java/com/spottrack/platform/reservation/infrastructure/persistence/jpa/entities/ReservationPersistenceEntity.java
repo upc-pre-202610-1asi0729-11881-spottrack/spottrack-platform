@@ -1,8 +1,6 @@
 package com.spottrack.platform.reservation.infrastructure.persistence.jpa.entities;
 
-import com.spottrack.platform.reservation.domain.model.valueobjects.ReservationId;
 import com.spottrack.platform.reservation.domain.model.valueobjects.ReservationStatus;
-import com.spottrack.platform.reservation.domain.model.valueobjects.TimeInterval;
 import com.spottrack.platform.shared.infrastructure.persistence.jpa.entities.AuditableAbstractPersistenceEntity;
 import jakarta.persistence.*;
 import lombok.Getter;

@@ -16,7 +16,7 @@ public class ReservationRepositoryImpl implements ReservationRepository {
 
     @Override
     public Optional<Reservation> findByUuid(String id) {
-        return reservationPersistenceRepository.findByReservationUuid(id).map(ReservationPersistenceAssembler::toDomainFromPersistence);
+        return reservationPersistenceRepository.findByUuid(id).map(ReservationPersistenceAssembler::toDomainFromPersistence);
     }
 
     @Override
