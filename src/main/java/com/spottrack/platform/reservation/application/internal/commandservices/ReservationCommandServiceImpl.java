@@ -16,10 +16,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class ReservationCommandServiceImpl implements ReservationCommandService {
 
-    private final ReservationPersistenceRepository reservationRepository;
+    private final ReservationPersistenceRepository reservationPersistenceRepository;
 
-    public ReservationCommandServiceImpl(ReservationPersistenceRepository reservationRepository) {
-        this.reservationRepository = reservationRepository;
+    public ReservationCommandServiceImpl(ReservationPersistenceRepository reservationPersistenceRepository) {
+        this. reservationPersistenceRepository = reservationPersistenceRepository;
     }
 
     /**
@@ -31,7 +31,7 @@ public class ReservationCommandServiceImpl implements ReservationCommandService 
     public Result<Reservation, ApplicationError> handle(InitiateExpressReservation command) {
         var reservation = new Reservation(command);
         var entity = ReservationPersistenceAssembler.toPersistenceFromDomain(reservation);
-        var savedEntity = reservationRepository.save(entity);
+        var savedEntity = reservationPersistenceRepository.save(entity);
         var savedDomain = ReservationPersistenceAssembler.toDomainFromPersistence(savedEntity);
         return Result.success(savedDomain);
     }
@@ -39,39 +39,39 @@ public class ReservationCommandServiceImpl implements ReservationCommandService 
     @Transactional
     @Override
     public Result<Reservation, ApplicationError> handle(CancelReservation command) {
-        var found = reservationRepository.findById(command.reservationId().uuid());
+        var found = reservationPersistenceRepository.findByReservationUuid(command.reservationId().uuid());
         if (found.isEmpty())
             return Result.failure(ApplicationError.notFound("Reservation", command.reservationId().uuid()));
 
         var domain = ReservationPersistenceAssembler.toDomainFromPersistence(found.get());
         domain.cancel();
-        var savedEntity = reservationRepository.save(ReservationPersistenceAssembler.toPersistenceFromDomain(domain));
+        var savedEntity = reservationPersistenceRepository.save(ReservationPersistenceAssembler.toPersistenceFromDomain(domain));
         return Result.success(ReservationPersistenceAssembler.toDomainFromPersistence(savedEntity));
     }
 
     @Transactional
     @Override
     public Result<Reservation, ApplicationError> handle(StartReservationTimer command) {
-        var found = reservationRepository.findById(command.reservationId().uuid());
+        var found = reservationPersistenceRepository.findByReservationUuid(command.reservationId().uuid());
         if (found.isEmpty())
             return Result.failure(ApplicationError.notFound("Reservation", command.reservationId().uuid()));
 
         var domain = ReservationPersistenceAssembler.toDomainFromPersistence(found.get());
         domain.startTimer(command.durationMinutes());
-        var savedEntity = reservationRepository.save(ReservationPersistenceAssembler.toPersistenceFromDomain(domain));
+        var savedEntity = reservationPersistenceRepository.save(ReservationPersistenceAssembler.toPersistenceFromDomain(domain));
         return Result.success(ReservationPersistenceAssembler.toDomainFromPersistence(savedEntity));
     }
 
     @Transactional
     @Override
     public Result<Reservation, ApplicationError> handle(EndReservation command) {
-        var found = reservationRepository.findById(command.reservationId().uuid());
+        var found = reservationPersistenceRepository.findByReservationUuid(command.reservationId().uuid());
         if (found.isEmpty())
             return Result.failure(ApplicationError.notFound("Reservation", command.reservationId().uuid()));
 
         var domain = ReservationPersistenceAssembler.toDomainFromPersistence(found.get());
         domain.end();
-        var savedEntity = reservationRepository.save(ReservationPersistenceAssembler.toPersistenceFromDomain(domain));
+        var savedEntity = reservationPersistenceRepository.save(ReservationPersistenceAssembler.toPersistenceFromDomain(domain));
         return Result.success(ReservationPersistenceAssembler.toDomainFromPersistence(savedEntity));
     }
 }
