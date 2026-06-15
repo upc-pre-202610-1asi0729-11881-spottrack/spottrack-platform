@@ -1,18 +1,13 @@
 package com.spottrack.platform.reservation.domain.model.commands;
 
+import com.spottrack.platform.gym.domain.model.valueobjects.EquipmentId;
+import com.spottrack.platform.reservation.domain.model.valueobjects.ClientId;
+
 /**
  * Command: fast-track reservation that skips the ReservationRequest flow.
  * The client walks up and immediately reserves equipment without a prior request.
  * Creates a Reservation directly in ACTIVE status.
  */
-public record InitiateExpressReservation(String clientId, String equipmentId) {
+public record InitiateExpressReservation(ClientId clientId, EquipmentId equipmentId) {
 
-    public InitiateExpressReservation {
-        if (clientId == null || clientId.isBlank()) {
-            throw new IllegalArgumentException("reservation.command.expressReservation.clientId.notBlank");
-        }
-        if (equipmentId == null || equipmentId.isBlank()) {
-            throw new IllegalArgumentException("reservation.command.expressReservation.equipmentId.notBlank");
-        }
-    }
 }

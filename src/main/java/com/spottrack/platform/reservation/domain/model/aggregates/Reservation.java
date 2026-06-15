@@ -57,8 +57,8 @@ public class Reservation extends AbstractDomainAggregateRoot<Reservation> {
      */
     public Reservation(InitiateExpressReservation command) {
         this.id = new ReservationId(UUID.randomUUID().toString());
-        this.clientId = command.clientId();
-        this.equipmentId = command.equipmentId();
+        this.clientId = command.clientId().uuid();
+        this.equipmentId = command.equipmentId().uuid();
         this.status = ReservationStatus.ACTIVE;
         this.startedAt = LocalDateTime.now();
     }
