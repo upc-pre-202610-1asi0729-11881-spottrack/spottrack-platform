@@ -1,29 +1,31 @@
 package com.spottrack.platform.reservation.infrastructure.persistence.jpa.entities;
 
-import com.spottrack.platform.reservation.domain.model.valueobjects.ReservationId;
 import com.spottrack.platform.reservation.domain.model.valueobjects.ReservationStatus;
-import com.spottrack.platform.reservation.domain.model.valueobjects.TimeInterval;
 import com.spottrack.platform.shared.infrastructure.persistence.jpa.entities.AuditableAbstractPersistenceEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+import java.sql.Time;
 import java.time.LocalDateTime;
 
 
 @Entity
 @Table(name = "reservations")
 @Getter
+@Setter
 @NoArgsConstructor
 public class ReservationPersistenceEntity extends AuditableAbstractPersistenceEntity {
 
-    @EmbeddedId
-    private ReservationId id;
+    @Column(nullable = false, unique = true)
+    private String uuid;
 
+    // Reference to Client bounded context — no JPA join, just the UUID
     @Column(nullable = false)
     private String clientId;
 
-    // String reference to Equipment bounded context
+    // Reference to Equipment bounded context — no JPA join, just the UUID
     @Column(nullable = false)
     private String equipmentId;
 
@@ -34,10 +36,12 @@ public class ReservationPersistenceEntity extends AuditableAbstractPersistenceEn
     @Column(nullable = false)
     private LocalDateTime startedAt;
 
-    // Set when StartReservationTimer is handled — null until the timer begins
     @Column(nullable = true)
     private LocalDateTime timerExpiry;
 
-    @Embedded
-    private TimeInterval timeInterval;
+    @Column(nullable = false)
+    private Time startTime;
+
+    @Column(nullable = false)
+    private Time endTime;
 }

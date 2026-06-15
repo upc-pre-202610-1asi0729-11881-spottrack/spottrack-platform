@@ -6,7 +6,8 @@ import com.spottrack.platform.reservation.domain.model.commands.CancelReservatio
 import com.spottrack.platform.reservation.domain.model.commands.EndReservation;
 import com.spottrack.platform.reservation.domain.model.commands.InitiateExpressReservation;
 import com.spottrack.platform.reservation.domain.model.commands.StartReservationTimer;
-import com.spottrack.platform.reservation.infrastructure.persistence.jpa.ReservationRepository;
+import com.spottrack.platform.reservation.infrastructure.persistence.jpa.ReservationPersistenceRepository;
+import com.spottrack.platform.reservation.infrastructure.persistence.jpa.assemblers.ReservationPersistenceAssembler;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
 import org.springframework.stereotype.Service;
@@ -15,10 +16,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class ReservationCommandServiceImpl implements ReservationCommandService {
 
-    private final ReservationRepository reservationRepository;
+    private final ReservationPersistenceRepository reservationPersistenceRepository;
 
-    public ReservationCommandServiceImpl(ReservationRepository reservationRepository) {
-        this.reservationRepository = reservationRepository;
+    public ReservationCommandServiceImpl(ReservationPersistenceRepository reservationPersistenceRepository) {
+        this. reservationPersistenceRepository = reservationPersistenceRepository;
     }
 
     /**
@@ -29,55 +30,48 @@ public class ReservationCommandServiceImpl implements ReservationCommandService 
     @Override
     public Result<Reservation, ApplicationError> handle(InitiateExpressReservation command) {
         var reservation = new Reservation(command);
-        var saved = reservationRepository.save(reservation);
-        return Result.success(saved);
+        var entity = ReservationPersistenceAssembler.toPersistenceFromDomain(reservation);
+        var savedEntity = reservationPersistenceRepository.save(entity);
+        var savedDomain = ReservationPersistenceAssembler.toDomainFromPersistence(savedEntity);
+        return Result.success(savedDomain);
     }
 
-    /**
-     * Cancels an active reservation. Returns NOT_FOUND if the ID doesn't exist.
-     */
     @Transactional
     @Override
     public Result<Reservation, ApplicationError> handle(CancelReservation command) {
-        var found = reservationRepository.findById(command.reservationId());
-        if (found.isEmpty()) {
+        var found = reservationPersistenceRepository.findByUuid(command.reservationId().uuid());
+        if (found.isEmpty())
             return Result.failure(ApplicationError.notFound("Reservation", command.reservationId().uuid()));
-        }
-        var reservation = found.get();
-        reservation.cancel();
-        var saved = reservationRepository.save(reservation);
-        return Result.success(saved);
+
+        var domain = ReservationPersistenceAssembler.toDomainFromPersistence(found.get());
+        domain.cancel();
+        var savedEntity = reservationPersistenceRepository.save(ReservationPersistenceAssembler.toPersistenceFromDomain(domain));
+        return Result.success(ReservationPersistenceAssembler.toDomainFromPersistence(savedEntity));
     }
 
-    /**
-     * Starts the countdown timer for an existing active reservation.
-     */
     @Transactional
     @Override
     public Result<Reservation, ApplicationError> handle(StartReservationTimer command) {
-        var found = reservationRepository.findById(command.reservationId());
-        if (found.isEmpty()) {
+        var found = reservationPersistenceRepository.findByUuid(command.reservationId().uuid());
+        if (found.isEmpty())
             return Result.failure(ApplicationError.notFound("Reservation", command.reservationId().uuid()));
-        }
-        var reservation = found.get();
-        reservation.startTimer(command.durationMinutes());
-        var saved = reservationRepository.save(reservation);
-        return Result.success(saved);
+
+        var domain = ReservationPersistenceAssembler.toDomainFromPersistence(found.get());
+        domain.startTimer(command.durationMinutes());
+        var savedEntity = reservationPersistenceRepository.save(ReservationPersistenceAssembler.toPersistenceFromDomain(domain));
+        return Result.success(ReservationPersistenceAssembler.toDomainFromPersistence(savedEntity));
     }
 
-    /**
-     * Client explicitly ends the reservation before the timer expires.
-     */
     @Transactional
     @Override
     public Result<Reservation, ApplicationError> handle(EndReservation command) {
-        var found = reservationRepository.findById(command.reservationId());
-        if (found.isEmpty()) {
+        var found = reservationPersistenceRepository.findByUuid(command.reservationId().uuid());
+        if (found.isEmpty())
             return Result.failure(ApplicationError.notFound("Reservation", command.reservationId().uuid()));
-        }
-        var reservation = found.get();
-        reservation.end();
-        var saved = reservationRepository.save(reservation);
-        return Result.success(saved);
+
+        var domain = ReservationPersistenceAssembler.toDomainFromPersistence(found.get());
+        domain.end();
+        var savedEntity = reservationPersistenceRepository.save(ReservationPersistenceAssembler.toPersistenceFromDomain(domain));
+        return Result.success(ReservationPersistenceAssembler.toDomainFromPersistence(savedEntity));
     }
 }
