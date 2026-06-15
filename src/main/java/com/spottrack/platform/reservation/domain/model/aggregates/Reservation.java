@@ -10,6 +10,7 @@ import com.spottrack.platform.reservation.domain.model.valueobjects.TimeInterval
 import com.spottrack.platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -22,31 +23,23 @@ import java.util.UUID;
  * When the timer expires, a policy triggers RequestEquipmentStatusChangeToAvailable.
  */
 @Getter
-@Entity
+@Setter
 public class Reservation extends AbstractDomainAggregateRoot<Reservation> {
 
-    @EmbeddedId
     private ReservationId id;
 
-    @Column(nullable = false)
     private String clientId;
 
     // String reference to Equipment bounded context
-    @Column(nullable = false)
     private String equipmentId;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private ReservationStatus status;
 
-    @Column(nullable = false)
     private LocalDateTime startedAt;
 
     // Set when StartReservationTimer is handled — null until the timer begins
-    @Column(nullable = true)
     private LocalDateTime timerExpiry;
 
-    @Embedded
     private TimeInterval timeInterval;
 
     protected Reservation() {}
