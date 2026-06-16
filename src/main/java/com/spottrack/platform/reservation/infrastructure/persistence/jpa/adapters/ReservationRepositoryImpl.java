@@ -38,9 +38,12 @@ public class ReservationRepositoryImpl implements ReservationRepository {
         var savedReservation = ReservationPersistenceAssembler.toDomainFromPersistence(savedEntity);
         if (isNew) {
             savedReservation.onInitiated();
+            savedReservation.domainEvents().forEach(eventPublisher::publishEvent);
+            savedReservation.clearDomainEvents();
+        } else {
+            reservation.domainEvents().forEach(eventPublisher::publishEvent);
+            reservation.clearDomainEvents();
         }
-        savedReservation.domainEvents().forEach(eventPublisher::publishEvent);
-        savedReservation.clearDomainEvents();
         return savedReservation;
     }
 }
