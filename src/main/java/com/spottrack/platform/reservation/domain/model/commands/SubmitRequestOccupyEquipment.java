@@ -9,13 +9,4 @@ package com.spottrack.platform.reservation.domain.model.commands;
  * clientId    → identifies who is making the request
  */
 public record SubmitRequestOccupyEquipment(String clientId, String equipmentId) {
-
-    public SubmitRequestOccupyEquipment {
-        if (clientId == null || clientId.isBlank()) {
-            throw new IllegalArgumentException("reservation.command.submitRequest.clientId.notBlank");
-        }
-        if (equipmentId == null || equipmentId.isBlank()) {
-            throw new IllegalArgumentException("reservation.command.submitRequest.equipmentId.notBlank");
-        }
-    }
 }
