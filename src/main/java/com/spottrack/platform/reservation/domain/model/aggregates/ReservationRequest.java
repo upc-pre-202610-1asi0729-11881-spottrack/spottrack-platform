@@ -14,6 +14,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -26,25 +27,18 @@ import java.util.UUID;
  * Cross-context references (equipmentId, clientId) are stored as plain strings — we never
  * hold object references across bounded context boundaries.
  */
+@Setter
 @Getter
-@Entity
 public class ReservationRequest extends AbstractDomainAggregateRoot<ReservationRequest> {
 
-    @EmbeddedId
     private ReservationRequestId id;
 
-    @Column(nullable = false)
     private String clientId;
 
-    // String reference to Equipment bounded context — no direct object dependency
-    @Column(nullable = false)
     private String equipmentId;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private ReservationRequestStatus status;
 
-    @Column(nullable = false)
     private LocalDateTime requestedAt;
 
     protected ReservationRequest() {}
@@ -61,6 +55,15 @@ public class ReservationRequest extends AbstractDomainAggregateRoot<ReservationR
         this.requestedAt = LocalDateTime.now();
         registerDomainEvent(new RequestOccupyEquipmentSubmittedEvent(this.id.uuid(), this.equipmentId, this.clientId));
     }
+
+    public ReservationRequest(String uuid, String clientId, String equipmentId, ReservationRequestStatus status, LocalDateTime requestedAt) {
+        this.id = new ReservationRequestId(uuid);
+        this.clientId = clientId;
+        this.equipmentId = equipmentId;
+        this.status = status;
+        this.requestedAt = requestedAt;
+    }
+
 
     /**
      * Client requests a different piece of equipment.
