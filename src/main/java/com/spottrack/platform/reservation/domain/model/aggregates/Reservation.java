@@ -1,6 +1,7 @@
 package com.spottrack.platform.reservation.domain.model.aggregates;
 
 import com.spottrack.platform.reservation.domain.model.commands.InitiateExpressReservation;
+import com.spottrack.platform.reservation.domain.model.events.ExpressReservationInitiatedEvent;
 import com.spottrack.platform.reservation.domain.model.events.ReservationCancelledEvent;
 import com.spottrack.platform.reservation.domain.model.events.ReservationEndedEvent;
 import com.spottrack.platform.reservation.domain.model.events.ReservationTimerStartedEvent;
@@ -29,7 +30,7 @@ public class Reservation extends AbstractDomainAggregateRoot<Reservation> {
 
     private ReservationId id;
 
-    private String clientId;
+    private Long clientId;
 
     // String reference to Equipment bounded context
     private String equipmentId;
@@ -51,11 +52,12 @@ public class Reservation extends AbstractDomainAggregateRoot<Reservation> {
      */
     public Reservation(InitiateExpressReservation command) {
         this.id = new ReservationId(UUID.randomUUID().toString());
-        this.clientId = command.clientId().clientId().toString();
+        this.clientId = command.clientId().clientId();
         this.equipmentId = command.equipmentId().uuid();
         this.status = ReservationStatus.ACTIVE;
         this.startedAt = LocalDateTime.now();
-        this.timeInterval = command.timeInterval(); // add this
+        this.timeInterval = command.timeInterval();
+        registerDomainEvent(new ExpressReservationInitiatedEvent(this.id.uuid(), this.equipmentId, command.clientId().clientId()));
     }
 
 
