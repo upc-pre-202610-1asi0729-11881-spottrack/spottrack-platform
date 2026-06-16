@@ -6,8 +6,10 @@ import com.spottrack.platform.profiles.domain.model.queries.GetAdminByIdQuery;
 import com.spottrack.platform.profiles.domain.model.valueobjects.AdminId;
 import com.spottrack.platform.profiles.interfaces.rest.resources.AdminResource;
 import com.spottrack.platform.profiles.interfaces.rest.resources.CreateAdminResource;
+import com.spottrack.platform.profiles.interfaces.rest.resources.UpdateAdminProfileResource;
 import com.spottrack.platform.profiles.interfaces.rest.transform.AdminResourceFromEntityAssembler;
 import com.spottrack.platform.profiles.interfaces.rest.transform.CreateAdminCommandFromResourceAssembler;
+import com.spottrack.platform.profiles.interfaces.rest.transform.UpdateAdminProfileCommandFromResourceAssembler;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.interfaces.rest.transform.ErrorResponseAssembler;
 import com.spottrack.platform.shared.interfaces.rest.transform.ResponseEntityAssembler;
@@ -58,6 +60,35 @@ public class AdminsController {
                 result,
                 AdminResourceFromEntityAssembler::toResourceFromEntity,
                 HttpStatus.CREATED
+        );
+    }
+
+    @PutMapping("/{adminId}")
+    @Operation(
+            summary = "Update admin profile",
+            description = "Updates personal data (name, phone number, DNI) for an existing admin profile."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Admin profile updated successfully",
+                    content = @Content(schema = @Schema(implementation = AdminResource.class))
+            ),
+            @ApiResponse(responseCode = "400", description = "Invalid input data"),
+            @ApiResponse(responseCode = "404", description = "Admin not found")
+    })
+    public ResponseEntity<?> updateAdminProfile(
+            @PathVariable
+            @Parameter(description = "Admin unique identifier", example = "1", required = true)
+            Long adminId,
+            @Valid @RequestBody UpdateAdminProfileResource resource
+    ) {
+        var command = UpdateAdminProfileCommandFromResourceAssembler.toCommandFromResource(adminId, resource);
+        var result = adminCommandService.handle(command);
+        return ResponseEntityAssembler.toResponseEntityFromResult(
+                result,
+                AdminResourceFromEntityAssembler::toResourceFromEntity,
+                HttpStatus.OK
         );
     }
 
