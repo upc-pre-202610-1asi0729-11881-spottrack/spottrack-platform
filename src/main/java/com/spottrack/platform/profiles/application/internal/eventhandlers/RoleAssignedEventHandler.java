@@ -4,9 +4,7 @@ import com.spottrack.platform.profiles.application.commandservices.AdminCommandS
 import com.spottrack.platform.profiles.application.commandservices.ClientCommandService;
 import com.spottrack.platform.profiles.domain.model.commands.CreateAdminCommand;
 import com.spottrack.platform.profiles.domain.model.commands.CreateClientCommand;
-import com.spottrack.platform.profiles.domain.model.valueobjects.Dni;
 import com.spottrack.platform.profiles.domain.model.valueobjects.EmailAddress;
-import com.spottrack.platform.profiles.domain.model.valueobjects.PhoneNumber;
 import com.spottrack.platform.profiles.interfaces.events.RoleAssignedIntegrationEvent;
 import com.spottrack.platform.shared.application.result.Result;
 import lombok.extern.slf4j.Slf4j;
@@ -27,19 +25,17 @@ public class RoleAssignedEventHandler {
     @EventListener
     public void on(RoleAssignedIntegrationEvent event) {
         var email = new EmailAddress(event.email());
-        var phone = new PhoneNumber(event.phoneNumber());
-        var dni = new Dni(event.dni());
 
         switch (event.role()) {
             case "ROLE_CLIENT" -> {
-                var command = new CreateClientCommand(event.userId(), email, event.firstName(), event.lastName(), phone, dni);
+                var command = new CreateClientCommand(event.userId(), email, event.firstName(), event.lastName(), event.phoneNumber(), event.dni());
                 var result = clientCommandService.handle(command);
                 if (result instanceof Result.Failure<?, ?> f) {
                     log.warn("Failed to create client for user {}: {}", event.userId(), f.error());
                 }
             }
             case "ROLE_ADMIN" -> {
-                var command = new CreateAdminCommand(event.userId(), email, event.firstName(), event.lastName(), phone, dni);
+                var command = new CreateAdminCommand(event.userId(), email, event.firstName(), event.lastName(), event.phoneNumber(), event.dni());
                 var result = adminCommandService.handle(command);
                 if (result instanceof Result.Failure<?, ?> f) {
                     log.warn("Failed to create admin for user {}: {}", event.userId(), f.error());
