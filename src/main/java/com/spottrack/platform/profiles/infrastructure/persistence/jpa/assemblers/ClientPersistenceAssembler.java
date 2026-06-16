@@ -31,7 +31,7 @@ public final class ClientPersistenceAssembler {
     }
 
     private static PersonInfo toDomainPersonInfo(PersonInfoPersistenceEmbeddable embeddable) {
-        if (embeddable == null) return null;
+        if (embeddable == null || embeddable.getFirstName() == null) return null;
         return new PersonInfo(
                 embeddable.getFirstName(),
                 embeddable.getLastName(),
