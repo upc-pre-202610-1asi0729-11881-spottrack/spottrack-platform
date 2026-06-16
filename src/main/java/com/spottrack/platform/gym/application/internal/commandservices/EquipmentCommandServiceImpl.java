@@ -49,13 +49,22 @@ public class EquipmentCommandServiceImpl implements EquipmentCommandService {
 
     @Override
     public Result<Equipment, ApplicationError> handle(UpdateEquipmentStatus command) {
-        var entity = equipmentRepository.findByEquipmentId(command.id());
-        var equipment = EquipmentPersistenceAssembler.toDomainFromPersistence(entity.get());
-        equipment.updateStatus(command.status());
-        var updatedEntity = EquipmentPersistenceAssembler.toPersistenceFromDomain(equipment);
-        updatedEntity.setId(entity.get().getId());
-        equipmentRepository.save(updatedEntity);
-        return Result.success(equipment);
+        try {
+            var entity = equipmentRepository.findByEquipmentId(command.id());
+            if (entity.isEmpty()) {
+                return Result.failure(ApplicationError.notFound("Equipment", command.id()));
+            }
+            var equipment = EquipmentPersistenceAssembler.toDomainFromPersistence(entity.get());
+            equipment.updateStatus(command.status());
+            var updatedEntity = EquipmentPersistenceAssembler.toPersistenceFromDomain(equipment);
+            updatedEntity.setId(entity.get().getId());
+            equipmentRepository.save(updatedEntity);
+            return Result.success(equipment);
+        } catch (IllegalArgumentException e) {
+            return Result.failure(ApplicationError.validationError("Equipment", e.getMessage()));
+        } catch (Exception e) {
+            return Result.failure(ApplicationError.unexpected("Equipment status update", e.getMessage()));
+        }
     }
 
     @Override
