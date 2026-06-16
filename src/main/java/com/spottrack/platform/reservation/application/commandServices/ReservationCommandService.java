@@ -21,4 +21,5 @@ public interface ReservationCommandService {
     Result<Reservation, ApplicationError> handle(StartReservationTimer command);
 
     Result<Reservation, ApplicationError> handle(EndReservation command);
+
 }
