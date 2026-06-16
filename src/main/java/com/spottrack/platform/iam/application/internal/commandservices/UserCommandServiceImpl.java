@@ -2,7 +2,9 @@ package com.spottrack.platform.iam.application.internal.commandservices;
 
 import com.spottrack.platform.iam.application.commandservices.UserCommandService;
 import com.spottrack.platform.iam.application.internal.outboundservices.hashing.HashingService;
+import com.spottrack.platform.iam.application.internal.outboundservices.tokens.TokenService;
 import com.spottrack.platform.iam.domain.model.aggregates.User;
+import com.spottrack.platform.iam.domain.model.commands.SignInCommand;
 import com.spottrack.platform.iam.domain.model.commands.SignUpCommand;
 import com.spottrack.platform.iam.domain.model.entities.Role;
 import com.spottrack.platform.iam.domain.repositories.RoleRepository;
@@ -10,6 +12,7 @@ import com.spottrack.platform.iam.domain.repositories.UserRepository;
 import com.spottrack.platform.profiles.interfaces.events.RoleAssignedIntegrationEvent;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
@@ -20,16 +23,19 @@ public class UserCommandServiceImpl implements UserCommandService {
 
     private final UserRepository userRepository;
     private final HashingService hashingService;
+    private final TokenService tokenService;
     private final RoleRepository roleRepository;
     private final ApplicationEventPublisher eventPublisher;
 
     public UserCommandServiceImpl(
             UserRepository userRepository,
             HashingService hashingService,
+            TokenService tokenService,
             RoleRepository roleRepository,
             ApplicationEventPublisher eventPublisher) {
         this.userRepository = userRepository;
         this.hashingService = hashingService;
+        this.tokenService = tokenService;
         this.roleRepository = roleRepository;
         this.eventPublisher = eventPublisher;
     }
@@ -66,5 +72,19 @@ public class UserCommandServiceImpl implements UserCommandService {
         ));
 
         return Result.success(reloadedUser);
+    }
+
+    @Override
+    public Result<ImmutablePair<User, String>, ApplicationError> handle(SignInCommand command) {
+        var userOptional = userRepository.findByUsername(command.username());
+        if (userOptional.isEmpty()) {
+            return Result.failure(ApplicationError.notFound("USER", command.username()));
+        }
+        var user = userOptional.get();
+        if (!hashingService.matches(command.password(), user.getPassword())) {
+            return Result.failure(ApplicationError.validationError("credentials", "Invalid credentials"));
+        }
+        String token = tokenService.generateToken(user.getUsername());
+        return Result.success(ImmutablePair.of(user, token));
     }
 }
