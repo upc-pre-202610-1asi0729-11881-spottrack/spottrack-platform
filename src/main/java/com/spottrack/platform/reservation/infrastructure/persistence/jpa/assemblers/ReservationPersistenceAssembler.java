@@ -23,8 +23,8 @@ public class ReservationPersistenceAssembler {
     public static ReservationPersistenceEntity toPersistenceFromDomain(Reservation entity){
         var persistence =  new ReservationPersistenceEntity();
         persistence.setUuid(entity.getId().uuid());
-        persistence.setClientId(entity.getClientId());
-        persistence.setEquipmentId(entity.getEquipmentId());
+        persistence.setClientId(entity.getClientId().clientId());
+        persistence.setEquipmentId(entity.getEquipmentId().uuid());
         persistence.setStatus(entity.getStatus());
         persistence.setStartedAt(entity.getStartedAt());
         persistence.setStartTime(entity.getTimeInterval().startTime());

@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
  */
 public record ReservationResource(
         String id,
-        String clientId,
+        Long clientId,
         String equipmentId,
         String status,
         LocalDateTime startedAt,
