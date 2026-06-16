@@ -9,9 +9,5 @@ import com.spottrack.platform.reservation.domain.model.valueobjects.ReservationI
  */
 public record EndReservation(ReservationId reservationId) {
 
-    public EndReservation {
-        if (reservationId == null) {
-            throw new IllegalArgumentException("reservation.command.end.reservationId.notNull");
-        }
-    }
+
 }
