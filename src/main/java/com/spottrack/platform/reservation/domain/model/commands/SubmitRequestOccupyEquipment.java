@@ -1,5 +1,8 @@
 package com.spottrack.platform.reservation.domain.model.commands;
 
+import com.spottrack.platform.reservation.domain.model.valueobjects.ClientId;
+import com.spottrack.platform.reservation.domain.model.valueobjects.EquipmentId;
+
 /**
  * Command: a client submits a formal request to occupy a specific piece of equipment.
  * Triggers the event: RequestOccupyEquipmentSubmitted, which notifies the Equipment bounded context
@@ -8,14 +11,5 @@ package com.spottrack.platform.reservation.domain.model.commands;
  * equipmentId → string reference to the Equipment aggregate (cross-context, no object reference)
  * clientId    → identifies who is making the request
  */
-public record SubmitRequestOccupyEquipment(String clientId, String equipmentId) {
-
-    public SubmitRequestOccupyEquipment {
-        if (clientId == null || clientId.isBlank()) {
-            throw new IllegalArgumentException("reservation.command.submitRequest.clientId.notBlank");
-        }
-        if (equipmentId == null || equipmentId.isBlank()) {
-            throw new IllegalArgumentException("reservation.command.submitRequest.equipmentId.notBlank");
-        }
-    }
+    public record SubmitRequestOccupyEquipment(ClientId clientId, EquipmentId equipmentId) {
 }
