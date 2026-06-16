@@ -8,6 +8,7 @@ import com.spottrack.platform.gym.infrastructure.persistence.jpa.assemblers.Equi
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.entities.EquipmentPersistenceEntity;
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.repositories.EquipmentPersistenceRepository;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -16,9 +17,13 @@ import java.util.Optional;
 @Repository
 public class EquipmentRepositoryImpl implements EquipmentRepository {
     private final EquipmentPersistenceRepository equipmentPersistenceRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
-    public EquipmentRepositoryImpl(EquipmentPersistenceRepository equipmentPersistenceRepository) {
+    public EquipmentRepositoryImpl(
+            EquipmentPersistenceRepository equipmentPersistenceRepository,
+            ApplicationEventPublisher eventPublisher) {
         this.equipmentPersistenceRepository = equipmentPersistenceRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -43,6 +48,11 @@ public class EquipmentRepositoryImpl implements EquipmentRepository {
 
     @Override
     public Equipment save(Equipment equipment) {
-        return null;
+        var entity = EquipmentPersistenceAssembler.toPersistenceFromDomain(equipment);
+        var savedEntity = equipmentPersistenceRepository.save(entity);
+        var savedEquipment = EquipmentPersistenceAssembler.toDomainFromPersistence(savedEntity);
+        equipment.domainEvents().forEach(eventPublisher::publishEvent);
+        equipment.clearDomainEvents();
+        return savedEquipment;
     }
 }
