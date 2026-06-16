@@ -21,17 +21,19 @@ public class ReservationRequestCommandServiceImpl implements ReservationRequestC
         this.reservationRequestRepository = reservationRequestRepository;
     }
 
-    /**
-     * Submits a new equipment occupation request.
-     * This is the entry point for the standard reservation flow (not express).
-     */
     @Transactional
     @Override
     public Result<ReservationRequest, ApplicationError> handle(SubmitRequestOccupyEquipment command) {
-        var request = new ReservationRequest(command);
-        var persistence = ReservationRequestPersistenceAssembler.toPersistenceFromDomain(request);
-        var saved = reservationRequestRepository.save(persistence);
-        return Result.success(ReservationRequestPersistenceAssembler.toDomainFromPersistence(saved));
+        try {
+            var request = new ReservationRequest(command);
+            var entity = ReservationRequestPersistenceAssembler.toPersistenceFromDomain(request);
+            var saved = reservationRequestRepository.save(entity);
+            return Result.success(ReservationRequestPersistenceAssembler.toDomainFromPersistence(saved));
+        } catch (IllegalArgumentException e) {
+            return Result.failure(ApplicationError.validationError("ReservationRequest", e.getMessage()));
+        } catch (Exception e) {
+            return Result.failure(ApplicationError.unexpected("ReservationRequest creation", e.getMessage()));
+        }
     }
 
     @Transactional
