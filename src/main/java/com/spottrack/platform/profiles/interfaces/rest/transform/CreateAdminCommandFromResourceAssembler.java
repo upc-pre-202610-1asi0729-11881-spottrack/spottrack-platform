@@ -9,10 +9,6 @@ public class CreateAdminCommandFromResourceAssembler {
     public static CreateAdminCommand toCommandFromResource(CreateAdminResource resource) {
         return new CreateAdminCommand(
                 resource.userId(),
-                new EmailAddress(resource.email()),
-                resource.firstName(),
-                resource.lastName(),
-                resource.phoneNumber(),
-                resource.dni());
+                new EmailAddress(resource.email()));
     }
 }
