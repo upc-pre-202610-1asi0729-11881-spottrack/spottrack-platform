@@ -55,7 +55,10 @@ public class Reservation extends AbstractDomainAggregateRoot<Reservation> {
         this.status = ReservationStatus.ACTIVE;
         this.startedAt = LocalDateTime.now();
         this.timeInterval = command.timeInterval();
-        registerDomainEvent(new ExpressReservationInitiatedEvent(this.id.uuid(), this.equipmentId.uuid(), command.clientId().clientId()));
+    }
+
+    public void onInitiated() {
+        registerDomainEvent(new ExpressReservationInitiatedEvent(this.id.uuid(), this.equipmentId.uuid(), this.clientId.clientId()));
     }
 
 
