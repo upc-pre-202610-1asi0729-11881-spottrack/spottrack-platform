@@ -25,19 +25,17 @@ public class RoleAssignedEventHandler {
     @EventListener
     public void on(RoleAssignedIntegrationEvent event) {
         var email = new EmailAddress(event.email());
-        var firstName = (event.firstName() == null || event.firstName().isBlank()) ? "Pending" : event.firstName();
-        var lastName = (event.lastName() == null || event.lastName().isBlank()) ? "Profile" : event.lastName();
 
         switch (event.role()) {
             case "ROLE_CLIENT" -> {
-                var command = new CreateClientCommand(event.userId(), email, firstName, lastName, event.phoneNumber(), event.dni());
+                var command = new CreateClientCommand(event.userId(), email);
                 var result = clientCommandService.handle(command);
                 if (result instanceof Result.Failure<?, ?> f) {
                     log.warn("Failed to create client for user {}: {}", event.userId(), f.error());
                 }
             }
             case "ROLE_ADMIN" -> {
-                var command = new CreateAdminCommand(event.userId(), email, firstName, lastName, event.phoneNumber(), event.dni());
+                var command = new CreateAdminCommand(event.userId(), email);
                 var result = adminCommandService.handle(command);
                 if (result instanceof Result.Failure<?, ?> f) {
                     log.warn("Failed to create admin for user {}: {}", event.userId(), f.error());
