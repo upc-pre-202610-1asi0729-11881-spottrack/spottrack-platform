@@ -26,6 +26,7 @@ import java.util.UUID;
 @Setter
 public class Reservation extends AbstractDomainAggregateRoot<Reservation> {
 
+    private Long persistenceId;
     private ReservationId id;
 
     private ClientId clientId;

@@ -8,7 +8,7 @@ import com.spottrack.platform.reservation.infrastructure.persistence.jpa.entitie
 
 public class ReservationPersistenceAssembler {
     public static Reservation toDomainFromPersistence(ReservationPersistenceEntity entity){
-        return new Reservation(
+        var reservation = new Reservation(
                 entity.getUuid(),
                 entity.getClientId(),
                 entity.getEquipmentId(),
@@ -18,10 +18,13 @@ public class ReservationPersistenceAssembler {
                 entity.getStartTime(),
                 entity.getEndTime()
         );
+        reservation.setPersistenceId(entity.getId());
+        return reservation;
     }
 
     public static ReservationPersistenceEntity toPersistenceFromDomain(Reservation entity){
         var persistence =  new ReservationPersistenceEntity();
+        persistence.setId(entity.getPersistenceId());
         persistence.setUuid(entity.getId().uuid());
         persistence.setClientId(entity.getClientId().clientId());
         persistence.setEquipmentId(entity.getEquipmentId().uuid());
