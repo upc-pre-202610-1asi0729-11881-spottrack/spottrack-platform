@@ -8,11 +8,18 @@ import com.spottrack.platform.gym.infrastructure.persistence.jpa.assemblers.Equi
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.entities.EquipmentPersistenceEntity;
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.repositories.EquipmentPersistenceRepository;
 
+import org.springframework.stereotype.Repository;
+
 import java.util.List;
 import java.util.Optional;
 
+@Repository
 public class EquipmentRepositoryImpl implements EquipmentRepository {
-    EquipmentPersistenceRepository equipmentPersistenceRepository;
+    private final EquipmentPersistenceRepository equipmentPersistenceRepository;
+
+    public EquipmentRepositoryImpl(EquipmentPersistenceRepository equipmentPersistenceRepository) {
+        this.equipmentPersistenceRepository = equipmentPersistenceRepository;
+    }
 
     @Override
     public Optional<Equipment> findById(EquipmentId equipmentId) {
