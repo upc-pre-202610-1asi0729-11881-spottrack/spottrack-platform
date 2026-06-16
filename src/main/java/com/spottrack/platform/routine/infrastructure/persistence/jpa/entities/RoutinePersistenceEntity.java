@@ -1,6 +1,5 @@
 package com.spottrack.platform.routine.infrastructure.persistence.jpa.entities;
 
-import com.spottrack.platform.routine.infrastructure.persistence.jpa.embeddables.ExerciseBlockPersistenceEmbeddable;
 import com.spottrack.platform.routine.infrastructure.persistence.jpa.embeddables.RoutineNamePersistenceEmbeddable;
 import com.spottrack.platform.shared.infrastructure.persistence.jpa.entities.AuditableAbstractPersistenceEntity;
 import jakarta.persistence.*;
@@ -18,9 +17,8 @@ public class RoutinePersistenceEntity extends AuditableAbstractPersistenceEntity
     @Embedded
     private RoutineNamePersistenceEmbeddable routineName;
 
-    @ElementCollection
-    @CollectionTable(name = "exercise_blocks", joinColumns = @JoinColumn(name = "routine_id"))
-    private List<ExerciseBlockPersistenceEmbeddable> exerciseBlocks = new ArrayList<>();
+    @OneToMany(mappedBy = "routine", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ExerciseBlockPersistenceEntity> exerciseBlocks = new ArrayList<>();
 
     public Long getClientId() { return clientId; }
     public void setClientId(Long clientId) { this.clientId = clientId; }
@@ -28,6 +26,6 @@ public class RoutinePersistenceEntity extends AuditableAbstractPersistenceEntity
     public RoutineNamePersistenceEmbeddable getRoutineName() { return routineName; }
     public void setRoutineName(RoutineNamePersistenceEmbeddable routineName) { this.routineName = routineName; }
 
-    public List<ExerciseBlockPersistenceEmbeddable> getExerciseBlocks() { return exerciseBlocks; }
-    public void setExerciseBlocks(List<ExerciseBlockPersistenceEmbeddable> exerciseBlocks) { this.exerciseBlocks = exerciseBlocks; }
+    public List<ExerciseBlockPersistenceEntity> getExerciseBlocks() { return exerciseBlocks; }
+    public void setExerciseBlocks(List<ExerciseBlockPersistenceEntity> exerciseBlocks) { this.exerciseBlocks = exerciseBlocks; }
 }
