@@ -6,6 +6,7 @@ import com.spottrack.platform.iam.application.internal.outboundservices.tokens.T
 import com.spottrack.platform.iam.domain.model.aggregates.User;
 import com.spottrack.platform.iam.domain.model.commands.ResetPasswordCommand;
 import com.spottrack.platform.iam.domain.model.commands.SignInCommand;
+import com.spottrack.platform.iam.domain.model.commands.SignOutCommand;
 import com.spottrack.platform.iam.domain.model.commands.SignUpCommand;
 import com.spottrack.platform.iam.domain.model.entities.Role;
 import com.spottrack.platform.iam.domain.repositories.RoleRepository;
@@ -99,5 +100,14 @@ public class UserCommandServiceImpl implements UserCommandService {
         user.setPassword(hashingService.encode(command.newPassword()));
         var savedUser = userRepository.save(user);
         return Result.success(savedUser);
+    }
+
+    @Override
+    public Result<User, ApplicationError> handle(SignOutCommand command) {
+        var userOptional = userRepository.findByUsername(command.username());
+        if (userOptional.isEmpty()) {
+            return Result.failure(ApplicationError.notFound("USER", command.username()));
+        }
+        return Result.success(userOptional.get());
     }
 }
