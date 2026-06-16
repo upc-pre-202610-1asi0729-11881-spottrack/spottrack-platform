@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
  *
  * <p>Marks the requested equipment as {@code OCCUPIED} so no other client can reserve it.</p>
  */
-@Service
+@Service("gymRequestOccupyEquipmentSubmittedEventHandler")
 @Slf4j
 public class RequestOccupyEquipmentSubmittedEventHandler {
 
