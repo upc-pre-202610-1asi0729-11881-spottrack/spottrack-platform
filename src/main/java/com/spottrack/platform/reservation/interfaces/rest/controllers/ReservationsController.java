@@ -34,7 +34,7 @@ public class ReservationsController {
      * Initiates an express reservation — client skips the request flow and directly reserves equipment.
      * Returns 201 with the created Reservation, or 400 on validation failure.
      */
-    @PostMapping
+    @PostMapping("/reserve")
     public ResponseEntity<?> initiateExpressReservation(@RequestBody InitiateExpressReservationResource resource) {
         var command = InitiateExpressReservationCommandFromResourceAssembler.toCommandFromResource(resource);
         var result = commandService.handle(command);

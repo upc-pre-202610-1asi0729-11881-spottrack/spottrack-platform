@@ -16,6 +16,5 @@ public record InitiateExpressReservationResource(
         String startTime,   // format: HH:mm:ss
         String endTime,     // format: HH:mm:ss
         LocalDateTime startedAt,
-        LocalDateTime timeExpiry,
-        String status
+        LocalDateTime timeExpiry
 ) {}
