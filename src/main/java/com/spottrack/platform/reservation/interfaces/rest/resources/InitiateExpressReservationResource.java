@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
  * clientId and equipmentId are plain string references — no domain objects cross the HTTP boundary.
  */
 public record InitiateExpressReservationResource(
-        String clientId,
+        Long clientId,
         String equipmentId,
         String startTime,   // format: HH:mm:ss
         String endTime,     // format: HH:mm:ss

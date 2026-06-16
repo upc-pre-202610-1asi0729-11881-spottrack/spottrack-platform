@@ -23,7 +23,7 @@ public class ReservationPersistenceEntity extends AuditableAbstractPersistenceEn
 
     // Reference to Client bounded context — no JPA join, just the UUID
     @Column(nullable = false)
-    private String clientId;
+    Long clientId;
 
     // Reference to Equipment bounded context — no JPA join, just the UUID
     @Column(nullable = false)

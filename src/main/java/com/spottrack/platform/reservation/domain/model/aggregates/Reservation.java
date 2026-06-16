@@ -5,9 +5,7 @@ import com.spottrack.platform.reservation.domain.model.events.ExpressReservation
 import com.spottrack.platform.reservation.domain.model.events.ReservationCancelledEvent;
 import com.spottrack.platform.reservation.domain.model.events.ReservationEndedEvent;
 import com.spottrack.platform.reservation.domain.model.events.ReservationTimerStartedEvent;
-import com.spottrack.platform.reservation.domain.model.valueobjects.ReservationId;
-import com.spottrack.platform.reservation.domain.model.valueobjects.ReservationStatus;
-import com.spottrack.platform.reservation.domain.model.valueobjects.TimeInterval;
+import com.spottrack.platform.reservation.domain.model.valueobjects.*;
 import com.spottrack.platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -30,10 +28,10 @@ public class Reservation extends AbstractDomainAggregateRoot<Reservation> {
 
     private ReservationId id;
 
-    private Long clientId;
+    private ClientId clientId;
 
     // String reference to Equipment bounded context
-    private String equipmentId;
+    private EquipmentId equipmentId;
 
     private ReservationStatus status;
 
@@ -52,19 +50,19 @@ public class Reservation extends AbstractDomainAggregateRoot<Reservation> {
      */
     public Reservation(InitiateExpressReservation command) {
         this.id = new ReservationId(UUID.randomUUID().toString());
-        this.clientId = command.clientId().clientId();
-        this.equipmentId = command.equipmentId().uuid();
+        this.clientId = command.clientId();
+        this.equipmentId = command.equipmentId();
         this.status = ReservationStatus.ACTIVE;
         this.startedAt = LocalDateTime.now();
         this.timeInterval = command.timeInterval();
-        registerDomainEvent(new ExpressReservationInitiatedEvent(this.id.uuid(), this.equipmentId, command.clientId().clientId()));
+        registerDomainEvent(new ExpressReservationInitiatedEvent(this.id.uuid(), this.equipmentId.uuid(), command.clientId().clientId()));
     }
 
 
-    public Reservation(String id, String clientId, String equipmentId, String status, LocalDateTime startedAt, LocalDateTime timerExpiry,  Time startTime, Time endTime){
+    public Reservation(String id, Long clientId, String equipmentId, String status, LocalDateTime startedAt, LocalDateTime timerExpiry, Time startTime, Time endTime){
         this.id = new ReservationId(id);  // String → ReservationId value object
-        this.clientId = clientId;
-        this.equipmentId = equipmentId;
+        this.clientId = new ClientId(clientId);
+        this.equipmentId = new EquipmentId(equipmentId);
         this.status = ReservationStatus.valueOf(status);  // String → Enum
         this.timerExpiry = timerExpiry;
         this.startedAt = startedAt;
@@ -79,7 +77,7 @@ public class Reservation extends AbstractDomainAggregateRoot<Reservation> {
             throw new IllegalStateException("reservation.error.timerOnlyForActive");
         }
         this.timerExpiry = LocalDateTime.now().plusMinutes(durationMinutes);
-        registerDomainEvent(new ReservationTimerStartedEvent(this.id.uuid(), this.equipmentId, this.timerExpiry));
+        registerDomainEvent(new ReservationTimerStartedEvent(this.id.uuid(), this.equipmentId.uuid(), this.timerExpiry));
     }
 
     /**
@@ -90,7 +88,7 @@ public class Reservation extends AbstractDomainAggregateRoot<Reservation> {
             throw new IllegalStateException("reservation.error.cancelOnlyForActive");
         }
         this.status = ReservationStatus.CANCELLED;
-        registerDomainEvent(new ReservationCancelledEvent(this.id.uuid(), this.equipmentId, this.clientId));
+        registerDomainEvent(new ReservationCancelledEvent(this.id.uuid(), this.equipmentId.uuid(), this.clientId.clientId()));
     }
 
     /**
@@ -101,6 +99,6 @@ public class Reservation extends AbstractDomainAggregateRoot<Reservation> {
             throw new IllegalStateException("reservation.error.endOnlyForActive");
         }
         this.status = ReservationStatus.ENDED;
-        registerDomainEvent(new ReservationEndedEvent(this.id.uuid(), this.equipmentId, this.clientId));
+        registerDomainEvent(new ReservationEndedEvent(this.id.uuid(), this.equipmentId.uuid(), this.clientId.clientId()));
     }
 }

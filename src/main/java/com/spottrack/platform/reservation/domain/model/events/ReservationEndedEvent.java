@@ -5,5 +5,5 @@ package com.spottrack.platform.reservation.domain.model.events;
  * The diagram shows this triggers a notification to the Alerts bounded context.
  * Equipment should also be released back to AVAILABLE.
  */
-public record ReservationEndedEvent(String reservationId, String equipmentId, String clientId) {
+public record ReservationEndedEvent(String reservationId, String equipmentId, Long clientId) {
 }
