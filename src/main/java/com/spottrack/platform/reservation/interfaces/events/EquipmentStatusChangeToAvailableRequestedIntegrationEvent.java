@@ -12,5 +12,6 @@ package com.spottrack.platform.reservation.interfaces.events;
  */
 public record EquipmentStatusChangeToAvailableRequestedIntegrationEvent(
         String requestId,
-        String equipmentId) {
+        String equipmentId,
+        String status) {
 }
