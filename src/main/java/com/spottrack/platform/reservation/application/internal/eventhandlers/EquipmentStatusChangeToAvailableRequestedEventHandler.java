@@ -11,7 +11,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
-@Service
+@Service("reservationEquipmentStatusChangeToAvailableRequestedEventHandler")
 public class EquipmentStatusChangeToAvailableRequestedEventHandler {
 
     private final ApplicationEventPublisher eventPublisher;

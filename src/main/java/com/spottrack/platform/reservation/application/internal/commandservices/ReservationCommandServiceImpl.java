@@ -10,7 +10,6 @@ import com.spottrack.platform.reservation.domain.repositories.ReservationReposit
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ReservationCommandServiceImpl implements ReservationCommandService {
@@ -21,7 +20,6 @@ public class ReservationCommandServiceImpl implements ReservationCommandService 
         this.reservationRepository = reservationRepository;
     }
 
-    @Transactional
     @Override
     public Result<Reservation, ApplicationError> handle(InitiateExpressReservation command) {
         try {
@@ -35,7 +33,6 @@ public class ReservationCommandServiceImpl implements ReservationCommandService 
         }
     }
 
-    @Transactional
     @Override
     public Result<Reservation, ApplicationError> handle(CancelReservation command) {
         try {
@@ -52,7 +49,6 @@ public class ReservationCommandServiceImpl implements ReservationCommandService 
         }
     }
 
-    @Transactional
     @Override
     public Result<Reservation, ApplicationError> handle(StartReservationTimer command) {
         try {
@@ -69,7 +65,6 @@ public class ReservationCommandServiceImpl implements ReservationCommandService 
         }
     }
 
-    @Transactional
     @Override
     public Result<Reservation, ApplicationError> handle(EndReservation command) {
         try {

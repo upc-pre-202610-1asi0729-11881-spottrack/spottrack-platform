@@ -9,7 +9,6 @@ import com.spottrack.platform.reservation.domain.repositories.ReservationRequest
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ReservationRequestCommandServiceImpl implements ReservationRequestCommandService {
@@ -20,7 +19,6 @@ public class ReservationRequestCommandServiceImpl implements ReservationRequestC
         this.reservationRequestRepository = reservationRequestRepository;
     }
 
-    @Transactional
     @Override
     public Result<ReservationRequest, ApplicationError> handle(SubmitRequestOccupyEquipment command) {
         try {
@@ -33,7 +31,6 @@ public class ReservationRequestCommandServiceImpl implements ReservationRequestC
         }
     }
 
-    @Transactional
     @Override
     public Result<ReservationRequest, ApplicationError> handle(RequestAlternativeEquipment command) {
         try {
@@ -50,7 +47,6 @@ public class ReservationRequestCommandServiceImpl implements ReservationRequestC
         }
     }
 
-    @Transactional
     @Override
     public Result<ReservationRequest, ApplicationError> handle(RequestEquipmentStatusChangeToAvailable command) {
         try {

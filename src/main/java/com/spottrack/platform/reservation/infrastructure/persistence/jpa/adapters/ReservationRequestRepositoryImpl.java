@@ -2,6 +2,7 @@ package com.spottrack.platform.reservation.infrastructure.persistence.jpa.adapte
 
 import com.spottrack.platform.reservation.domain.model.aggregates.ReservationRequest;
 import com.spottrack.platform.reservation.domain.repositories.ReservationRequestRepository;
+import com.spottrack.platform.reservation.infrastructure.persistence.jpa.ReservationRequestPersistenceRepository;
 import com.spottrack.platform.reservation.infrastructure.persistence.jpa.assemblers.ReservationRequestPersistenceAssembler;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Repository;
@@ -11,11 +12,11 @@ import java.util.Optional;
 @Repository
 public class ReservationRequestRepositoryImpl implements ReservationRequestRepository {
 
-    private final com.spottrack.platform.reservation.infrastructure.persistence.jpa.ReservationRequestRepository jpaRepository;
+    private final ReservationRequestPersistenceRepository jpaRepository;
     private final ApplicationEventPublisher eventPublisher;
 
     public ReservationRequestRepositoryImpl(
-            com.spottrack.platform.reservation.infrastructure.persistence.jpa.ReservationRequestRepository jpaRepository,
+            ReservationRequestPersistenceRepository jpaRepository,
             ApplicationEventPublisher eventPublisher) {
         this.jpaRepository = jpaRepository;
         this.eventPublisher = eventPublisher;
