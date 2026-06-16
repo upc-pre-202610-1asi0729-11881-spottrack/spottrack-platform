@@ -9,7 +9,7 @@ public class SubmitRequestOccupyEquipmentCommandFromResourceAssembler {
 
     public static SubmitRequestOccupyEquipment toCommandFromResource(SubmitRequestOccupyEquipmentResource resource) {
         return new SubmitRequestOccupyEquipment(
-                new ClientId(Long.parseLong(resource.clientId())),
+                new ClientId(resource.clientId()),
                 new EquipmentId(resource.equipmentId())
         );
     }
