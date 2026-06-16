@@ -7,10 +7,17 @@ import com.spottrack.platform.gym.infrastructure.persistence.jpa.assemblers.Equi
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.assemblers.GymPersistenceAssembler;
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.repositories.GymPersistenceRepository;
 
+import org.springframework.stereotype.Repository;
+
 import java.util.Optional;
 
+@Repository
 public class GymRepositoryImpl implements GymRepository {
-    GymPersistenceRepository gymPersistenceRepository;
+    private final GymPersistenceRepository gymPersistenceRepository;
+
+    public GymRepositoryImpl(GymPersistenceRepository gymPersistenceRepository) {
+        this.gymPersistenceRepository = gymPersistenceRepository;
+    }
 
 
     @Override
