@@ -5,8 +5,7 @@ import com.spottrack.platform.reservation.domain.model.aggregates.ReservationReq
 import com.spottrack.platform.reservation.domain.model.commands.RequestAlternativeEquipment;
 import com.spottrack.platform.reservation.domain.model.commands.RequestEquipmentStatusChangeToAvailable;
 import com.spottrack.platform.reservation.domain.model.commands.SubmitRequestOccupyEquipment;
-import com.spottrack.platform.reservation.infrastructure.persistence.jpa.ReservationRequestRepository;
-import com.spottrack.platform.reservation.infrastructure.persistence.jpa.assemblers.ReservationRequestPersistenceAssembler;
+import com.spottrack.platform.reservation.domain.repositories.ReservationRequestRepository;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
 import org.springframework.stereotype.Service;
@@ -26,9 +25,7 @@ public class ReservationRequestCommandServiceImpl implements ReservationRequestC
     public Result<ReservationRequest, ApplicationError> handle(SubmitRequestOccupyEquipment command) {
         try {
             var request = new ReservationRequest(command);
-            var entity = ReservationRequestPersistenceAssembler.toPersistenceFromDomain(request);
-            var saved = reservationRequestRepository.save(entity);
-            return Result.success(ReservationRequestPersistenceAssembler.toDomainFromPersistence(saved));
+            return Result.success(reservationRequestRepository.save(request));
         } catch (IllegalArgumentException e) {
             return Result.failure(ApplicationError.validationError("ReservationRequest", e.getMessage()));
         } catch (Exception e) {
@@ -39,30 +36,34 @@ public class ReservationRequestCommandServiceImpl implements ReservationRequestC
     @Transactional
     @Override
     public Result<ReservationRequest, ApplicationError> handle(RequestAlternativeEquipment command) {
-        var found = reservationRequestRepository.findByUuid(command.requestId().uuid());
-        if (found.isEmpty()) {
-            return Result.failure(ApplicationError.notFound("ReservationRequest", command.requestId().uuid()));
+        try {
+            var found = reservationRequestRepository.findByUuid(command.requestId().uuid());
+            if (found.isEmpty())
+                return Result.failure(ApplicationError.notFound("ReservationRequest", command.requestId().uuid()));
+            var request = found.get();
+            request.requestAlternative(command);
+            return Result.success(reservationRequestRepository.save(request));
+        } catch (IllegalStateException e) {
+            return Result.failure(ApplicationError.validationError("ReservationRequest", e.getMessage()));
+        } catch (Exception e) {
+            return Result.failure(ApplicationError.unexpected("ReservationRequest alternative", e.getMessage()));
         }
-        var persistenceEntity = found.get();
-        var request = ReservationRequestPersistenceAssembler.toDomainFromPersistence(persistenceEntity);
-        request.requestAlternative(command);
-        persistenceEntity.setStatus(request.getStatus());
-        var saved = reservationRequestRepository.save(persistenceEntity);
-        return Result.success(ReservationRequestPersistenceAssembler.toDomainFromPersistence(saved));
     }
 
     @Transactional
     @Override
     public Result<ReservationRequest, ApplicationError> handle(RequestEquipmentStatusChangeToAvailable command) {
-        var found = reservationRequestRepository.findByUuid(command.requestId().uuid());
-        if (found.isEmpty()) {
-            return Result.failure(ApplicationError.notFound("ReservationRequest", command.requestId().uuid()));
+        try {
+            var found = reservationRequestRepository.findByUuid(command.requestId().uuid());
+            if (found.isEmpty())
+                return Result.failure(ApplicationError.notFound("ReservationRequest", command.requestId().uuid()));
+            var request = found.get();
+            request.requestEquipmentRelease(command);
+            return Result.success(reservationRequestRepository.save(request));
+        } catch (IllegalStateException e) {
+            return Result.failure(ApplicationError.validationError("ReservationRequest", e.getMessage()));
+        } catch (Exception e) {
+            return Result.failure(ApplicationError.unexpected("ReservationRequest release", e.getMessage()));
         }
-        var persistenceEntity = found.get();
-        var request = ReservationRequestPersistenceAssembler.toDomainFromPersistence(persistenceEntity);
-        request.requestEquipmentRelease(command);
-        persistenceEntity.setStatus(request.getStatus());
-        var saved = reservationRequestRepository.save(persistenceEntity);
-        return Result.success(ReservationRequestPersistenceAssembler.toDomainFromPersistence(saved));
     }
 }
