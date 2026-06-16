@@ -18,7 +18,7 @@ import java.sql.Time;
 public class InitiateExpressReservationCommandFromResourceAssembler {
 
     public static InitiateExpressReservation toCommandFromResource(InitiateExpressReservationResource resource) {
-       ReservationStatus status = ReservationStatus.valueOf(resource.status().toUpperCase());
+       ReservationStatus status = ReservationStatus.ACTIVE;
        return new InitiateExpressReservation(new ClientId(resource.clientId()), new EquipmentId(resource.equipmentId()),
                new TimeInterval(Time.valueOf(resource.startTime()), Time.valueOf(resource.endTime())), status, resource.startedAt(), resource.timeExpiry());
     }
