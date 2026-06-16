@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
  * into a {@link RequestOccupyEquipmentSubmittedIntegrationEvent} and re-publishes it
  * on the Spring event bus for cross-context consumers (e.g. {@code gym}).
  */
-@Service
+@Service("reservationRequestOccupyEquipmentSubmittedEventHandler")
 public class RequestOccupyEquipmentSubmittedEventHandler {
 
     private final ApplicationEventPublisher eventPublisher;

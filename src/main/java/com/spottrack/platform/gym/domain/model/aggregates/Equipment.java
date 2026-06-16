@@ -1,6 +1,7 @@
 package com.spottrack.platform.gym.domain.model.aggregates;
 
 import com.spottrack.platform.gym.domain.model.commands.RegisterEquipment;
+import com.spottrack.platform.gym.domain.model.events.EquipmentStatusUpdatedEvent;
 import com.spottrack.platform.gym.domain.model.entities.Manufacturer;
 import com.spottrack.platform.gym.domain.model.valueobjects.EquipmentId;
 import com.spottrack.platform.gym.domain.model.valueobjects.EquipmentStatus;
@@ -69,6 +70,7 @@ public class Equipment extends AbstractDomainAggregateRoot<Equipment> {
 
     public void updateStatus(EquipmentStatus status){
         this.status = status;
+        registerDomainEvent(new EquipmentStatusUpdatedEvent(this.id.uuid(), this.status));
     }
 
     public void relocateEquipment(ZoneId zoneId) {
