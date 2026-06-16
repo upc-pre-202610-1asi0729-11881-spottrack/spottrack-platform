@@ -51,14 +51,14 @@ public class ReservationRequest extends AbstractDomainAggregateRoot<ReservationR
      */
     public ReservationRequest(SubmitRequestOccupyEquipment command) {
         this.id = new ReservationRequestId(UUID.randomUUID().toString());
-        this.clientId = new ClientId(command.clientId().uuid());
-        this.equipmentId = new EquipmentId(command.equipmentId().uuid());
+        this.clientId = command.clientId();
+        this.equipmentId = command.equipmentId();
         this.status = ReservationRequestStatus.SUBMITTED;
         this.requestedAt = LocalDateTime.now();
-        registerDomainEvent(new RequestOccupyEquipmentSubmittedEvent(this.id.uuid(), this.equipmentId.uuid(), this.clientId.uuid()));
+        registerDomainEvent(new RequestOccupyEquipmentSubmittedEvent(this.id.uuid(), this.equipmentId.uuid(), this.clientId.clientId().toString()));
     }
 
-    public ReservationRequest(String uuid, String clientId, String equipmentId, ReservationRequestStatus status, LocalDateTime requestedAt) {
+    public ReservationRequest(String uuid, Long clientId, String equipmentId, ReservationRequestStatus status, LocalDateTime requestedAt) {
         this.id = new ReservationRequestId(uuid);
         this.clientId = new ClientId(clientId);
         this.equipmentId = new EquipmentId(equipmentId);
