@@ -5,7 +5,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-public interface ReservationRequestRepository extends JpaRepository<ReservationRequest, Long> {
+public interface ReservationRequestRepository  {
     Optional<ReservationRequest> findById(Long id);
     Optional<ReservationRequest> findByUuid(String uuid);
+    Optional<ReservationRequest> save(ReservationRequest reservationRequestEntity);
 }
