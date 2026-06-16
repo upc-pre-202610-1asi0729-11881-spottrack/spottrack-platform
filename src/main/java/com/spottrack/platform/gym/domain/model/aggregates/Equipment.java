@@ -24,6 +24,7 @@ import java.util.UUID;
 @Setter
 public class Equipment extends AbstractDomainAggregateRoot<Equipment> {
 
+    private Long persistenceId;
     private EquipmentId id;
     private EquipmentStatus status;
 
