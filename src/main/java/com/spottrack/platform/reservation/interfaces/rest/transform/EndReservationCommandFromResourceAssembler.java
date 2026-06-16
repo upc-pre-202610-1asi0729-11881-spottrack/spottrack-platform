@@ -5,8 +5,8 @@ import com.spottrack.platform.reservation.domain.model.valueobjects.ReservationI
 import com.spottrack.platform.reservation.interfaces.rest.resources.EndReservationCommandResource;
 
 public class EndReservationCommandFromResourceAssembler {
-    public static EndReservation toCommandFromResource(EndReservationCommandResource resource) {
-        var command = new EndReservation(new ReservationId(resource.reservationId()));
+    public static EndReservation toCommandFromResource(String id) {
+        var command = new EndReservation(new ReservationId(id));
         return command;
     }
 }

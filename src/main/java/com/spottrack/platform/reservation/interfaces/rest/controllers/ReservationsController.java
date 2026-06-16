@@ -89,8 +89,8 @@ public class ReservationsController {
      * Returns 200 with the ended Reservation, or 404 if not found.
      */
     @PatchMapping("/{id}/end")
-    public ResponseEntity<?> endReservation(@PathVariable String id, EndReservationCommandResource resource) {
-        var command = EndReservationCommandFromResourceAssembler.toCommandFromResource(resource);
+    public ResponseEntity<?> endReservation(@PathVariable String id) {
+        var command = EndReservationCommandFromResourceAssembler.toCommandFromResource(id);
         var result = commandService.handle(command);
         return switch (result) {
             case Result.Success<Reservation, ApplicationError> s ->
