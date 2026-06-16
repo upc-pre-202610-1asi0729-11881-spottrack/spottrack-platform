@@ -21,7 +21,7 @@ public class ReservationRequestPersistenceEntity extends AuditableAbstractPersis
     private String uuid;
 
     @Column(nullable = false)
-    private String clientId;
+    private Long clientId;
 
     @Column(nullable = false)
     private String equipmentId;
