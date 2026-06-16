@@ -6,9 +6,11 @@ import com.spottrack.platform.reservation.domain.model.commands.CancelReservatio
 import com.spottrack.platform.reservation.domain.model.commands.EndReservation;
 import com.spottrack.platform.reservation.domain.model.commands.StartReservationTimer;
 import com.spottrack.platform.reservation.domain.model.valueobjects.ReservationId;
+import com.spottrack.platform.reservation.interfaces.rest.resources.EndReservationCommandResource;
 import com.spottrack.platform.reservation.interfaces.rest.resources.InitiateExpressReservationResource;
 import com.spottrack.platform.reservation.interfaces.rest.resources.ReservationResource;
 import com.spottrack.platform.reservation.interfaces.rest.resources.StartReservationTimerResource;
+import com.spottrack.platform.reservation.interfaces.rest.transform.EndReservationCommandFromResourceAssembler;
 import com.spottrack.platform.reservation.interfaces.rest.transform.InitiateExpressReservationCommandFromResourceAssembler;
 import com.spottrack.platform.reservation.interfaces.rest.transform.ReservationResourceFromEntityAssembler;
 import com.spottrack.platform.shared.application.result.ApplicationError;
@@ -87,8 +89,8 @@ public class ReservationsController {
      * Returns 200 with the ended Reservation, or 404 if not found.
      */
     @PatchMapping("/{id}/end")
-    public ResponseEntity<?> endReservation(@PathVariable String id) {
-        var command = new EndReservation(new ReservationId(id));
+    public ResponseEntity<?> endReservation(@PathVariable String id, EndReservationCommandResource resource) {
+        var command = EndReservationCommandFromResourceAssembler.toCommandFromResource(resource);
         var result = commandService.handle(command);
         return switch (result) {
             case Result.Success<Reservation, ApplicationError> s ->
