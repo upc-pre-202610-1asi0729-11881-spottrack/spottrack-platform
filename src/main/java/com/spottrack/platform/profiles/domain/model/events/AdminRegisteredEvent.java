@@ -14,11 +14,11 @@ public record AdminRegisteredEvent(
         var info = admin.getPersonInfo();
         return new AdminRegisteredEvent(
                 admin.getId(),
-                info.firstName(),
-                info.lastName(),
+                info != null ? info.firstName() : null,
+                info != null ? info.lastName() : null,
                 admin.getEmailAddress(),
-                info.phoneNumber().phoneNumber(),
-                info.dni().dni()
+                info != null ? info.phoneNumber().phoneNumber() : null,
+                info != null ? info.dni().dni() : null
         );
     }
 }

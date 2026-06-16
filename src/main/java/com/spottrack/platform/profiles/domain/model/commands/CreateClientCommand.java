@@ -4,9 +4,5 @@ import com.spottrack.platform.profiles.domain.model.valueobjects.EmailAddress;
 
 public record CreateClientCommand(
         Long userId,
-        EmailAddress emailAddress,
-        String firstName,
-        String lastName,
-        String phoneNumber,
-        String dni
+        EmailAddress emailAddress
 ) { }

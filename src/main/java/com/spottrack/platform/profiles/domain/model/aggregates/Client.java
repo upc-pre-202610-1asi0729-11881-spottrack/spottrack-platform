@@ -3,10 +3,8 @@ package com.spottrack.platform.profiles.domain.model.aggregates;
 import com.spottrack.platform.profiles.domain.model.commands.CreateClientCommand;
 import com.spottrack.platform.profiles.domain.model.commands.UpdateClientProfileCommand;
 import com.spottrack.platform.profiles.domain.model.events.ClientRegisteredEvent;
-import com.spottrack.platform.profiles.domain.model.valueobjects.Dni;
 import com.spottrack.platform.profiles.domain.model.valueobjects.EmailAddress;
 import com.spottrack.platform.profiles.domain.model.valueobjects.PersonInfo;
-import com.spottrack.platform.profiles.domain.model.valueobjects.PhoneNumber;
 import com.spottrack.platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
 import lombok.Getter;
 import lombok.Setter;
@@ -26,39 +24,38 @@ public class Client extends AbstractDomainAggregateRoot<Client> {
 
     private EmailAddress emailAddress;
 
-    public Client(Long id, Long userId, PersonInfo personInfo, EmailAddress emailAddress){
+    public Client(Long id, Long userId, PersonInfo personInfo, EmailAddress emailAddress) {
         this.id = id;
         this.userId = userId;
-        this.personInfo = Objects.requireNonNull(personInfo, "PersonInfo must not be null");
-        this.emailAddress = Objects.requireNonNull(emailAddress,"Email must not be null");
+        this.personInfo = personInfo;
+        this.emailAddress = Objects.requireNonNull(emailAddress, "Email must not be null");
     }
 
-    public Client(CreateClientCommand command){
-        this(
-                null,
-                command.userId(),
-                new PersonInfo(
-                        command.firstName(),
-                        command.lastName(),
-                        (command.phoneNumber() == null || command.phoneNumber().isBlank()) ? null : new PhoneNumber(command.phoneNumber()),
-                        (command.dni() == null || command.dni().isBlank()) ? null : new Dni(command.dni())
-                ),
-                command.emailAddress()
-        );
+    public Client(CreateClientCommand command) {
+        this(null, command.userId(), null, command.emailAddress());
     }
 
     public void updateProfile(UpdateClientProfileCommand command) {
-        this.personInfo = new PersonInfo(command.firstName(),command.lastName(),command.phoneNumber(), this.personInfo.dni());
+        this.personInfo = new PersonInfo(
+                command.firstName(),
+                command.lastName(),
+                command.phoneNumber(),
+                command.dni());
     }
 
-    public PersonInfo getPersonInfo(){return personInfo;}
+    public boolean isProfileComplete() {
+        return personInfo != null;
+    }
 
-    public String getFullName(){return personInfo.getFullName();}
+    public PersonInfo getPersonInfo() { return personInfo; }
 
-    public String getEmailAddress() {return emailAddress.address();}
+    public String getFullName() {
+        return personInfo != null ? personInfo.getFullName() : "Profile incomplete";
+    }
+
+    public String getEmailAddress() { return emailAddress.address(); }
 
     public void onCreated() {
         registerDomainEvent(ClientRegisteredEvent.from(this));
     }
-
 }
