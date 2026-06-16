@@ -19,7 +19,7 @@ public class InitiateExpressReservationCommandFromResourceAssembler {
 
     public static InitiateExpressReservation toCommandFromResource(InitiateExpressReservationResource resource) {
        ReservationStatus status = ReservationStatus.valueOf(resource.status().toUpperCase());
-       return new InitiateExpressReservation(new ClientId(resource.clientId()), new EquipmentId(resource.equipmentId()),
+       return new InitiateExpressReservation(new ClientId(Long.parseLong(resource.clientId())), new EquipmentId(resource.equipmentId()),
                new TimeInterval(Time.valueOf(resource.startTime()), Time.valueOf(resource.endTime())), status, resource.startedAt(), resource.timeExpiry());
     }
 }

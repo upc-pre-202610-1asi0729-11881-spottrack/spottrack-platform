@@ -18,7 +18,7 @@ public class ReservationRequestPersistenceAssembler {
     public static ReservationRequestPersistenceEntity toPersistenceFromDomain(ReservationRequest domain) {
         var persistence = new ReservationRequestPersistenceEntity();
         persistence.setUuid(domain.getId().uuid());
-        persistence.setClientId(domain.getClientId().uuid());
+        persistence.setClientId(domain.getClientId().clientId());
         persistence.setEquipmentId(domain.getEquipmentId().uuid());
         persistence.setStatus(domain.getStatus());
         persistence.setRequestedAt(domain.getRequestedAt());

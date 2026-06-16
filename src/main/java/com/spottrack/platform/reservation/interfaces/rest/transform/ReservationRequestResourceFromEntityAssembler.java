@@ -11,8 +11,8 @@ public class ReservationRequestResourceFromEntityAssembler {
     public static ReservationRequestResource toResourceFromEntity(ReservationRequest request) {
         return new ReservationRequestResource(
                 request.getId().uuid(),
-                request.getClientId(),
-                request.getEquipmentId(),
+                request.getClientId().clientId().toString(),
+                request.getEquipmentId().uuid(),
                 request.getStatus(),
                 request.getRequestedAt()
         );
