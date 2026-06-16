@@ -6,6 +6,7 @@ import com.spottrack.platform.reservation.domain.model.commands.RequestAlternati
 import com.spottrack.platform.reservation.domain.model.commands.RequestEquipmentStatusChangeToAvailable;
 import com.spottrack.platform.reservation.domain.model.commands.SubmitRequestOccupyEquipment;
 import com.spottrack.platform.reservation.infrastructure.persistence.jpa.ReservationRequestRepository;
+import com.spottrack.platform.reservation.infrastructure.persistence.jpa.assemblers.ReservationRequestPersistenceAssembler;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
 import org.springframework.stereotype.Service;
@@ -28,41 +29,38 @@ public class ReservationRequestCommandServiceImpl implements ReservationRequestC
     @Override
     public Result<ReservationRequest, ApplicationError> handle(SubmitRequestOccupyEquipment command) {
         var request = new ReservationRequest(command);
-        var saved = reservationRequestRepository.save(request);
-        return Result.success(saved);
+        var persistence = ReservationRequestPersistenceAssembler.toPersistenceFromDomain(request);
+        var saved = reservationRequestRepository.save(persistence);
+        return Result.success(ReservationRequestPersistenceAssembler.toDomainFromPersistence(saved));
     }
 
-    /**
-     * Marks that the client wants a different piece of equipment.
-     * The aggregate enforces that only SUBMITTED requests can transition to ALTERNATIVE_REQUESTED.
-     */
     @Transactional
     @Override
     public Result<ReservationRequest, ApplicationError> handle(RequestAlternativeEquipment command) {
-        var found = reservationRequestRepository.findById(command.requestId());
+        var found = reservationRequestRepository.findByUuid(command.requestId().uuid());
         if (found.isEmpty()) {
             return Result.failure(ApplicationError.notFound("ReservationRequest", command.requestId().uuid()));
         }
-        var request = found.get();
+        var persistenceEntity = found.get();
+        var request = ReservationRequestPersistenceAssembler.toDomainFromPersistence(persistenceEntity);
         request.requestAlternative(command);
-        var saved = reservationRequestRepository.save(request);
-        return Result.success(saved);
+        persistenceEntity.setStatus(request.getStatus());
+        var saved = reservationRequestRepository.save(persistenceEntity);
+        return Result.success(ReservationRequestPersistenceAssembler.toDomainFromPersistence(saved));
     }
 
-    /**
-     * Signals that the equipment should be released back to AVAILABLE.
-     * Triggered at the end of a reservation lifecycle.
-     */
     @Transactional
     @Override
     public Result<ReservationRequest, ApplicationError> handle(RequestEquipmentStatusChangeToAvailable command) {
-        var found = reservationRequestRepository.findById(command.requestId());
+        var found = reservationRequestRepository.findByUuid(command.requestId().uuid());
         if (found.isEmpty()) {
             return Result.failure(ApplicationError.notFound("ReservationRequest", command.requestId().uuid()));
         }
-        var request = found.get();
+        var persistenceEntity = found.get();
+        var request = ReservationRequestPersistenceAssembler.toDomainFromPersistence(persistenceEntity);
         request.requestEquipmentRelease(command);
-        var saved = reservationRequestRepository.save(request);
-        return Result.success(saved);
+        persistenceEntity.setStatus(request.getStatus());
+        var saved = reservationRequestRepository.save(persistenceEntity);
+        return Result.success(ReservationRequestPersistenceAssembler.toDomainFromPersistence(saved));
     }
 }
