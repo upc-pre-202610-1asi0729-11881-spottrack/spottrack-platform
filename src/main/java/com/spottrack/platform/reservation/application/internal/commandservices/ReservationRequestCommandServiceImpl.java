@@ -5,10 +5,7 @@ import com.spottrack.platform.reservation.domain.model.aggregates.ReservationReq
 import com.spottrack.platform.reservation.domain.model.commands.RequestAlternativeEquipment;
 import com.spottrack.platform.reservation.domain.model.commands.RequestEquipmentStatusChangeToAvailable;
 import com.spottrack.platform.reservation.domain.model.commands.SubmitRequestOccupyEquipment;
-import com.spottrack.platform.reservation.infrastructure.persistence.jpa.ReservationPersistenceRepository;
 import com.spottrack.platform.reservation.infrastructure.persistence.jpa.ReservationRequestPersistenceRepository;
-import com.spottrack.platform.reservation.infrastructure.persistence.jpa.ReservationRequestRepository;
-import com.spottrack.platform.reservation.infrastructure.persistence.jpa.assemblers.ReservationPersistenceAssembler;
 import com.spottrack.platform.reservation.infrastructure.persistence.jpa.assemblers.ReservationRequestPersistenceAssembler;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
@@ -20,56 +17,58 @@ public class ReservationRequestCommandServiceImpl implements ReservationRequestC
 
     private final ReservationRequestPersistenceRepository reservationRequestPersistenceRepository;
 
-
     public ReservationRequestCommandServiceImpl(ReservationRequestPersistenceRepository reservationRequestPersistenceRepository) {
-        this.reservationRequestPersistenceRepository=reservationRequestPersistenceRepository;
+        this.reservationRequestPersistenceRepository = reservationRequestPersistenceRepository;
     }
 
-    /**
-     * Submits a new equipment occupation request.
-     * This is the entry point for the standard reservation flow (not express).
-     */
     @Transactional
     @Override
     public Result<ReservationRequest, ApplicationError> handle(SubmitRequestOccupyEquipment command) {
-        var request = new ReservationRequest(command);
-        var entity = ReservationRequestPersistenceAssembler.toPersistenceFromDomain(request);
-        var saved = reservationRequestPersistenceRepository.save(entity);
-        var updatedEntity = ReservationRequestPersistenceAssembler.toDomainFromPersistence(saved);
-        return Result.success(updatedEntity);
+        try {
+            var request = new ReservationRequest(command);
+            var entity = ReservationRequestPersistenceAssembler.toPersistenceFromDomain(request);
+            var saved = reservationRequestPersistenceRepository.save(entity);
+            return Result.success(ReservationRequestPersistenceAssembler.toDomainFromPersistence(saved));
+        } catch (IllegalArgumentException e) {
+            return Result.failure(ApplicationError.validationError("ReservationRequest", e.getMessage()));
+        } catch (Exception e) {
+            return Result.failure(ApplicationError.unexpected("ReservationRequest creation", e.getMessage()));
+        }
     }
 
-    /**
-     * Marks that the client wants a different piece of equipment.
-     * The aggregate enforces that only SUBMITTED requests can transition to ALTERNATIVE_REQUESTED.
-     */
     @Transactional
     @Override
     public Result<ReservationRequest, ApplicationError> handle(RequestAlternativeEquipment command) {
-        var found = reservationRequestRepository.findById(command.requestId());
-        if (found.isEmpty()) {
-            return Result.failure(ApplicationError.notFound("ReservationRequest", command.requestId().uuid()));
+        try {
+            var found = reservationRequestPersistenceRepository.findByUuid(command.requestId().uuid());
+            if (found.isEmpty())
+                return Result.failure(ApplicationError.notFound("ReservationRequest", command.requestId().uuid()));
+            var domain = ReservationRequestPersistenceAssembler.toDomainFromPersistence(found.get());
+            domain.requestAlternative(command);
+            var saved = reservationRequestPersistenceRepository.save(ReservationRequestPersistenceAssembler.toPersistenceFromDomain(domain));
+            return Result.success(ReservationRequestPersistenceAssembler.toDomainFromPersistence(saved));
+        } catch (IllegalArgumentException e) {
+            return Result.failure(ApplicationError.validationError("ReservationRequest", e.getMessage()));
+        } catch (Exception e) {
+            return Result.failure(ApplicationError.unexpected("ReservationRequest alternative", e.getMessage()));
         }
-        var request = found.get();
-        request.requestAlternative(command);
-        var saved = reservationRequestRepository.save(request);
-        return Result.success(saved);
     }
 
-    /**
-     * Signals that the equipment should be released back to AVAILABLE.
-     * Triggered at the end of a reservation lifecycle.
-     */
     @Transactional
     @Override
     public Result<ReservationRequest, ApplicationError> handle(RequestEquipmentStatusChangeToAvailable command) {
-        var found = reservationRequestRepository.findById(command.requestId());
-        if (found.isEmpty()) {
-            return Result.failure(ApplicationError.notFound("ReservationRequest", command.requestId().uuid()));
+        try {
+            var found = reservationRequestPersistenceRepository.findByUuid(command.requestId().uuid());
+            if (found.isEmpty())
+                return Result.failure(ApplicationError.notFound("ReservationRequest", command.requestId().uuid()));
+            var domain = ReservationRequestPersistenceAssembler.toDomainFromPersistence(found.get());
+            domain.requestEquipmentRelease(command);
+            var saved = reservationRequestPersistenceRepository.save(ReservationRequestPersistenceAssembler.toPersistenceFromDomain(domain));
+            return Result.success(ReservationRequestPersistenceAssembler.toDomainFromPersistence(saved));
+        } catch (IllegalArgumentException e) {
+            return Result.failure(ApplicationError.validationError("ReservationRequest", e.getMessage()));
+        } catch (Exception e) {
+            return Result.failure(ApplicationError.unexpected("ReservationRequest status change", e.getMessage()));
         }
-        var request = found.get();
-        request.requestEquipmentRelease(command);
-        var saved = reservationRequestRepository.save(request);
-        return Result.success(saved);
     }
 }
