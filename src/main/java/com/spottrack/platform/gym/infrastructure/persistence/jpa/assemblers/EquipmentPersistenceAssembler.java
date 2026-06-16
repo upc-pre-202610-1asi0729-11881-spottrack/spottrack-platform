@@ -13,8 +13,8 @@ public class EquipmentPersistenceAssembler {
 
     public static Equipment toDomainFromPersistence(EquipmentPersistenceEntity entity){
         var equipment = new Equipment();
-        var equipmentId = new EquipmentId(entity.getEquipmentId());
-        equipment.setId(equipmentId);
+        equipment.setPersistenceId(entity.getId());
+        equipment.setId(new EquipmentId(entity.getEquipmentId()));
         equipment.setEquipmentName(entity.getEquipmentName());
         equipment.setModel(entity.getModel());
         equipment.setStatus(entity.getStatus());
@@ -23,12 +23,11 @@ public class EquipmentPersistenceAssembler {
         equipment.setPurchasePrice(entity.getPurchasePrice());
         equipment.setMaintenanceThreshold(entity.getMaintenanceThreshold());
         return equipment;
-
     }
 
-
-    public static EquipmentPersistenceEntity toPersistenceFromDomain (Equipment domain){
+    public static EquipmentPersistenceEntity toPersistenceFromDomain(Equipment domain){
         var equipment = new EquipmentPersistenceEntity();
+        equipment.setId(domain.getPersistenceId());
         equipment.setEquipmentId(domain.getId().uuid());
         equipment.setEquipmentName(domain.getEquipmentName());
         equipment.setStatus(domain.getStatus());
@@ -37,7 +36,6 @@ public class EquipmentPersistenceAssembler {
         equipment.setZoneId(domain.getZoneId() != null ? domain.getZoneId().uuid() : null);
         equipment.setPurchasePrice(domain.getPurchasePrice());
         equipment.setMaintenanceThreshold(domain.getMaintenanceThreshold());
-
         return equipment;
     }
 

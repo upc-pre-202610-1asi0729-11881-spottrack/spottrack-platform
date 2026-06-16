@@ -55,6 +55,9 @@ public class ReservationRequest extends AbstractDomainAggregateRoot<ReservationR
         this.equipmentId = command.equipmentId();
         this.status = ReservationRequestStatus.SUBMITTED;
         this.requestedAt = LocalDateTime.now();
+    }
+
+    public void onSubmitted() {
         registerDomainEvent(new RequestOccupyEquipmentSubmittedEvent(this.id.uuid(), this.equipmentId.uuid(), this.clientId.clientId()));
     }
 
