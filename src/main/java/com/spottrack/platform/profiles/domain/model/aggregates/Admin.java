@@ -3,8 +3,10 @@ package com.spottrack.platform.profiles.domain.model.aggregates;
 import com.spottrack.platform.profiles.domain.model.commands.CreateAdminCommand;
 import com.spottrack.platform.profiles.domain.model.commands.UpdateAdminProfileCommand;
 import com.spottrack.platform.profiles.domain.model.events.AdminRegisteredEvent;
+import com.spottrack.platform.profiles.domain.model.valueobjects.Dni;
 import com.spottrack.platform.profiles.domain.model.valueobjects.EmailAddress;
 import com.spottrack.platform.profiles.domain.model.valueobjects.PersonInfo;
+import com.spottrack.platform.profiles.domain.model.valueobjects.PhoneNumber;
 import com.spottrack.platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
 import lombok.Getter;
 import lombok.Setter;
@@ -34,7 +36,12 @@ public class Admin extends AbstractDomainAggregateRoot<Admin> {
         this(
                 null,
                 command.userId(),
-                new PersonInfo(command.firstName(), command.lastName(), command.phoneNumber(), command.dni()),
+                new PersonInfo(
+                        command.firstName(),
+                        command.lastName(),
+                        (command.phoneNumber() == null || command.phoneNumber().isBlank()) ? null : new PhoneNumber(command.phoneNumber()),
+                        (command.dni() == null || command.dni().isBlank()) ? null : new Dni(command.dni())
+                ),
                 command.emailAddress()
         );
     }
