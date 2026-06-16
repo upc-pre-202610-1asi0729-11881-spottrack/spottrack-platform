@@ -1,11 +1,13 @@
 package com.spottrack.platform.iam.interfaces.rest;
 
 import com.spottrack.platform.iam.application.commandservices.UserCommandService;
+import com.spottrack.platform.iam.interfaces.rest.resources.DeactivateAccountResource;
 import com.spottrack.platform.iam.interfaces.rest.resources.ResetPasswordResource;
 import com.spottrack.platform.iam.interfaces.rest.resources.SignInResource;
 import com.spottrack.platform.iam.interfaces.rest.resources.SignOutResource;
 import com.spottrack.platform.iam.interfaces.rest.resources.SignUpResource;
 import com.spottrack.platform.iam.interfaces.rest.transform.AuthenticatedUserResourceFromEntityAssembler;
+import com.spottrack.platform.iam.interfaces.rest.transform.DeactivateAccountCommandFromResourceAssembler;
 import com.spottrack.platform.iam.interfaces.rest.transform.ResetPasswordCommandFromResourceAssembler;
 import com.spottrack.platform.iam.interfaces.rest.transform.SignInCommandFromResourceAssembler;
 import com.spottrack.platform.iam.interfaces.rest.transform.SignOutCommandFromResourceAssembler;
@@ -65,6 +67,17 @@ public class AuthenticationController {
     @PostMapping("/sign-out")
     public ResponseEntity<?> signOut(@Valid @RequestBody SignOutResource resource) {
         var command = SignOutCommandFromResourceAssembler.toCommandFromResource(resource);
+        var result = userCommandService.handle(command);
+        return ResponseEntityAssembler.toResponseEntityFromResult(
+                result,
+                UserResourceFromEntityAssembler::toResourceFromEntity,
+                HttpStatus.OK
+        );
+    }
+
+    @PostMapping("/deactivate")
+    public ResponseEntity<?> deactivate(@Valid @RequestBody DeactivateAccountResource resource) {
+        var command = DeactivateAccountCommandFromResourceAssembler.toCommandFromResource(resource);
         var result = userCommandService.handle(command);
         return ResponseEntityAssembler.toResponseEntityFromResult(
                 result,

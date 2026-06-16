@@ -24,6 +24,9 @@ public class User extends AbstractDomainAggregateRoot<User> {
     @Setter
     private Set<Role> roles;
 
+    @Setter
+    private boolean active = true;
+
     public User() {
         this.roles = new HashSet<>();
     }
@@ -46,5 +49,9 @@ public class User extends AbstractDomainAggregateRoot<User> {
 
     public void addRoles(List<Role> roles) {
         this.roles.addAll(roles);
+    }
+
+    public void deactivate() {
+        this.active = false;
     }
 }

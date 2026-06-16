@@ -4,6 +4,7 @@ import com.spottrack.platform.iam.application.commandservices.UserCommandService
 import com.spottrack.platform.iam.application.internal.outboundservices.hashing.HashingService;
 import com.spottrack.platform.iam.application.internal.outboundservices.tokens.TokenService;
 import com.spottrack.platform.iam.domain.model.aggregates.User;
+import com.spottrack.platform.iam.domain.model.commands.DeactivateAccountCommand;
 import com.spottrack.platform.iam.domain.model.commands.ResetPasswordCommand;
 import com.spottrack.platform.iam.domain.model.commands.SignInCommand;
 import com.spottrack.platform.iam.domain.model.commands.SignOutCommand;
@@ -109,5 +110,17 @@ public class UserCommandServiceImpl implements UserCommandService {
             return Result.failure(ApplicationError.notFound("USER", command.username()));
         }
         return Result.success(userOptional.get());
+    }
+
+    @Override
+    public Result<User, ApplicationError> handle(DeactivateAccountCommand command) {
+        var userOptional = userRepository.findByUsername(command.username());
+        if (userOptional.isEmpty()) {
+            return Result.failure(ApplicationError.notFound("USER", command.username()));
+        }
+        var user = userOptional.get();
+        user.deactivate();
+        var savedUser = userRepository.save(user);
+        return Result.success(savedUser);
     }
 }

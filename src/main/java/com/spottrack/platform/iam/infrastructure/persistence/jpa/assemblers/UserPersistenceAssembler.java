@@ -15,6 +15,7 @@ public class UserPersistenceAssembler {
                 .toList();
         User user = new User(entity.getUsername(), entity.getPassword(), roles);
         user.setId(entity.getId());
+        user.setActive(entity.isActive());
         return user;
     }
 
@@ -29,6 +30,7 @@ public class UserPersistenceAssembler {
                 .map(RolePersistenceAssembler::toPersistenceFromDomain)
                 .toList();
         entity.setRoles(roleEntities);
+        entity.setActive(user.isActive());
         return entity;
     }
 }
