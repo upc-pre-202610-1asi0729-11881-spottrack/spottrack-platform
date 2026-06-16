@@ -6,8 +6,10 @@ import com.spottrack.platform.profiles.domain.model.queries.GetClientByIdQuery;
 import com.spottrack.platform.profiles.domain.model.valueobjects.ClientId;
 import com.spottrack.platform.profiles.interfaces.rest.resources.ClientResource;
 import com.spottrack.platform.profiles.interfaces.rest.resources.CreateClientResource;
+import com.spottrack.platform.profiles.interfaces.rest.resources.UpdateClientProfileResource;
 import com.spottrack.platform.profiles.interfaces.rest.transform.ClientResourceFromEntityAssembler;
 import com.spottrack.platform.profiles.interfaces.rest.transform.CreateClientCommandFromResourceAssembler;
+import com.spottrack.platform.profiles.interfaces.rest.transform.UpdateClientProfileCommandFromResourceAssembler;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.interfaces.rest.transform.ErrorResponseAssembler;
 import com.spottrack.platform.shared.interfaces.rest.transform.ResponseEntityAssembler;
@@ -58,6 +60,35 @@ public class ClientsController {
                 result,
                 ClientResourceFromEntityAssembler::toResourceFromEntity,
                 HttpStatus.CREATED
+        );
+    }
+
+    @PutMapping("/{clientId}")
+    @Operation(
+            summary = "Update client profile",
+            description = "Updates personal data (name, phone number, DNI) for an existing client profile."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Client profile updated successfully",
+                    content = @Content(schema = @Schema(implementation = ClientResource.class))
+            ),
+            @ApiResponse(responseCode = "400", description = "Invalid input data"),
+            @ApiResponse(responseCode = "404", description = "Client not found")
+    })
+    public ResponseEntity<?> updateClientProfile(
+            @PathVariable
+            @Parameter(description = "Client unique identifier", example = "1", required = true)
+            Long clientId,
+            @Valid @RequestBody UpdateClientProfileResource resource
+    ) {
+        var command = UpdateClientProfileCommandFromResourceAssembler.toCommandFromResource(clientId, resource);
+        var result = clientCommandService.handle(command);
+        return ResponseEntityAssembler.toResponseEntityFromResult(
+                result,
+                ClientResourceFromEntityAssembler::toResourceFromEntity,
+                HttpStatus.OK
         );
     }
 
