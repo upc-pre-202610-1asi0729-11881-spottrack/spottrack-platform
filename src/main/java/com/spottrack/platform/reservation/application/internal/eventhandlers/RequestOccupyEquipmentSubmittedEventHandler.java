@@ -23,6 +23,6 @@ public class RequestOccupyEquipmentSubmittedEventHandler {
     @EventListener
     public void on(RequestOccupyEquipmentSubmittedEvent event) {
         eventPublisher.publishEvent(new RequestOccupyEquipmentSubmittedIntegrationEvent
-                (event.equipmentId(), event.requestId(), event.clientId()));
+                (event.equipmentId(), event.requestId()));
     }
 }
