@@ -30,21 +30,14 @@ import java.util.UUID;
 @Entity
 public class ReservationRequest extends AbstractDomainAggregateRoot<ReservationRequest> {
 
-    @EmbeddedId
     private ReservationRequestId id;
 
-    @Column(nullable = false)
     private String clientId;
 
-    // String reference to Equipment bounded context — no direct object dependency
-    @Column(nullable = false)
     private String equipmentId;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private ReservationRequestStatus status;
 
-    @Column(nullable = false)
     private LocalDateTime requestedAt;
 
     protected ReservationRequest() {}
