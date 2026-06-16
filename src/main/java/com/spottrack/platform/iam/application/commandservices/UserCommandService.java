@@ -1,6 +1,7 @@
 package com.spottrack.platform.iam.application.commandservices;
 
 import com.spottrack.platform.iam.domain.model.aggregates.User;
+import com.spottrack.platform.iam.domain.model.commands.DeactivateAccountCommand;
 import com.spottrack.platform.iam.domain.model.commands.ResetPasswordCommand;
 import com.spottrack.platform.iam.domain.model.commands.SignInCommand;
 import com.spottrack.platform.iam.domain.model.commands.SignOutCommand;
@@ -14,4 +15,5 @@ public interface UserCommandService {
     Result<ImmutablePair<User, String>, ApplicationError> handle(SignInCommand command);
     Result<User, ApplicationError> handle(ResetPasswordCommand command);
     Result<User, ApplicationError> handle(SignOutCommand command);
+    Result<User, ApplicationError> handle(DeactivateAccountCommand command);
 }
