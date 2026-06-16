@@ -15,5 +15,5 @@ package com.spottrack.platform.reservation.interfaces.events;
 public record RequestOccupyEquipmentSubmittedIntegrationEvent(
         String requestId,
         String equipmentId,
-        String clientId) {
+        Long clientId) {
 }
