@@ -5,7 +5,11 @@ import com.spottrack.platform.reservation.domain.model.aggregates.ReservationReq
 import com.spottrack.platform.reservation.domain.model.commands.RequestAlternativeEquipment;
 import com.spottrack.platform.reservation.domain.model.commands.RequestEquipmentStatusChangeToAvailable;
 import com.spottrack.platform.reservation.domain.model.commands.SubmitRequestOccupyEquipment;
+import com.spottrack.platform.reservation.infrastructure.persistence.jpa.ReservationPersistenceRepository;
+import com.spottrack.platform.reservation.infrastructure.persistence.jpa.ReservationRequestPersistenceRepository;
 import com.spottrack.platform.reservation.infrastructure.persistence.jpa.ReservationRequestRepository;
+import com.spottrack.platform.reservation.infrastructure.persistence.jpa.assemblers.ReservationPersistenceAssembler;
+import com.spottrack.platform.reservation.infrastructure.persistence.jpa.assemblers.ReservationRequestPersistenceAssembler;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
 import org.springframework.stereotype.Service;
@@ -14,10 +18,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class ReservationRequestCommandServiceImpl implements ReservationRequestCommandService {
 
-    private final ReservationRequestRepository reservationRequestRepository;
+    private final ReservationRequestPersistenceRepository reservationRequestPersistenceRepository;
 
-    public ReservationRequestCommandServiceImpl(ReservationRequestRepository reservationRequestRepository) {
-        this.reservationRequestRepository = reservationRequestRepository;
+
+    public ReservationRequestCommandServiceImpl(ReservationRequestPersistenceRepository reservationRequestPersistenceRepository) {
+        this.reservationRequestPersistenceRepository=reservationRequestPersistenceRepository;
     }
 
     /**
@@ -28,8 +33,10 @@ public class ReservationRequestCommandServiceImpl implements ReservationRequestC
     @Override
     public Result<ReservationRequest, ApplicationError> handle(SubmitRequestOccupyEquipment command) {
         var request = new ReservationRequest(command);
-        var saved = reservationRequestRepository.save(request);
-        return Result.success(saved);
+        var entity = ReservationRequestPersistenceAssembler.toPersistenceFromDomain(request);
+        var saved = reservationRequestPersistenceRepository.save(entity);
+        var updatedEntity = ReservationRequestPersistenceAssembler.toDomainFromPersistence(saved);
+        return Result.success(updatedEntity);
     }
 
     /**
