@@ -1,9 +1,11 @@
 package com.spottrack.platform.iam.interfaces.rest;
 
 import com.spottrack.platform.iam.application.commandservices.UserCommandService;
+import com.spottrack.platform.iam.interfaces.rest.resources.ResetPasswordResource;
 import com.spottrack.platform.iam.interfaces.rest.resources.SignInResource;
 import com.spottrack.platform.iam.interfaces.rest.resources.SignUpResource;
 import com.spottrack.platform.iam.interfaces.rest.transform.AuthenticatedUserResourceFromEntityAssembler;
+import com.spottrack.platform.iam.interfaces.rest.transform.ResetPasswordCommandFromResourceAssembler;
 import com.spottrack.platform.iam.interfaces.rest.transform.SignInCommandFromResourceAssembler;
 import com.spottrack.platform.iam.interfaces.rest.transform.SignUpCommandFromResourceAssembler;
 import com.spottrack.platform.iam.interfaces.rest.transform.UserResourceFromEntityAssembler;
@@ -44,6 +46,17 @@ public class AuthenticationController {
                 result,
                 UserResourceFromEntityAssembler::toResourceFromEntity,
                 HttpStatus.CREATED
+        );
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordResource resource) {
+        var command = ResetPasswordCommandFromResourceAssembler.toCommandFromResource(resource);
+        var result = userCommandService.handle(command);
+        return ResponseEntityAssembler.toResponseEntityFromResult(
+                result,
+                UserResourceFromEntityAssembler::toResourceFromEntity,
+                HttpStatus.OK
         );
     }
 }
