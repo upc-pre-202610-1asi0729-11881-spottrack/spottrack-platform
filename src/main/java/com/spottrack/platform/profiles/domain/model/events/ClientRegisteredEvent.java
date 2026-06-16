@@ -14,11 +14,11 @@ public record ClientRegisteredEvent(
         var info = client.getPersonInfo();
         return new ClientRegisteredEvent(
                 client.getId(),
-                info.firstName(),
-                info.lastName(),
+                info != null ? info.firstName() : null,
+                info != null ? info.lastName() : null,
                 client.getEmailAddress(),
-                info.phoneNumber().phoneNumber(),
-                info.dni().dni()
+                info != null ? info.phoneNumber().phoneNumber() : null,
+                info != null ? info.dni().dni() : null
         );
     }
 }
