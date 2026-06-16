@@ -33,7 +33,7 @@ public class ReservationRepositoryImpl implements ReservationRepository {
 
     @Override
     public Reservation save(Reservation reservation) {
-        boolean isNew = reservation.getId() == null;
+        boolean isNew = reservationPersistenceRepository.findByUuid(reservation.getId().uuid()).isEmpty();
         var savedEntity = reservationPersistenceRepository.save(ReservationPersistenceAssembler.toPersistenceFromDomain(reservation));
         var savedReservation = ReservationPersistenceAssembler.toDomainFromPersistence(savedEntity);
         if (isNew) {
