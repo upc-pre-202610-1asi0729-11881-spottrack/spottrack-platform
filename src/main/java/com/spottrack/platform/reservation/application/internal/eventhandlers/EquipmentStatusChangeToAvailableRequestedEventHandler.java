@@ -1,23 +1,30 @@
 package com.spottrack.platform.reservation.application.internal.eventhandlers;
 
+import com.spottrack.platform.reservation.application.commandServices.ReservationCommandService;
+import com.spottrack.platform.reservation.domain.model.commands.EndReservation;
 import com.spottrack.platform.reservation.domain.model.events.EquipmentStatusChangeToAvailableRequestedEvent;
+import com.spottrack.platform.reservation.domain.model.valueobjects.ReservationId;
+import com.spottrack.platform.reservation.domain.model.valueobjects.ReservationStatus;
+import com.spottrack.platform.reservation.infrastructure.persistence.jpa.ReservationPersistenceRepository;
 import com.spottrack.platform.reservation.interfaces.events.EquipmentStatusChangeToAvailableRequestedIntegrationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
-/**
- * Translates the internal {@link EquipmentStatusChangeToAvailableRequestedEvent} domain event
- * into a {@link EquipmentStatusChangeToAvailableRequestedIntegrationEvent} and re-publishes it
- * for cross-context consumers (e.g. {@code gym}).
- */
 @Service
 public class EquipmentStatusChangeToAvailableRequestedEventHandler {
 
     private final ApplicationEventPublisher eventPublisher;
+    private final ReservationCommandService reservationCommandService;
+    private final ReservationPersistenceRepository reservationPersistenceRepository;
 
-    public EquipmentStatusChangeToAvailableRequestedEventHandler(ApplicationEventPublisher eventPublisher) {
+    public EquipmentStatusChangeToAvailableRequestedEventHandler(
+            ApplicationEventPublisher eventPublisher,
+            ReservationCommandService reservationCommandService,
+            ReservationPersistenceRepository reservationPersistenceRepository) {
         this.eventPublisher = eventPublisher;
+        this.reservationCommandService = reservationCommandService;
+        this.reservationPersistenceRepository = reservationPersistenceRepository;
     }
 
     @EventListener
@@ -26,5 +33,10 @@ public class EquipmentStatusChangeToAvailableRequestedEventHandler {
                 event.requestId(),
                 event.equipmentId(),
                 "AVAILABLE"));
+
+        reservationPersistenceRepository
+                .findByEquipmentIdAndStatus(event.equipmentId(), ReservationStatus.ACTIVE)
+                .ifPresent(entity -> reservationCommandService.handle(
+                        new EndReservation(new ReservationId(entity.getUuid()))));
     }
 }
