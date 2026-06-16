@@ -39,36 +39,12 @@ public class ReservationRequestCommandServiceImpl implements ReservationRequestC
     @Transactional
     @Override
     public Result<ReservationRequest, ApplicationError> handle(RequestAlternativeEquipment command) {
-        try {
-            var found = reservationRequestPersistenceRepository.findByUuid(command.requestId().uuid());
-            if (found.isEmpty())
-                return Result.failure(ApplicationError.notFound("ReservationRequest", command.requestId().uuid()));
-            var domain = ReservationRequestPersistenceAssembler.toDomainFromPersistence(found.get());
-            domain.requestAlternative(command);
-            var saved = reservationRequestPersistenceRepository.save(ReservationRequestPersistenceAssembler.toPersistenceFromDomain(domain));
-            return Result.success(ReservationRequestPersistenceAssembler.toDomainFromPersistence(saved));
-        } catch (IllegalArgumentException e) {
-            return Result.failure(ApplicationError.validationError("ReservationRequest", e.getMessage()));
-        } catch (Exception e) {
-            return Result.failure(ApplicationError.unexpected("ReservationRequest alternative", e.getMessage()));
-        }
+        throw new UnsupportedOperationException("Not implemented yet");
     }
 
     @Transactional
     @Override
     public Result<ReservationRequest, ApplicationError> handle(RequestEquipmentStatusChangeToAvailable command) {
-        try {
-            var found = reservationRequestPersistenceRepository.findByUuid(command.requestId().uuid());
-            if (found.isEmpty())
-                return Result.failure(ApplicationError.notFound("ReservationRequest", command.requestId().uuid()));
-            var domain = ReservationRequestPersistenceAssembler.toDomainFromPersistence(found.get());
-            domain.requestEquipmentRelease(command);
-            var saved = reservationRequestPersistenceRepository.save(ReservationRequestPersistenceAssembler.toPersistenceFromDomain(domain));
-            return Result.success(ReservationRequestPersistenceAssembler.toDomainFromPersistence(saved));
-        } catch (IllegalArgumentException e) {
-            return Result.failure(ApplicationError.validationError("ReservationRequest", e.getMessage()));
-        } catch (Exception e) {
-            return Result.failure(ApplicationError.unexpected("ReservationRequest status change", e.getMessage()));
-        }
+        throw new UnsupportedOperationException("Not implemented yet");
     }
 }
