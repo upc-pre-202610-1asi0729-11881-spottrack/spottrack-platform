@@ -6,9 +6,11 @@ import com.spottrack.platform.reservation.domain.model.commands.CancelReservatio
 import com.spottrack.platform.reservation.domain.model.commands.EndReservation;
 import com.spottrack.platform.reservation.domain.model.commands.StartReservationTimer;
 import com.spottrack.platform.reservation.domain.model.valueobjects.ReservationId;
+import com.spottrack.platform.reservation.interfaces.rest.resources.EndReservationCommandResource;
 import com.spottrack.platform.reservation.interfaces.rest.resources.InitiateExpressReservationResource;
 import com.spottrack.platform.reservation.interfaces.rest.resources.ReservationResource;
 import com.spottrack.platform.reservation.interfaces.rest.resources.StartReservationTimerResource;
+import com.spottrack.platform.reservation.interfaces.rest.transform.EndReservationCommandFromResourceAssembler;
 import com.spottrack.platform.reservation.interfaces.rest.transform.InitiateExpressReservationCommandFromResourceAssembler;
 import com.spottrack.platform.reservation.interfaces.rest.transform.ReservationResourceFromEntityAssembler;
 import com.spottrack.platform.shared.application.result.ApplicationError;
@@ -88,7 +90,7 @@ public class ReservationsController {
      */
     @PatchMapping("/{id}/end")
     public ResponseEntity<?> endReservation(@PathVariable String id) {
-        var command = new EndReservation(new ReservationId(id));
+        var command = EndReservationCommandFromResourceAssembler.toCommandFromResource(id);
         var result = commandService.handle(command);
         return switch (result) {
             case Result.Success<Reservation, ApplicationError> s ->

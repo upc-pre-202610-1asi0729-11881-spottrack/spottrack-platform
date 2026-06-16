@@ -33,6 +33,7 @@ import java.util.UUID;
 @Getter
 public class ReservationRequest extends AbstractDomainAggregateRoot<ReservationRequest> {
 
+    private Long persistenceId;
     private ReservationRequestId id;
 
     private ClientId clientId;
