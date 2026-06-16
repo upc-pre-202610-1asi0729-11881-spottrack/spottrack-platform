@@ -11,6 +11,7 @@ public class UserPersistenceEntity extends AuditableAbstractPersistenceEntity {
 
     private String username;
     private String password;
+    private boolean active = true;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
@@ -45,5 +46,13 @@ public class UserPersistenceEntity extends AuditableAbstractPersistenceEntity {
 
     public void setRoles(List<RolePersistenceEntity> roles) {
         this.roles = roles;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 }
