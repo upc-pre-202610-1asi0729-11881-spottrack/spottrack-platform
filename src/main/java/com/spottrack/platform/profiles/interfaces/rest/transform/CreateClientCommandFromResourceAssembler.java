@@ -14,7 +14,7 @@ public class CreateClientCommandFromResourceAssembler {
                 new EmailAddress(resource.email()),
                 resource.firstName(),
                 resource.lastName(),
-                new PhoneNumber(resource.phoneNumber()),
-                new Dni(resource.dni()));
+                resource.phoneNumber(),
+                resource.dni());
     }
 }
