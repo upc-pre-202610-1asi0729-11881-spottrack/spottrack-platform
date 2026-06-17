@@ -1,4 +1,6 @@
 package com.spottrack.platform.analytics.domain.model.events;
 
-public record RequestedEarningsEvent() {
+import com.spottrack.platform.analytics.domain.model.valueobjects.ROIProjectionId;
+
+public record RequestedEarningsEvent(ROIProjectionId roiProjectionId, Double requestedEarnings) {
 }

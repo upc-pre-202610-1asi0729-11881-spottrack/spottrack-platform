@@ -1,4 +1,6 @@
 package com.spottrack.platform.analytics.domain.model.events;
 
-public record PercentageComparisonWithPreviousReportRequestedEvent() {
+import com.spottrack.platform.analytics.domain.model.valueobjects.ActivityReportId;
+
+public record PercentageComparisonWithPreviousReportRequestedEvent(ActivityReportId activityReportId, Double percentageComparison) {
 }

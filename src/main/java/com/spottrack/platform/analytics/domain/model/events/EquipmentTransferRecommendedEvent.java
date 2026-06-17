@@ -1,4 +1,6 @@
 package com.spottrack.platform.analytics.domain.model.events;
 
-public record EquipmentTransferRecommendedEvent() {
+import com.spottrack.platform.analytics.domain.model.valueobjects.ROIProjectionId;
+
+public record EquipmentTransferRecommendedEvent(ROIProjectionId roiProjectionId, String detail) {
 }
