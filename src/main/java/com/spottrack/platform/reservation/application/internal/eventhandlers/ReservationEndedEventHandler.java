@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ReservationEndedEventHandler {
 
+
     private static final Logger log = LoggerFactory.getLogger(ReservationEndedEventHandler.class);
 
     @EventListener
