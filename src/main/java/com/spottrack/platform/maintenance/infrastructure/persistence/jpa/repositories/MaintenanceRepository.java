@@ -1,4 +1,4 @@
-package com.spottrack.platform.maintenance.infrastructure.persistence.jpa;
+package com.spottrack.platform.maintenance.infrastructure.persistence.jpa.repositories;
 
 import com.spottrack.platform.maintenance.domain.model.aggregates.Maintenance;
 import com.spottrack.platform.maintenance.domain.model.valueobjects.MaintenanceId;
