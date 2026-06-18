@@ -1,6 +1,5 @@
 package com.spottrack.platform.maintenance.domain.model.commands;
 
-import com.spottrack.platform.reservation.domain.model.valueobjects.EquipmentId;
 
 public record RequestMaintenance(
         EquipmentId equipmentId,

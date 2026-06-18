@@ -1,5 +1,6 @@
 package com.spottrack.platform.maintenance.domain.model.aggregates;
 
+import com.spottrack.platform.gym.domain.model.valueobjects.EquipmentId;
 import com.spottrack.platform.maintenance.domain.model.commands.RequestMaintenance;
 import com.spottrack.platform.maintenance.domain.model.events.MaintenanceRequestedEvent;
 import com.spottrack.platform.maintenance.domain.model.valueobjects.MaintenanceId;
@@ -18,20 +19,14 @@ import java.util.UUID;
 @Entity
 public class Maintenance extends AbstractDomainAggregateRoot<Maintenance> {
 
-    @EmbeddedId
     private MaintenanceId id;
 
-    @Column(nullable = false)
-    private String equipmentId;
+    private EquipmentId equipmentId;
 
-    @Column(nullable = false)
     private String requestedBy;
 
-    @Column(nullable = false)
     private String description;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private MaintenanceStatus status;
 
     protected Maintenance() {}
