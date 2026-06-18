@@ -4,8 +4,4 @@ import com.spottrack.platform.maintenance.domain.model.valueobjects.TechnicalTic
 
 public record CompleteMaintenance(TechnicalTicketId ticketId) {
 
-    public CompleteMaintenance {
-        if (ticketId == null)
-            throw new IllegalArgumentException("maintenance.command.completeMaintenance.ticketId.notNull");
-    }
 }

@@ -9,10 +9,6 @@ public record RegisterMaintenanceCompletion(
         String notes
 ) {
     public RegisterMaintenanceCompletion {
-        if (ticketId == null)
-            throw new IllegalArgumentException("maintenance.command.registerCompletion.ticketId.notNull");
-        if (maintenanceId == null)
-            throw new IllegalArgumentException("maintenance.command.registerCompletion.maintenanceId.notNull");
         if (notes == null || notes.isBlank())
             throw new IllegalArgumentException("maintenance.command.registerCompletion.notes.notBlank");
     }

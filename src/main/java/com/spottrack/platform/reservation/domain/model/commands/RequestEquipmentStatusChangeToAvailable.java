@@ -9,9 +9,4 @@ import com.spottrack.platform.reservation.domain.model.valueobjects.ReservationR
  */
 public record RequestEquipmentStatusChangeToAvailable(ReservationRequestId requestId) {
 
-    public RequestEquipmentStatusChangeToAvailable {
-        if (requestId == null) {
-            throw new IllegalArgumentException("reservation.command.requestStatusChange.requestId.notNull");
-        }
-    }
 }

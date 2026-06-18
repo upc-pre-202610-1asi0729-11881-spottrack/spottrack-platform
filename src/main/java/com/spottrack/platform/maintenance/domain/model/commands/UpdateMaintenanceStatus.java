@@ -7,10 +7,4 @@ public record UpdateMaintenanceStatus(
         TechnicalTicketId ticketId,
         MaintenanceStatus newStatus
 ) {
-    public UpdateMaintenanceStatus {
-        if (ticketId == null)
-            throw new IllegalArgumentException("maintenance.command.updateMaintenanceStatus.ticketId.notNull");
-        if (newStatus == null)
-            throw new IllegalArgumentException("maintenance.command.updateMaintenanceStatus.newStatus.notNull");
-    }
 }

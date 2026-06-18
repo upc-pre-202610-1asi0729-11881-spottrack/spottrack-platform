@@ -7,8 +7,6 @@ public record AssignTechnicalTicket(
         String technicianId
 ) {
     public AssignTechnicalTicket {
-        if (ticketId == null)
-            throw new IllegalArgumentException("maintenance.command.assignTechnicalTicket.ticketId.notNull");
         if (technicianId == null || technicianId.isBlank())
             throw new IllegalArgumentException("maintenance.command.assignTechnicalTicket.technicianId.notBlank");
     }

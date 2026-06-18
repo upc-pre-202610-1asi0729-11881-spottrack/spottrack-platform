@@ -8,8 +8,5 @@ public record UpdateEquipmentStatus(String id, EquipmentStatus status) {
         if (id == null){
             throw new IllegalArgumentException();
         }
-        if (status == null){
-            throw new IllegalArgumentException();
-        }
     }
 }

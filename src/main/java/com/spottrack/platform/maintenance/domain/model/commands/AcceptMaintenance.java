@@ -7,8 +7,6 @@ public record AcceptMaintenance(
         String technicianId
 ) {
     public AcceptMaintenance {
-        if (maintenanceJobId == null)
-            throw new IllegalArgumentException("maintenance.command.acceptMaintenance.maintenanceJobId.notNull");
         if (technicianId == null || technicianId.isBlank())
             throw new IllegalArgumentException("maintenance.command.acceptMaintenance.technicianId.notBlank");
     }

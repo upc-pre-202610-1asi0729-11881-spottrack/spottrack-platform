@@ -5,10 +5,4 @@ import com.spottrack.platform.gym.domain.model.valueobjects.GymId;
 import com.spottrack.platform.gym.domain.model.valueobjects.ZoneId;
 
 public record RelocateEquipment(EquipmentId equipmentId, GymId gymId, ZoneId zoneId) {
-    public RelocateEquipment{
-        if (equipmentId == null) throw new IllegalArgumentException("equipmentId must not be null");
-        if (gymId == null) throw new IllegalArgumentException("gymId must not be null");
-        if (zoneId == null) throw new IllegalArgumentException("zoneId must not be null");
-        
-    }
 }
