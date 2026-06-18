@@ -1,3 +1,5 @@
 package com.spottrack.platform.maintenance.domain.model.events;
 
-public record MaintenanceRequestedEvent(String maintenanceId, String equipmentId, String requestedBy) {}
+import com.spottrack.platform.maintenance.domain.model.valueobjects.EquipmentId;
+
+public record MaintenanceRequestedEvent(String maintenanceId, EquipmentId equipmentId, String requestedBy) {}

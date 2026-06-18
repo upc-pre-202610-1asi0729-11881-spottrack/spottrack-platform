@@ -1,6 +1,6 @@
 package com.spottrack.platform.maintenance.domain.model.aggregates;
 
-import com.spottrack.platform.gym.domain.model.valueobjects.EquipmentId;
+import com.spottrack.platform.maintenance.domain.model.valueobjects.EquipmentId;
 import com.spottrack.platform.maintenance.domain.model.commands.RequestMaintenance;
 import com.spottrack.platform.maintenance.domain.model.events.MaintenanceRequestedEvent;
 import com.spottrack.platform.maintenance.domain.model.valueobjects.MaintenanceId;
