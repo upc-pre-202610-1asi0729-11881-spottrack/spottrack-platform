@@ -9,9 +9,4 @@ import com.spottrack.platform.reservation.domain.model.valueobjects.ReservationR
  */
 public record RequestAlternativeEquipment(ReservationRequestId requestId, String reason) {
 
-    public RequestAlternativeEquipment {
-        if (requestId == null) {
-            throw new IllegalArgumentException("reservation.command.requestAlternative.requestId.notNull");
-        }
-    }
 }

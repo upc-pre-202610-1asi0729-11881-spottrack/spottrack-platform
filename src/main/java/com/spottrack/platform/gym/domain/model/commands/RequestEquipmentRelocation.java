@@ -10,12 +10,4 @@ import com.spottrack.platform.gym.domain.model.valueobjects.ZoneId;
  * @param zoneId
  */
 public record RequestEquipmentRelocation(EquipmentId equipmentId, ZoneId zoneId) {
-    public RequestEquipmentRelocation {
-        if (equipmentId == null){
-            throw new IllegalArgumentException("equipmentId must not be null");
-        }
-        if (zoneId == null){
-            throw new IllegalArgumentException("zoneId must not be null");
-        }
-    }
 }

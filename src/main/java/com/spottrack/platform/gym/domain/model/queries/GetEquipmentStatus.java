@@ -6,9 +6,4 @@ import com.spottrack.platform.gym.domain.model.valueobjects.EquipmentStatus;
 public record GetEquipmentStatus(
         EquipmentId equipmentId
 ) {
-    public GetEquipmentStatus {
-        if (equipmentId == null){
-            throw new IllegalArgumentException("id must not be null");
-        }
-    }
 }
