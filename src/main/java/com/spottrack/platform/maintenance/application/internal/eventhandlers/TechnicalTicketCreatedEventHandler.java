@@ -1,20 +1,25 @@
 package com.spottrack.platform.maintenance.application.internal.eventhandlers;
 
 import com.spottrack.platform.maintenance.domain.model.events.TechnicalTicketCreatedEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.context.event.EventListener;
+import com.spottrack.platform.maintenance.interfaces.events.EquipmentOutOfServiceIntegrationEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 @Component
 public class TechnicalTicketCreatedEventHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(TechnicalTicketCreatedEventHandler.class);
+    private final ApplicationEventPublisher eventPublisher;
 
-    @EventListener
+    public TechnicalTicketCreatedEventHandler(ApplicationEventPublisher eventPublisher) {
+        this.eventPublisher = eventPublisher;
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void on(TechnicalTicketCreatedEvent event) {
-        log.info("Policy fired — ticket {} created for maintenance {}, equipment {} marked out of service",
-                event.ticketId(), event.maintenanceId(), event.equipmentId());
-        // Policy: (Technical Ticket Created?) Mark Equipment Out Of Service — notify Equipment context
+        eventPublisher.publishEvent(
+                new EquipmentOutOfServiceIntegrationEvent(event.equipmentId(), event.ticketId(), event.maintenanceId())
+        );
     }
 }
