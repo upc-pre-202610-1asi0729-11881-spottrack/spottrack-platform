@@ -19,9 +19,9 @@ import com.spottrack.platform.maintenance.domain.model.commands.UpdateMaintenanc
 import com.spottrack.platform.maintenance.domain.model.events.EquipmentDecommissionedEvent;
 import com.spottrack.platform.maintenance.domain.model.events.EquipmentTransferRecommendedEvent;
 import com.spottrack.platform.maintenance.domain.repositories.MaintenanceJobRepository;
+import com.spottrack.platform.maintenance.domain.repositories.MaintenanceLogRepository;
 import com.spottrack.platform.maintenance.domain.repositories.MaintenanceRepository;
 import com.spottrack.platform.maintenance.domain.repositories.TechnicalTicketRepository;
-import com.spottrack.platform.maintenance.infrastructure.persistence.jpa.MaintenanceLogRepository;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
 import org.springframework.context.ApplicationEventPublisher;
