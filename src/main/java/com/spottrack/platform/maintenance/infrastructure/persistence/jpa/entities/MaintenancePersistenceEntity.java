@@ -1,9 +1,6 @@
 package com.spottrack.platform.maintenance.infrastructure.persistence.jpa.entities;
 
 
-import com.spottrack.platform.maintenance.domain.model.valueobjects.EquipmentId;
-import com.spottrack.platform.maintenance.domain.model.valueobjects.MaintenanceId;
-import com.spottrack.platform.maintenance.domain.model.valueobjects.MaintenanceStatus;
 import com.spottrack.platform.shared.infrastructure.persistence.jpa.entities.AuditableAbstractPersistenceEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
