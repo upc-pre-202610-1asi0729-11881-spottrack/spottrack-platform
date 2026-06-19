@@ -18,7 +18,7 @@ public class MaintenanceJob extends AbstractDomainAggregateRoot<MaintenanceJob> 
     @EmbeddedId
     private MaintenanceJobId id;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String technicianId;
 
     @Column(nullable = false)
