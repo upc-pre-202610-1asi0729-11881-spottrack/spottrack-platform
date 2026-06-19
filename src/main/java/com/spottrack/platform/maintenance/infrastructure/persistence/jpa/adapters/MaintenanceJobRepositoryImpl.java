@@ -31,6 +31,8 @@ public class MaintenanceJobRepositoryImpl implements MaintenanceJobRepository {
     @Override
     public MaintenanceJob save(MaintenanceJob job) {
         var entity = MaintenanceJobPersistenceAssembler.toPersistenceFromDomain(job);
+        jpaRepository.findByJobId(job.getJobId().uuid())
+                .ifPresent(existing -> entity.setId(existing.getId()));
         var saved = jpaRepository.save(entity);
         var domain = MaintenanceJobPersistenceAssembler.toDomainFromPersistence(saved);
         job.domainEvents().forEach(eventPublisher::publishEvent);
