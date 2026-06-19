@@ -1,20 +1,25 @@
 package com.spottrack.platform.maintenance.application.internal.eventhandlers;
 
 import com.spottrack.platform.maintenance.domain.model.events.TicketStatusMarkedAsResolvedEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.context.event.EventListener;
+import com.spottrack.platform.maintenance.interfaces.events.EquipmentStatusAvailableIntegrationEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 @Component
 public class TicketStatusMarkedAsResolvedEventHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(TicketStatusMarkedAsResolvedEventHandler.class);
+    private final ApplicationEventPublisher eventPublisher;
 
-    @EventListener
+    public TicketStatusMarkedAsResolvedEventHandler(ApplicationEventPublisher eventPublisher) {
+        this.eventPublisher = eventPublisher;
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void on(TicketStatusMarkedAsResolvedEvent event) {
-        log.info("Policy fired — ticket {} resolved, requesting equipment {} status update to available",
-                event.ticketId(), event.equipmentId());
-        // Policy: (Ticket Status Completed?) Request Equipment Status Updated — notify Equipment context
+        eventPublisher.publishEvent(
+                new EquipmentStatusAvailableIntegrationEvent(event.equipmentId(), event.ticketId())
+        );
     }
 }
