@@ -1,61 +1,58 @@
 package com.spottrack.platform.maintenance.infrastructure.persistence.jpa.adapters;
 
 import com.spottrack.platform.maintenance.domain.model.aggregates.Maintenance;
-import com.spottrack.platform.maintenance.domain.model.valueobjects.EquipmentId;
+import com.spottrack.platform.maintenance.domain.model.valueobjects.MaintenanceId;
 import com.spottrack.platform.maintenance.domain.repositories.MaintenanceRepository;
 import com.spottrack.platform.maintenance.infrastructure.persistence.jpa.assemblers.MaintenancePersistenceAssembler;
 import com.spottrack.platform.maintenance.infrastructure.persistence.jpa.entities.MaintenancePersistenceEntity;
 import com.spottrack.platform.maintenance.infrastructure.persistence.jpa.repositories.MaintenancePersistenceRepository;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Repository
 public class MaintenanceRepositoryImpl implements MaintenanceRepository {
+
     private final MaintenancePersistenceRepository maintenancePersistenceRepository;
     private final ApplicationEventPublisher eventPublisher;
 
-
-    public MaintenanceRepositoryImpl(MaintenancePersistenceRepository maintenancePersistenceRepository, ApplicationEventPublisher eventPublisher){
+    public MaintenanceRepositoryImpl(
+            MaintenancePersistenceRepository maintenancePersistenceRepository,
+            ApplicationEventPublisher eventPublisher) {
         this.maintenancePersistenceRepository = maintenancePersistenceRepository;
         this.eventPublisher = eventPublisher;
     }
 
-
     @Override
-    public Optional<Maintenance> findByUuid(EquipmentId maintenanceId) {
-        return Optional.empty();
+    public Optional<Maintenance> findByMaintenanceId(MaintenanceId maintenanceId) {
+        return maintenancePersistenceRepository
+                .findByMaintenanceId(maintenanceId.uuid())
+                .map(MaintenancePersistenceAssembler::toDomainFromPersistence);
     }
 
     @Override
-    public Optional<Maintenance> findMaintenanceById(Long Id) {
-        var entity = maintenancePersistenceRepository.findById(Id).map(MaintenancePersistenceAssembler::toDomainFromPersistence);
-        return entity;
+    public Optional<Maintenance> findById(Long id) {
+        return maintenancePersistenceRepository
+                .findById(id)
+                .map(MaintenancePersistenceAssembler::toDomainFromPersistence);
     }
 
     @Override
     public List<Maintenance> findAll() {
-        List<MaintenancePersistenceEntity> persistenceList ;
-        persistenceList = maintenancePersistenceRepository.findAll();
-        List<Maintenance> list = new ArrayList<>();
-
-        for (int i = 0; i < persistenceList.size(); i++) {
-            list.add(MaintenancePersistenceAssembler.toDomainFromPersistence(persistenceList.get(i)));
-        }
-        return list;
-
-
+        return maintenancePersistenceRepository.findAll().stream()
+                .map(MaintenancePersistenceAssembler::toDomainFromPersistence)
+                .toList();
     }
 
     @Override
-    public Maintenance save(Maintenance entity) {
-        var persistenceEntity = MaintenancePersistenceAssembler.toPersistenceFromDomain(entity);
+    public Maintenance save(Maintenance maintenance) {
+        var persistenceEntity = MaintenancePersistenceAssembler.toPersistenceFromDomain(maintenance);
         var savedEntity = maintenancePersistenceRepository.save(persistenceEntity);
-        var maintenance = MaintenancePersistenceAssembler.toDomainFromPersistence(savedEntity);
-
+        var saved = MaintenancePersistenceAssembler.toDomainFromPersistence(savedEntity);
         maintenance.domainEvents().forEach(eventPublisher::publishEvent);
         maintenance.clearDomainEvents();
-        return maintenance;
+        return saved;
     }
 }
