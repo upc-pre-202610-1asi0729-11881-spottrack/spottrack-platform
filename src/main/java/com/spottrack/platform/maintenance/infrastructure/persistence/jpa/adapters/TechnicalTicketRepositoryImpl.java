@@ -31,6 +31,8 @@ public class TechnicalTicketRepositoryImpl implements TechnicalTicketRepository 
     @Override
     public TechnicalTicket save(TechnicalTicket ticket) {
         var entity = TechnicalTicketPersistenceAssembler.toPersistenceFromDomain(ticket);
+        jpaRepository.findByTicketId(ticket.getTicketId().uuid())
+                .ifPresent(existing -> entity.setId(existing.getId()));
         var saved = jpaRepository.save(entity);
         var domain = TechnicalTicketPersistenceAssembler.toDomainFromPersistence(saved);
         ticket.domainEvents().forEach(eventPublisher::publishEvent);
