@@ -7,7 +7,7 @@ public class MaintenanceLogResourceFromEntityAssembler {
 
     public static MaintenanceLogResource toResourceFromEntity(MaintenanceLog entity) {
         return new MaintenanceLogResource(
-                entity.getId().uuid(),
+                entity.getLogId(),
                 entity.getTicketId(),
                 entity.getMaintenanceId(),
                 entity.getNotes(),
