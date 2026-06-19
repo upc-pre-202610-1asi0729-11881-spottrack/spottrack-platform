@@ -1,0 +1,31 @@
+package com.spottrack.platform.maintenance.infrastructure.persistence.jpa.assemblers;
+
+import com.spottrack.platform.maintenance.domain.model.aggregates.TechnicalTicket;
+import com.spottrack.platform.maintenance.infrastructure.persistence.jpa.entities.TechnicalTicketPersistenceEntity;
+
+public class TechnicalTicketPersistenceAssembler {
+
+    public static TechnicalTicket toDomainFromPersistence(TechnicalTicketPersistenceEntity entity) {
+        return new TechnicalTicket(
+                entity.getTicketId(),
+                entity.getMaintenanceId(),
+                entity.getEquipmentId(),
+                entity.getTechnicianId(),
+                entity.getDescription(),
+                entity.getTicketStatus(),
+                entity.getMaintenanceStatus()
+        );
+    }
+
+    public static TechnicalTicketPersistenceEntity toPersistenceFromDomain(TechnicalTicket ticket) {
+        var entity = new TechnicalTicketPersistenceEntity();
+        entity.setTicketId(ticket.getTicketId().uuid());
+        entity.setMaintenanceId(ticket.getMaintenanceId());
+        entity.setEquipmentId(ticket.getEquipmentId());
+        entity.setTechnicianId(ticket.getTechnicianId());
+        entity.setDescription(ticket.getDescription());
+        entity.setTicketStatus(ticket.getTicketStatus().name());
+        entity.setMaintenanceStatus(ticket.getMaintenanceStatus().name());
+        return entity;
+    }
+}
