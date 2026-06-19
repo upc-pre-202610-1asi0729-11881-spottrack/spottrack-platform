@@ -12,14 +12,15 @@ import com.spottrack.platform.maintenance.domain.model.events.TechnicalTicketCre
 import com.spottrack.platform.maintenance.domain.model.events.TicketStatusMarkedAsResolvedEvent;
 import com.spottrack.platform.maintenance.domain.model.events.TicketStatusModifiedEvent;
 import com.spottrack.platform.maintenance.domain.model.valueobjects.MaintenanceStatus;
-import com.spottrack.platform.maintenance.domain.model.valueobjects.TechnicalTicketId;
 import com.spottrack.platform.maintenance.domain.model.valueobjects.TicketStatus;
 import com.spottrack.platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
 import jakarta.persistence.Column;
-import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import lombok.Getter;
 
 import java.util.UUID;
@@ -28,8 +29,12 @@ import java.util.UUID;
 @Entity
 public class TechnicalTicket extends AbstractDomainAggregateRoot<TechnicalTicket> {
 
-    @EmbeddedId
-    private TechnicalTicketId id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, unique = true)
+    private String ticketId;
 
     @Column(nullable = false)
     private String maintenanceId;
@@ -54,19 +59,19 @@ public class TechnicalTicket extends AbstractDomainAggregateRoot<TechnicalTicket
     protected TechnicalTicket() {}
 
     public TechnicalTicket(CreateTechnicalTicket command) {
-        this.id = new TechnicalTicketId(UUID.randomUUID().toString());
+        this.ticketId = UUID.randomUUID().toString();
         this.maintenanceId = command.maintenanceId().uuid();
         this.equipmentId = command.equipmentId();
         this.description = command.description();
         this.ticketStatus = TicketStatus.OPEN;
         this.maintenanceStatus = MaintenanceStatus.REQUESTED;
-        registerDomainEvent(new TechnicalTicketCreatedEvent(this.id.uuid(), this.maintenanceId, this.equipmentId));
+        registerDomainEvent(new TechnicalTicketCreatedEvent(this.ticketId, this.maintenanceId, this.equipmentId));
     }
 
     public void assign(AssignTechnicalTicket command) {
         this.technicianId = command.technicianId();
         this.ticketStatus = TicketStatus.IN_PROGRESS;
-        registerDomainEvent(new TechnicalTicketAssignedEvent(this.id.uuid(), this.technicianId));
+        registerDomainEvent(new TechnicalTicketAssignedEvent(this.ticketId, this.technicianId));
     }
 
     public void markAsResolved() {
@@ -75,20 +80,20 @@ public class TechnicalTicket extends AbstractDomainAggregateRoot<TechnicalTicket
         }
         this.ticketStatus = TicketStatus.RESOLVED;
         this.maintenanceStatus = MaintenanceStatus.COMPLETED;
-        registerDomainEvent(new TicketStatusMarkedAsResolvedEvent(this.id.uuid(), this.equipmentId));
+        registerDomainEvent(new TicketStatusMarkedAsResolvedEvent(this.ticketId, this.equipmentId));
     }
 
     public void modifyStatus(ModifyTicketStatus command) {
         this.ticketStatus = command.newStatus();
-        registerDomainEvent(new TicketStatusModifiedEvent(this.id.uuid(), command.newStatus().name()));
+        registerDomainEvent(new TicketStatusModifiedEvent(this.ticketId, command.newStatus().name()));
     }
 
     public void requestStatusUpdate(RequestUpdateMaintenanceStatus command) {
-        registerDomainEvent(new MaintenanceStatusUpdateRequestedEvent(this.id.uuid(), command.newStatus().name()));
+        registerDomainEvent(new MaintenanceStatusUpdateRequestedEvent(this.ticketId, command.newStatus().name()));
     }
 
     public void updateMaintenanceStatus(UpdateMaintenanceStatus command) {
         this.maintenanceStatus = command.newStatus();
-        registerDomainEvent(new MaintenanceStatusUpdatedEvent(this.id.uuid(), command.newStatus().name()));
+        registerDomainEvent(new MaintenanceStatusUpdatedEvent(this.ticketId, command.newStatus().name()));
     }
 }

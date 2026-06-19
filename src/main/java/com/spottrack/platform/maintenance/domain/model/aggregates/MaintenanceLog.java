@@ -2,11 +2,12 @@ package com.spottrack.platform.maintenance.domain.model.aggregates;
 
 import com.spottrack.platform.maintenance.domain.model.commands.RegisterMaintenanceCompletion;
 import com.spottrack.platform.maintenance.domain.model.events.MaintenanceCompletionRegisteredToLogEvent;
-import com.spottrack.platform.maintenance.domain.model.valueobjects.MaintenanceLogId;
 import com.spottrack.platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
 import jakarta.persistence.Column;
-import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -16,8 +17,12 @@ import java.util.UUID;
 @Entity
 public class MaintenanceLog extends AbstractDomainAggregateRoot<MaintenanceLog> {
 
-    @EmbeddedId
-    private MaintenanceLogId id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, unique = true)
+    private String logId;
 
     @Column(nullable = false)
     private String ticketId;
@@ -34,11 +39,11 @@ public class MaintenanceLog extends AbstractDomainAggregateRoot<MaintenanceLog> 
     protected MaintenanceLog() {}
 
     public MaintenanceLog(RegisterMaintenanceCompletion command) {
-        this.id = new MaintenanceLogId(UUID.randomUUID().toString());
+        this.logId = UUID.randomUUID().toString();
         this.ticketId = command.ticketId().uuid();
         this.maintenanceId = command.maintenanceId().uuid();
         this.notes = command.notes();
         this.completedAt = LocalDateTime.now();
-        registerDomainEvent(new MaintenanceCompletionRegisteredToLogEvent(this.id.uuid(), this.ticketId, this.maintenanceId));
+        registerDomainEvent(new MaintenanceCompletionRegisteredToLogEvent(this.logId, this.ticketId, this.maintenanceId));
     }
 }

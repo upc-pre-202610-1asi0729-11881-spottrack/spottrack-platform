@@ -19,7 +19,7 @@ public class MaintenanceJobRepositoryImpl implements MaintenanceJobRepository {
 
     @Override
     public Optional<MaintenanceJob> findById(MaintenanceJobId id) {
-        return maintenanceJobJpaRepository.findById(id);
+        return maintenanceJobJpaRepository.findByJobId(id.uuid());
     }
 
     @Override

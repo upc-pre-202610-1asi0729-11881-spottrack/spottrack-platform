@@ -2,11 +2,12 @@ package com.spottrack.platform.maintenance.domain.model.aggregates;
 
 import com.spottrack.platform.maintenance.domain.model.commands.AcceptMaintenance;
 import com.spottrack.platform.maintenance.domain.model.events.MaintenanceJobAcceptedEvent;
-import com.spottrack.platform.maintenance.domain.model.valueobjects.MaintenanceJobId;
 import com.spottrack.platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
 import jakarta.persistence.Column;
-import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import lombok.Getter;
 
 import java.util.UUID;
@@ -15,8 +16,12 @@ import java.util.UUID;
 @Entity
 public class MaintenanceJob extends AbstractDomainAggregateRoot<MaintenanceJob> {
 
-    @EmbeddedId
-    private MaintenanceJobId id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, unique = true)
+    private String jobId;
 
     @Column(nullable = true)
     private String technicianId;
@@ -30,7 +35,7 @@ public class MaintenanceJob extends AbstractDomainAggregateRoot<MaintenanceJob> 
     protected MaintenanceJob() {}
 
     public MaintenanceJob(String maintenanceId) {
-        this.id = new MaintenanceJobId(UUID.randomUUID().toString());
+        this.jobId = UUID.randomUUID().toString();
         this.maintenanceId = maintenanceId;
         this.accepted = false;
     }
@@ -41,6 +46,6 @@ public class MaintenanceJob extends AbstractDomainAggregateRoot<MaintenanceJob> 
         }
         this.technicianId = command.technicianId();
         this.accepted = true;
-        registerDomainEvent(new MaintenanceJobAcceptedEvent(this.id.uuid(), this.technicianId));
+        registerDomainEvent(new MaintenanceJobAcceptedEvent(this.jobId, this.technicianId));
     }
 }

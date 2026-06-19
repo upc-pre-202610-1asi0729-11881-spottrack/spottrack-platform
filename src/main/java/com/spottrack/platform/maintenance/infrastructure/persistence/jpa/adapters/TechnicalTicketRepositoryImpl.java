@@ -19,7 +19,7 @@ public class TechnicalTicketRepositoryImpl implements TechnicalTicketRepository 
 
     @Override
     public Optional<TechnicalTicket> findById(TechnicalTicketId id) {
-        return technicalTicketJpaRepository.findById(id);
+        return technicalTicketJpaRepository.findByTicketId(id.uuid());
     }
 
     @Override
