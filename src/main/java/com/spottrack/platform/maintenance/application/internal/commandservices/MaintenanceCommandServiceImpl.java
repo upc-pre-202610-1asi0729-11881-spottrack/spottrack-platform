@@ -20,7 +20,7 @@ import com.spottrack.platform.maintenance.domain.model.events.EquipmentDecommiss
 import com.spottrack.platform.maintenance.domain.model.events.EquipmentTransferRecommendedEvent;
 import com.spottrack.platform.maintenance.infrastructure.persistence.jpa.MaintenanceJobRepository;
 import com.spottrack.platform.maintenance.infrastructure.persistence.jpa.MaintenanceLogRepository;
-import com.spottrack.platform.maintenance.infrastructure.persistence.jpa.repositories.MaintenanceRepository;
+import com.spottrack.platform.maintenance.infrastructure.persistence.jpa.repositories.MaintenancePersistenceRepository;
 import com.spottrack.platform.maintenance.infrastructure.persistence.jpa.TechnicalTicketRepository;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
@@ -31,14 +31,14 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class MaintenanceCommandServiceImpl implements MaintenanceCommandService {
 
-    private final MaintenanceRepository maintenanceRepository;
+    private final MaintenancePersistenceRepository maintenanceRepository;
     private final TechnicalTicketRepository technicalTicketRepository;
     private final MaintenanceJobRepository maintenanceJobRepository;
     private final MaintenanceLogRepository maintenanceLogRepository;
     private final ApplicationEventPublisher eventPublisher;
 
     public MaintenanceCommandServiceImpl(
-            MaintenanceRepository maintenanceRepository,
+            MaintenancePersistenceRepository maintenanceRepository,
             TechnicalTicketRepository technicalTicketRepository,
             MaintenanceJobRepository maintenanceJobRepository,
             MaintenanceLogRepository maintenanceLogRepository,
