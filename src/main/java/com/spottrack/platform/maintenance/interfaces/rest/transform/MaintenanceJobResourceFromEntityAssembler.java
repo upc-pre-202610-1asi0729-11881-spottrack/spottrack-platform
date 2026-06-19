@@ -7,7 +7,7 @@ public class MaintenanceJobResourceFromEntityAssembler {
 
     public static MaintenanceJobResource toResourceFromEntity(MaintenanceJob entity) {
         return new MaintenanceJobResource(
-                entity.getJobId(),
+                entity.getJobId().uuid(),
                 entity.getMaintenanceId(),
                 entity.getTechnicianId(),
                 entity.isAccepted()

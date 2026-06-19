@@ -7,7 +7,7 @@ public class TechnicalTicketResourceFromEntityAssembler {
 
     public static TechnicalTicketResource toResourceFromEntity(TechnicalTicket ticket) {
         return new TechnicalTicketResource(
-                ticket.getTicketId(),
+                ticket.getTicketId().uuid(),
                 ticket.getMaintenanceId(),
                 ticket.getEquipmentId(),
                 ticket.getTechnicianId(),
