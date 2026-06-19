@@ -6,6 +6,7 @@ import com.spottrack.platform.maintenance.domain.model.events.MaintenanceStatusU
 import com.spottrack.platform.maintenance.domain.model.valueobjects.MaintenanceStatus;
 import com.spottrack.platform.maintenance.domain.model.valueobjects.TechnicalTicketId;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -20,7 +21,7 @@ public class MaintenanceStatusUpdateRequestedEventHandler {
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void on(MaintenanceStatusUpdateRequestedEvent event) {
         if (MaintenanceStatus.COMPLETED.name().equals(event.requestedStatus())) {
             maintenanceCommandService.handle(new CompleteMaintenance(new TechnicalTicketId(event.ticketId())));
