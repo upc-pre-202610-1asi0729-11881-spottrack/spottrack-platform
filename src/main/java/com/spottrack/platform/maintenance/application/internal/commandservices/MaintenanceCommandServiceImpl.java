@@ -18,9 +18,10 @@ import com.spottrack.platform.maintenance.domain.model.commands.RequestUpdateMai
 import com.spottrack.platform.maintenance.domain.model.commands.UpdateMaintenanceStatus;
 import com.spottrack.platform.maintenance.domain.model.events.EquipmentDecommissionedEvent;
 import com.spottrack.platform.maintenance.domain.model.events.EquipmentTransferRecommendedEvent;
+import com.spottrack.platform.maintenance.domain.repositories.MaintenanceRepository;
 import com.spottrack.platform.maintenance.infrastructure.persistence.jpa.MaintenanceJobRepository;
 import com.spottrack.platform.maintenance.infrastructure.persistence.jpa.MaintenanceLogRepository;
-import com.spottrack.platform.maintenance.infrastructure.persistence.jpa.MaintenanceRepository;
+import com.spottrack.platform.maintenance.infrastructure.persistence.jpa.repositories.MaintenancePersistenceRepository;
 import com.spottrack.platform.maintenance.infrastructure.persistence.jpa.TechnicalTicketRepository;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;

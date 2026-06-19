@@ -1,9 +1,4 @@
-package com.spottrack.platform.gym.domain.model.valueobjects;
-
-import jakarta.persistence.Embeddable;
-
-import java.util.UUID;
-
+package com.spottrack.platform.maintenance.domain.model.valueobjects;
 
 
 public record EquipmentId(String uuid) {
