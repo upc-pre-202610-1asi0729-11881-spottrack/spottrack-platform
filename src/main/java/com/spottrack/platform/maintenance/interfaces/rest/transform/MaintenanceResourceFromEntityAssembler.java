@@ -8,7 +8,7 @@ public class MaintenanceResourceFromEntityAssembler {
     public static MaintenanceResource toResourceFromEntity(Maintenance maintenance) {
         return new MaintenanceResource(
                 maintenance.getId().uuid(),
-                maintenance.getEquipmentId(),
+                maintenance.getEquipmentId().uuid(),
                 maintenance.getRequestedBy(),
                 maintenance.getDescription(),
                 maintenance.getStatus()
