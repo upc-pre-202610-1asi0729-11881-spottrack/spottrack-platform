@@ -1,20 +1,29 @@
 package com.spottrack.platform.maintenance.application.internal.eventhandlers;
 
+import com.spottrack.platform.maintenance.application.commandServices.MaintenanceCommandService;
+import com.spottrack.platform.maintenance.domain.model.commands.CompleteMaintenance;
 import com.spottrack.platform.maintenance.domain.model.events.MaintenanceStatusUpdateRequestedEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.context.event.EventListener;
+import com.spottrack.platform.maintenance.domain.model.valueobjects.MaintenanceStatus;
+import com.spottrack.platform.maintenance.domain.model.valueobjects.TechnicalTicketId;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 @Component
 public class MaintenanceStatusUpdateRequestedEventHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(MaintenanceStatusUpdateRequestedEventHandler.class);
+    private final MaintenanceCommandService maintenanceCommandService;
 
-    @EventListener
+    public MaintenanceStatusUpdateRequestedEventHandler(MaintenanceCommandService maintenanceCommandService) {
+        this.maintenanceCommandService = maintenanceCommandService;
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional
     public void on(MaintenanceStatusUpdateRequestedEvent event) {
-        log.info("Policy fired — ticket {} requested maintenance status update to {}",
-                event.ticketId(), event.requestedStatus());
-        // Policy: (Maintenance Status is Completed?) Complete Maintenance — trigger completion if status is COMPLETED
+        if (MaintenanceStatus.COMPLETED.name().equals(event.requestedStatus())) {
+            maintenanceCommandService.handle(new CompleteMaintenance(new TechnicalTicketId(event.ticketId())));
+        }
     }
 }
