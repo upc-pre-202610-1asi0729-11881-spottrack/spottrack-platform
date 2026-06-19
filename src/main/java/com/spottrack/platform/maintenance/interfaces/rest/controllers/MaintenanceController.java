@@ -23,6 +23,7 @@ import com.spottrack.platform.maintenance.interfaces.rest.resources.RegisterMain
 import com.spottrack.platform.maintenance.interfaces.rest.resources.RequestMaintenanceResource;
 import com.spottrack.platform.maintenance.interfaces.rest.resources.UpdateMaintenanceStatusResource;
 import com.spottrack.platform.maintenance.interfaces.rest.transform.CreateTechnicalTicketCommandFromResourceAssembler;
+import com.spottrack.platform.maintenance.interfaces.rest.transform.MaintenanceJobResourceFromEntityAssembler;
 import com.spottrack.platform.maintenance.interfaces.rest.transform.MaintenanceResourceFromEntityAssembler;
 import com.spottrack.platform.maintenance.interfaces.rest.transform.RequestMaintenanceCommandFromResourceAssembler;
 import com.spottrack.platform.maintenance.interfaces.rest.transform.TechnicalTicketResourceFromEntityAssembler;
@@ -88,7 +89,7 @@ public class MaintenanceController {
         var result = commandService.handle(command);
         return switch (result) {
             case Result.Success<MaintenanceJob, ApplicationError> s ->
-                    ResponseEntity.ok(s.value());
+                    ResponseEntity.ok(MaintenanceJobResourceFromEntityAssembler.toResourceFromEntity(s.value()));
             case Result.Failure<MaintenanceJob, ApplicationError> f ->
                     ResponseEntity.status(HttpStatus.NOT_FOUND).body(f.error());
         };
