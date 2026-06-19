@@ -6,15 +6,20 @@ import com.spottrack.platform.maintenance.domain.repositories.MaintenanceReposit
 import com.spottrack.platform.maintenance.infrastructure.persistence.jpa.assemblers.MaintenancePersistenceAssembler;
 import com.spottrack.platform.maintenance.infrastructure.persistence.jpa.entities.MaintenancePersistenceEntity;
 import com.spottrack.platform.maintenance.infrastructure.persistence.jpa.repositories.MaintenancePersistenceRepository;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 public class MaintenanceRepositoryImpl implements MaintenanceRepository {
-    MaintenancePersistenceRepository maintenancePersistenceRepository;
-    public MaintenanceRepositoryImpl(MaintenancePersistenceRepository maintenancePersistenceRepository, MaintenancePersistenceAssembler maintenancePersistenceAssembler){
+    private final MaintenancePersistenceRepository maintenancePersistenceRepository;
+    private final ApplicationEventPublisher eventPublisher;
+
+
+    public MaintenanceRepositoryImpl(MaintenancePersistenceRepository maintenancePersistenceRepository, ApplicationEventPublisher eventPublisher){
         this.maintenancePersistenceRepository = maintenancePersistenceRepository;
+        this.eventPublisher = eventPublisher;
     }
 
 
@@ -38,9 +43,19 @@ public class MaintenanceRepositoryImpl implements MaintenanceRepository {
         for (int i = 0; i < persistenceList.size(); i++) {
             list.add(MaintenancePersistenceAssembler.toDomainFromPersistence(persistenceList.get(i)));
         }
-
         return list;
 
 
+    }
+
+    @Override
+    public Maintenance save(Maintenance entity) {
+        var persistenceEntity = MaintenancePersistenceAssembler.toPersistenceFromDomain(entity);
+        var savedEntity = maintenancePersistenceRepository.save(persistenceEntity);
+        var maintenance = MaintenancePersistenceAssembler.toDomainFromPersistence(savedEntity);
+
+        maintenance.domainEvents().forEach(eventPublisher::publishEvent);
+        maintenance.clearDomainEvents();
+        return maintenance;
     }
 }

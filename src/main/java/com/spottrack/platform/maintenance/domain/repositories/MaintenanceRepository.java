@@ -10,4 +10,5 @@ public interface MaintenanceRepository {
     Optional<Maintenance> findByUuid(EquipmentId maintenanceId);
     Optional<Maintenance> findMaintenanceById(Long Id);
     List<Maintenance> findAll();
+    Maintenance save(Maintenance maintenance);
 }
