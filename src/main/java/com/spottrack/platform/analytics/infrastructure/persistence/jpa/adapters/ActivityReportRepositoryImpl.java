@@ -1,4 +1,4 @@
-package com.spottrack.platform.analytics.infraestructure.persistence.jpa.adapters;
+package com.spottrack.platform.analytics.infrastructure.persistence.jpa.adapters;
 
 import com.spottrack.platform.analytics.domain.model.aggregates.ActivityReport;
 import com.spottrack.platform.analytics.domain.model.valueobjects.ActivityReportId;
