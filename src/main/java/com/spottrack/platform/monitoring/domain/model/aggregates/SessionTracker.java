@@ -8,6 +8,8 @@ import com.spottrack.platform.shared.domain.model.aggregates.AbstractDomainAggre
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Getter
@@ -24,6 +26,7 @@ public class SessionTracker extends AbstractDomainAggregateRoot {
     ReservationId reservationId;
     boolean sessionIsInactive;
     boolean sessionIsActive;
+    LocalDateTime lastActivityAt;
 
     public SessionTracker(CreateSessionTrackerCommand command){
         this.sessionTrackerId = command.sessionTrackerId();
@@ -43,6 +46,16 @@ public class SessionTracker extends AbstractDomainAggregateRoot {
 
     }
 
+    public void recordActivity() {
+        this.lastActivityAt = LocalDateTime.now();
+    }
 
+    public boolean verifyUsageSession() {
+        boolean active = usageActivity.continuousActivity().toSecondOfDay() >= 10;
+        boolean inactive = lastActivityAt != null && Duration.between(lastActivityAt, LocalDateTime.now()).toMinutes() >= 3;
+        sessionIsActive = active;
+        sessionIsInactive = inactive;
+        return active;
+    }
 
 }
