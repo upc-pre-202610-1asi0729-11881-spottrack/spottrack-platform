@@ -1,6 +1,6 @@
 services:
   spottrack-platform:
-    image: spottrack-platform:1.0.0
+    image: spottrack-platform-os:1.0.0
     build:
       context: .
       dockerfile: Dockerfile
