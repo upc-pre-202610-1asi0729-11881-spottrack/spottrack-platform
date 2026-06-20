@@ -1,6 +1,5 @@
 package com.spottrack.platform.reservation.application.internal.eventhandlers;
 
-import com.spottrack.platform.profiles.application.internal.eventhandlers.ClientRegisteredEventHandler;
 import com.spottrack.platform.reservation.application.commandServices.ReservationRequestCommandService;
 import com.spottrack.platform.reservation.domain.model.commands.SubmitRequestOccupyEquipment;
 import com.spottrack.platform.reservation.domain.model.events.ExpressReservationInitiatedEvent;
