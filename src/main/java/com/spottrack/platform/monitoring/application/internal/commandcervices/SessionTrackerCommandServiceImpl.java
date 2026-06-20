@@ -6,21 +6,33 @@ import com.spottrack.platform.monitoring.domain.model.commands.CameraCaptureMoti
 import com.spottrack.platform.monitoring.domain.model.commands.CreateSessionTrackerCommand;
 import com.spottrack.platform.monitoring.domain.model.commands.MotionSensorCaptureCommand;
 import com.spottrack.platform.monitoring.domain.model.commands.VerifyUsageSessionCommand;
+import com.spottrack.platform.monitoring.domain.model.valueobjects.SessionTrackerId;
 import com.spottrack.platform.monitoring.domain.repositories.SessionTrackerRepository;
-import com.spottrack.platform.monitoring.infrastructure.persistence.jpa.adapters.SessionTrackerRepositoryImpl;
-import com.spottrack.platform.monitoring.infrastructure.persistence.jpa.assemblers.SessionTrackerPersistenceAssembler;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
 
 public class SessionTrackerCommandServiceImpl implements SessionTrackerCommandService {
-
     private final SessionTrackerRepository sessionTrackerRepository;
+
     public SessionTrackerCommandServiceImpl(SessionTrackerRepository sessionTrackerRepository){
         this.sessionTrackerRepository = sessionTrackerRepository;
     }
     @Override
     public Result<SessionTracker, ApplicationError> handle(VerifyUsageSessionCommand command) {
-        return null;
+        try {
+            var session = sessionTrackerRepository.findSessionByUuid(new SessionTrackerId(command.sessionTrackerId()));
+            if (session.isEmpty()) {
+                return Result.failure(ApplicationError.notFound("sessionTracker", command.sessionTrackerId()));
+            }
+            var tracker = session.get();
+            tracker.verifyUsageSession();
+            var saved = sessionTrackerRepository.save(tracker);
+            return Result.success(saved);
+        } catch (IllegalArgumentException e) {
+            return Result.failure(ApplicationError.validationError("sessionTracker", e.getMessage()));
+        } catch (Exception e) {
+            return Result.failure(ApplicationError.unexpected("sessionTracker", e.getMessage()));
+        }
     }
 
     @Override
