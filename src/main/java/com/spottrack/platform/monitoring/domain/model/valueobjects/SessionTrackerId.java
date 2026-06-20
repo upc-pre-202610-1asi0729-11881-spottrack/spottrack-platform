@@ -1,4 +1,4 @@
-package com.spottrack.platform.monitoring.domain.model.valueObjects;
+package com.spottrack.platform.monitoring.domain.model.valueobjects;
 
 public record SessionTrackerId(String uuid) {
     public SessionTrackerId {

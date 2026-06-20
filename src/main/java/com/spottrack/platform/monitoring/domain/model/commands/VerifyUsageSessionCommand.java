@@ -1,6 +1,6 @@
 package com.spottrack.platform.monitoring.domain.model.commands;
 
-import com.spottrack.platform.monitoring.domain.model.valueObjects.UsageActivity;
+import com.spottrack.platform.monitoring.domain.model.valueobjects.UsageActivity;
 
 import java.time.LocalTime;
 

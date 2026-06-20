@@ -1,4 +1,4 @@
-package com.spottrack.platform.monitoring.domain.model.valueObjects;
+package com.spottrack.platform.monitoring.domain.model.valueobjects;
 
 import jakarta.persistence.Embeddable;
 

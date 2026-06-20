@@ -1,7 +1,10 @@
 package com.spottrack.platform.monitoring.interfaces.rest;
 
 import com.spottrack.platform.monitoring.application.commandServices.SessionTrackerCommandService;
+import com.spottrack.platform.monitoring.application.queryServices.SessionTrackerQueryService;
 import com.spottrack.platform.monitoring.domain.model.aggregates.SessionTracker;
+import com.spottrack.platform.monitoring.domain.model.queries.GetSessionTrackerByIdQuery;
+import com.spottrack.platform.monitoring.domain.model.valueobjects.SessionTrackerId;
 import com.spottrack.platform.monitoring.infrastructure.persistence.jpa.assemblers.SessionTrackerPersistenceAssembler;
 import com.spottrack.platform.monitoring.interfaces.rest.resources.CreateSessionTrackerResource;
 import com.spottrack.platform.monitoring.interfaces.rest.transform.CreateSessionTrackerCommandFromResource;
@@ -9,17 +12,16 @@ import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping
 public class SessionTrackerController {
     private final SessionTrackerCommandService sessionTrackerCommandService;
-    public SessionTrackerController(SessionTrackerCommandService sessionTrackerCommandService){
+    private final SessionTrackerQueryService sessionTrackerQueryService;
+    public SessionTrackerController(SessionTrackerCommandService sessionTrackerCommandService, SessionTrackerQueryService sessionTrackerQueryService){
         this.sessionTrackerCommandService = sessionTrackerCommandService;
+        this.sessionTrackerQueryService = sessionTrackerQueryService;
     }
 
     @PostMapping("/sessionTracker/create")
@@ -33,6 +35,13 @@ public class SessionTrackerController {
                 case Result.Failure<SessionTracker, ApplicationError> f->
                     ResponseEntity.badRequest().body(f.error());
             };
+    }
+
+    @GetMapping("/verify")
+    public ResponseEntity verifySessionUsage(@PathVariable String sessionTrackerId){
+        var query = new GetSessionTrackerByIdQuery(new SessionTrackerId(sessionTrackerId));
+        var result = sessionTrackerQueryService.handle(query);
+        return ResponseEntity.ok(query);
     }
 
 }

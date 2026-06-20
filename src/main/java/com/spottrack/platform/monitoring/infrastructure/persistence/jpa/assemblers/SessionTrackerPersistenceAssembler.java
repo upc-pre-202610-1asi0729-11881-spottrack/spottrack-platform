@@ -1,8 +1,6 @@
 package com.spottrack.platform.monitoring.infrastructure.persistence.jpa.assemblers;
 
 import com.spottrack.platform.monitoring.domain.model.aggregates.SessionTracker;
-import com.spottrack.platform.monitoring.domain.model.valueObjects.ReservationId;
-import com.spottrack.platform.monitoring.domain.model.valueObjects.SessionTrackerId;
 import com.spottrack.platform.monitoring.infrastructure.persistence.jpa.entities.SessionTrackerPersistenceEntity;
 
 public class SessionTrackerPersistenceAssembler {

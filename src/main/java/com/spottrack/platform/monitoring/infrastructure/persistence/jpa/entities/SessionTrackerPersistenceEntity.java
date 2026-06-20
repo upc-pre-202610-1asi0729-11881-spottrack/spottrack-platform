@@ -1,7 +1,5 @@
 package com.spottrack.platform.monitoring.infrastructure.persistence.jpa.entities;
 
-import com.spottrack.platform.monitoring.domain.model.valueObjects.ReservationId;
-import com.spottrack.platform.monitoring.domain.model.valueObjects.UsageActivity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -9,7 +7,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.sql.Time;
 import java.time.LocalTime;
 
 @Entity
