@@ -4,6 +4,7 @@ import com.spottrack.platform.monitoring.domain.model.commands.CreateSessionTrac
 import com.spottrack.platform.monitoring.domain.model.valueObjects.ReservationId;
 import com.spottrack.platform.monitoring.domain.model.valueObjects.SessionTrackerId;
 import com.spottrack.platform.monitoring.domain.model.valueObjects.UsageActivity;
+import com.spottrack.platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -11,7 +12,7 @@ import java.time.LocalTime;
 
 @Getter
 @Setter
-public class SessionTracker {
+public class SessionTracker extends AbstractDomainAggregateRoot {
     /**
      * For security measures, we will use uuids as secondary Ids aside from the real DB Long Ids
      */
