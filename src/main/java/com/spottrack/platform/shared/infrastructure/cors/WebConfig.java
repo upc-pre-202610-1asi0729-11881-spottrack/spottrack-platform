@@ -11,7 +11,7 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addMapping("/api/**")
                 .allowedOrigins(
                     "http://localhost:4200",
-                    "https://lively-ground-08011af0f.7.azurestaticapps.net"
+                    "https://kind-desert-06c07fc10.7.azurestaticapps.net"
                 )
                 .allowedMethods("GET","POST","PUT","PATCH","DELETE","OPTIONS")
                 .allowedHeaders("*")
