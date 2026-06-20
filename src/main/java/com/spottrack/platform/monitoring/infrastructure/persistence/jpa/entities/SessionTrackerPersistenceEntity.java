@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.sql.Time;
+import java.time.LocalTime;
 
 @Entity
 @Table(name="session_trackers")
@@ -33,8 +34,8 @@ public class SessionTrackerPersistenceEntity {
     @Column(nullable = false)
     boolean sessionIsActive;
     @Column(nullable = false)
-    Time seconds;
+    LocalTime seconds;
     @Column(nullable = false)
-    Time continuousActivity;
+    LocalTime continuousActivity;
 
 }
