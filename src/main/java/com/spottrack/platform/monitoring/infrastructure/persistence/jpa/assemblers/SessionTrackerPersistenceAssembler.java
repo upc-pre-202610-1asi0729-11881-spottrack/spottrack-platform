@@ -5,8 +5,7 @@ import com.spottrack.platform.monitoring.infrastructure.persistence.jpa.entities
 
 public class SessionTrackerPersistenceAssembler {
     public static SessionTracker toDomainFromPersistence(SessionTrackerPersistenceEntity entity){
-        return new SessionTracker(entity.getSessionTrackerid(), entity.getReservationId(), entity.getContinuousActivity(), entity.getSeconds(), entity.isSessionIsActive(), entity.isSessionIsInactive());
-
+        return new SessionTracker(entity.getSessionTrackerid(), entity.getReservationId(), entity.getContinuousActivity(), entity.getSeconds(), entity.isSessionIsActive(), entity.isSessionIsInactive(), entity.getLastActivityAt());
     }
 
     public static SessionTrackerPersistenceEntity toPersistenceFromDomain(SessionTracker entity){
@@ -17,6 +16,7 @@ public class SessionTrackerPersistenceAssembler {
         persistenceEntity.setSeconds((entity.getUsageActivity().seconds()));
         persistenceEntity.setSessionIsActive(entity.isSessionIsActive());
         persistenceEntity.setSessionIsInactive(entity.isSessionIsInactive());
+        persistenceEntity.setLastActivityAt(entity.getLastActivityAt());
         return persistenceEntity;
     }
 }

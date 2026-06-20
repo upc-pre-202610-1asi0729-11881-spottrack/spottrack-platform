@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Entity
@@ -34,5 +35,7 @@ public class SessionTrackerPersistenceEntity {
     LocalTime seconds;
     @Column(nullable = false)
     LocalTime continuousActivity;
+    @Column
+    LocalDateTime lastActivityAt;
 
 }

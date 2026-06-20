@@ -37,13 +37,13 @@ public class SessionTracker extends AbstractDomainAggregateRoot {
     }
 
 
-    public SessionTracker(String sessionTrackerId, String reservationId, LocalTime continousActivity, LocalTime seconds, boolean sessionIsActive, boolean sessionIsInactive){
+    public SessionTracker(String sessionTrackerId, String reservationId, LocalTime continousActivity, LocalTime seconds, boolean sessionIsActive, boolean sessionIsInactive, LocalDateTime lastActivityAt){
         this.sessionTrackerId = new SessionTrackerId(sessionTrackerId);
         this.reservationId = new ReservationId(reservationId);
         this.usageActivity = new UsageActivity(continousActivity, seconds);
         this.sessionIsActive = sessionIsActive;
         this.sessionIsInactive = sessionIsInactive;
-
+        this.lastActivityAt = lastActivityAt;
     }
 
     public void recordActivity() {
