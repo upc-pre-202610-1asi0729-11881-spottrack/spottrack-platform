@@ -36,30 +36,30 @@ public class ROIProjection extends AbstractDomainAggregateRoot<ROIProjection> {
 
     public void updateDowntimeCost(Double cost) {
         this.requestedDowntimeCost = cost;
-        this.registerEvent(new RequestedDowntimeCostEvent(this.roiProjectionId, cost));
+        this.registerDomainEvent(new RequestedDowntimeCostEvent(this.roiProjectionId, cost));
     }
 
     public void updateEarnings(Double earnings) {
         this.requestedEarnings = earnings;
-        this.registerEvent(new RequestedEarningsEvent(this.roiProjectionId, earnings));
+        this.registerDomainEvent(new RequestedEarningsEvent(this.roiProjectionId, earnings));
     }
 
     public void generateROIProjection(Double roiIndex) {
         this.roiIndex = roiIndex;
-        this.registerEvent(new ROIProjectionGeneratedEvent(this.roiProjectionId, roiIndex));
+        this.registerDomainEvent(new ROIProjectionGeneratedEvent(this.roiProjectionId, roiIndex));
     }
 
     public void markAsLowDemand(String slotInfo) {
         this.demandStatus = "LOW";
-        this.registerEvent(new LowDemandSlotDetectedEvent(this.roiProjectionId, slotInfo));
+        this.registerDomainEvent(new LowDemandSlotDetectedEvent(this.roiProjectionId, slotInfo));
     }
 
     public void markAsHighDemand(String slotInfo) {
         this.demandStatus = "HIGH";
-        this.registerEvent(new HighDemandSlotDetectedEvent(this.roiProjectionId, slotInfo));
+        this.registerDomainEvent(new HighDemandSlotDetectedEvent(this.roiProjectionId, slotInfo));
     }
 
     public void recommendEquipmentTransfer(String detail) {
-        this.registerEvent(new EquipmentTransferRecommendedEvent(this.roiProjectionId, detail));
+        this.registerDomainEvent(new EquipmentTransferRecommendedEvent(this.roiProjectionId, detail));
     }
 }
