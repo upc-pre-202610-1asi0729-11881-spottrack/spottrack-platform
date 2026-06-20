@@ -12,7 +12,7 @@ import com.spottrack.platform.iam.domain.model.commands.SignUpCommand;
 import com.spottrack.platform.iam.domain.model.entities.Role;
 import com.spottrack.platform.iam.domain.repositories.RoleRepository;
 import com.spottrack.platform.iam.domain.repositories.UserRepository;
-import com.spottrack.platform.profiles.interfaces.events.RoleAssignedIntegrationEvent;
+import com.spottrack.platform.iam.interfaces.events.RoleAssignedIntegrationEvent;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
 import org.apache.commons.lang3.tuple.ImmutablePair;

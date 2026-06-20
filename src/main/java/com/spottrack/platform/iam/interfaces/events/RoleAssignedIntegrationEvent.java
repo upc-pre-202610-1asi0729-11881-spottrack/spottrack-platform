@@ -1,4 +1,4 @@
-package com.spottrack.platform.profiles.interfaces.events;
+package com.spottrack.platform.iam.interfaces.events;
 
 public record RoleAssignedIntegrationEvent(
         Long userId,

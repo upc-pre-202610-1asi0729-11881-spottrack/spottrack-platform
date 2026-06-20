@@ -5,7 +5,7 @@ import com.spottrack.platform.profiles.application.commandservices.ClientCommand
 import com.spottrack.platform.profiles.domain.model.commands.CreateAdminCommand;
 import com.spottrack.platform.profiles.domain.model.commands.CreateClientCommand;
 import com.spottrack.platform.profiles.domain.model.valueobjects.EmailAddress;
-import com.spottrack.platform.profiles.interfaces.events.RoleAssignedIntegrationEvent;
+import com.spottrack.platform.iam.interfaces.events.RoleAssignedIntegrationEvent;
 import com.spottrack.platform.shared.application.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
