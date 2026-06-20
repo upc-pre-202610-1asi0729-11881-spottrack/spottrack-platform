@@ -67,6 +67,7 @@ public class Equipment extends AbstractDomainAggregateRoot<Equipment> {
 
     public void markEquipmentOutOfService(){
         this.status = EquipmentStatus.OUT_OF_SERVICE;
+        registerDomainEvent(new EquipmentStatusUpdatedEvent(this.id.uuid(), this.status));
     }
 
     public void updateStatus(EquipmentStatus status){
