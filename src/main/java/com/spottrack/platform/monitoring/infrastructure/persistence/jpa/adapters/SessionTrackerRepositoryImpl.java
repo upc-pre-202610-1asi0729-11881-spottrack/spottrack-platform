@@ -6,9 +6,11 @@ import com.spottrack.platform.monitoring.domain.repositories.SessionTrackerRepos
 import com.spottrack.platform.monitoring.infrastructure.persistence.jpa.assemblers.SessionTrackerPersistenceAssembler;
 import com.spottrack.platform.monitoring.infrastructure.persistence.jpa.repositories.SessionTrackerPersistenceRepository;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
+@Repository
 public class SessionTrackerRepositoryImpl implements SessionTrackerRepository {
 
     private final SessionTrackerPersistenceRepository sessionTrackerPersistenceRepository;
