@@ -36,21 +36,21 @@ public class MaintenanceQuote extends AbstractDomainAggregateRoot<MaintenanceQuo
 
     public void updateCorrectiveActionsCost(Double cost) {
         this.correctiveActionsCost = cost;
-        this.registerEvent(new CostOfTheCorrectiveActionsRequestedEvent(this.maintenanceQuoteId, cost));
+        this.registerDomainEvent(new CostOfTheCorrectiveActionsRequestedEvent(this.maintenanceQuoteId, cost));
     }
 
     public void updateSparePartsCost(Double cost) {
         this.sparePartsCost = cost;
-        this.registerEvent(new CostOfSparePartsRequestedEvent(this.maintenanceQuoteId, cost));
+        this.registerDomainEvent(new CostOfSparePartsRequestedEvent(this.maintenanceQuoteId, cost));
     }
 
     public void updatePreventiveCost(Double cost) {
         this.preventiveCost = cost;
-        this.registerEvent(new PreventiveCostRequestedEvent(this.maintenanceQuoteId, cost));
+        this.registerDomainEvent(new PreventiveCostRequestedEvent(this.maintenanceQuoteId, cost));
     }
 
     public void calculateTotalMaintenanceCost(Double totalCost) {
         this.totalMaintenanceCost = totalCost;
-        this.registerEvent(new MaintenanceCostRequestedEvent(this.maintenanceQuoteId, totalCost));
+        this.registerDomainEvent(new MaintenanceCostRequestedEvent(this.maintenanceQuoteId, totalCost));
     }
 }

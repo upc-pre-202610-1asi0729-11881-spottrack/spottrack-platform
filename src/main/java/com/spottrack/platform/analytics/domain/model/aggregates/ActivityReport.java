@@ -36,16 +36,16 @@ public class ActivityReport extends AbstractDomainAggregateRoot<ActivityReport> 
 
     public void updateTotalUsageTime(Long totalUsageTime) {
         this.totalUsageTime = totalUsageTime;
-        this.registerEvent(new TotalUsageTimeRequestedEvent(this.activityReportId, totalUsageTime));
+        this.registerDomainEvent(new TotalUsageTimeRequestedEvent(this.activityReportId, totalUsageTime));
     }
 
     public void updateDowntimeCost(Long downtimeCost) {
         this.downtimeCost = downtimeCost;
-        this.registerEvent(new DowntimeRequestEvent(this.activityReportId, downtimeCost));
+        this.registerDomainEvent(new DowntimeRequestEvent(this.activityReportId, downtimeCost));
     }
 
     public void updatePercentageComparison(Double percentageComparison) {
         this.percentageComparison = percentageComparison;
-        this.registerEvent(new PercentageComparisonWithPreviousReportRequestedEvent(this.activityReportId, percentageComparison));
+        this.registerDomainEvent(new PercentageComparisonWithPreviousReportRequestedEvent(this.activityReportId, percentageComparison));
     }
 }

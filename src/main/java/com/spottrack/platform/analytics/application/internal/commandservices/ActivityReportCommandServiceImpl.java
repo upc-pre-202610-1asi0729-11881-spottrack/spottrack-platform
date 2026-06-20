@@ -1,5 +1,6 @@
 package com.spottrack.platform.analytics.application.internal.commandservices;
 
+import com.spottrack.platform.analytics.application.commandservices.ActivityReportCommandService;
 import com.spottrack.platform.analytics.domain.model.aggregates.ActivityReport;
 import com.spottrack.platform.analytics.domain.model.commands.RequestActivityAnalysisCommand;
 import com.spottrack.platform.analytics.domain.model.valueobjects.ActivityReportId;
@@ -8,7 +9,7 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 @Service
-public class ActivityReportCommandServiceImpl {
+public class ActivityReportCommandServiceImpl implements ActivityReportCommandService {
 
     private final ActivityReportRepository activityReportRepository;
 

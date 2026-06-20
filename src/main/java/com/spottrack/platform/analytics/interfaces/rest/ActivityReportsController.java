@@ -1,6 +1,6 @@
 package com.spottrack.platform.analytics.interfaces.rest;
 
-import com.spottrack.platform.analytics.application.internal.commandservices.ActivityReportCommandServiceImpl;
+import com.spottrack.platform.analytics.application.commandservices.ActivityReportCommandService;
 import com.spottrack.platform.analytics.domain.model.commands.RequestActivityAnalysisCommand;
 import com.spottrack.platform.analytics.interfaces.rest.resources.ActivityReportResource;
 import com.spottrack.platform.analytics.interfaces.rest.transform.ActivityReportResourceFromEntityAssembler;
@@ -16,9 +16,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(value = "/api/v1/activity-reports", produces = MediaType.APPLICATION_JSON_VALUE)
 public class ActivityReportsController {
 
-    private final ActivityReportCommandServiceImpl activityReportCommandService;
+    private final ActivityReportCommandService activityReportCommandService;
 
-    public ActivityReportsController(ActivityReportCommandServiceImpl activityReportCommandService) {
+    public ActivityReportsController(ActivityReportCommandService activityReportCommandService) {
         this.activityReportCommandService = activityReportCommandService;
     }
 
