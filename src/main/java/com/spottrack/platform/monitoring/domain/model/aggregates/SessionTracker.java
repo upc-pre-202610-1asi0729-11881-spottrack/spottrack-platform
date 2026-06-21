@@ -18,6 +18,7 @@ public class SessionTracker extends AbstractDomainAggregateRoot {
     /**
      * For security measures, we will use uuids as secondary Ids aside from the real DB Long Ids
      */
+    Long id;
     SessionTrackerId sessionTrackerId;
     UsageActivity usageActivity;
     /**
@@ -37,7 +38,8 @@ public class SessionTracker extends AbstractDomainAggregateRoot {
     }
 
 
-    public SessionTracker(String sessionTrackerId, String reservationId, LocalTime continousActivity, LocalTime seconds, boolean sessionIsActive, boolean sessionIsInactive, LocalDateTime lastActivityAt){
+    public SessionTracker(Long id, String sessionTrackerId, String reservationId, LocalTime continousActivity, LocalTime seconds, boolean sessionIsActive, boolean sessionIsInactive, LocalDateTime lastActivityAt){
+        this.id = id;
         this.sessionTrackerId = new SessionTrackerId(sessionTrackerId);
         this.reservationId = new ReservationId(reservationId);
         this.usageActivity = new UsageActivity(continousActivity, seconds);

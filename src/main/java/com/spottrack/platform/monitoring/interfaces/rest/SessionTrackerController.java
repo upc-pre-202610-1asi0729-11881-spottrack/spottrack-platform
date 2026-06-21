@@ -11,12 +11,14 @@ import com.spottrack.platform.monitoring.interfaces.rest.transform.SessionTracke
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
 import com.spottrack.platform.shared.interfaces.rest.transform.ErrorResponseAssembler;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping
+@Tag(name="SessionTracker")
 public class SessionTrackerController {
     private final SessionTrackerCommandService sessionTrackerCommandService;
     private final SessionTrackerQueryService sessionTrackerQueryService;

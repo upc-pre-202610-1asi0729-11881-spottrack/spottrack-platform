@@ -10,7 +10,9 @@ import com.spottrack.platform.monitoring.domain.model.valueobjects.SessionTracke
 import com.spottrack.platform.monitoring.domain.repositories.SessionTrackerRepository;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
+import org.springframework.stereotype.Service;
 
+@Service
 public class SessionTrackerCommandServiceImpl implements SessionTrackerCommandService {
     private final SessionTrackerRepository sessionTrackerRepository;
 

@@ -4,9 +4,11 @@ import com.spottrack.platform.monitoring.application.queryServices.SessionTracke
 import com.spottrack.platform.monitoring.domain.model.aggregates.SessionTracker;
 import com.spottrack.platform.monitoring.domain.model.queries.GetSessionTrackerByIdQuery;
 import com.spottrack.platform.monitoring.domain.repositories.SessionTrackerRepository;
+import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+@Service
 public class SessionTrackerQueryServiceImpl implements SessionTrackerQueryService {
     SessionTrackerRepository sessionTrackerRepository;
     public SessionTrackerQueryServiceImpl(SessionTrackerRepository sessionTrackerRepository){
