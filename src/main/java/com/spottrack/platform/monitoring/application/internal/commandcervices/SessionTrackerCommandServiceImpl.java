@@ -28,8 +28,7 @@ public class SessionTrackerCommandServiceImpl implements SessionTrackerCommandSe
             }
             var tracker = session.get();
             tracker.verifyUsageSession();
-            var saved = sessionTrackerRepository.save(tracker);
-            return Result.success(saved);
+            return Result.success(tracker);
         } catch (IllegalArgumentException e) {
             return Result.failure(ApplicationError.validationError("sessionTracker", e.getMessage()));
         } catch (Exception e) {
