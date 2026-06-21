@@ -1,8 +1,6 @@
 package com.spottrack.platform.monitoring.infrastructure.persistence.jpa.entities;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -16,10 +14,13 @@ import java.time.LocalTime;
 @Getter
 @Setter
 public class SessionTrackerPersistenceEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    Long id;
+
     /**
      * For security measures, we will use uuids as secondary Ids aside from the real DB Long Ids
      */
-
     @Column(nullable = false, unique = true)
     String sessionTrackerid;
     /**
