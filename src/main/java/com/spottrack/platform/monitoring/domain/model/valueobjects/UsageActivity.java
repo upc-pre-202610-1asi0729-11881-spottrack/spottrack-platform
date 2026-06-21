@@ -1,7 +1,6 @@
-package com.spottrack.platform.monitoring.domain.model.valueObjects;
+package com.spottrack.platform.monitoring.domain.model.valueobjects;
 
 import java.time.LocalTime;
-import java.time.temporal.ChronoUnit;
 
 public record UsageActivity(
         LocalTime continuousActivity, LocalTime seconds

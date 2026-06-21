@@ -1,0 +1,63 @@
+package com.spottrack.platform.monitoring.domain.model.aggregates;
+
+import com.spottrack.platform.monitoring.domain.model.commands.CreateSessionTrackerCommand;
+import com.spottrack.platform.monitoring.domain.model.valueobjects.ReservationId;
+import com.spottrack.platform.monitoring.domain.model.valueobjects.SessionTrackerId;
+import com.spottrack.platform.monitoring.domain.model.valueobjects.UsageActivity;
+import com.spottrack.platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+
+@Getter
+@Setter
+public class SessionTracker extends AbstractDomainAggregateRoot {
+    /**
+     * For security measures, we will use uuids as secondary Ids aside from the real DB Long Ids
+     */
+    Long id;
+    SessionTrackerId sessionTrackerId;
+    UsageActivity usageActivity;
+    /**
+     * id of the reservation that the session tracker is monitoring
+     */
+    ReservationId reservationId;
+    boolean sessionIsInactive;
+    boolean sessionIsActive;
+    LocalDateTime lastActivityAt;
+
+    public SessionTracker(CreateSessionTrackerCommand command){
+        this.sessionTrackerId = command.sessionTrackerId();
+        this.reservationId = command.reservationId();
+        this.usageActivity = command.usageActivity();
+        this.sessionIsInactive = command.sessionIsInactive();
+        this.sessionIsActive = command.sessionIsActive();
+    }
+
+
+    public SessionTracker(Long id, String sessionTrackerId, String reservationId, LocalTime continousActivity, LocalTime seconds, boolean sessionIsActive, boolean sessionIsInactive, LocalDateTime lastActivityAt){
+        this.id = id;
+        this.sessionTrackerId = new SessionTrackerId(sessionTrackerId);
+        this.reservationId = new ReservationId(reservationId);
+        this.usageActivity = new UsageActivity(continousActivity, seconds);
+        this.sessionIsActive = sessionIsActive;
+        this.sessionIsInactive = sessionIsInactive;
+        this.lastActivityAt = lastActivityAt;
+    }
+
+    public void recordActivity() {
+        this.lastActivityAt = LocalDateTime.now();
+    }
+
+    public boolean verifyUsageSession() {
+        boolean active = usageActivity.continuousActivity().toSecondOfDay() >= 10;
+        boolean inactive = lastActivityAt != null && Duration.between(lastActivityAt, LocalDateTime.now()).toMinutes() >= 3;
+        sessionIsActive = active;
+        sessionIsInactive = inactive;
+        return active;
+    }
+
+}
