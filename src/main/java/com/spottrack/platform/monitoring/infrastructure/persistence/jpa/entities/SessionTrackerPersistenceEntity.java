@@ -22,7 +22,7 @@ public class SessionTrackerPersistenceEntity {
      * For security measures, we will use uuids as secondary Ids aside from the real DB Long Ids
      */
     @Column(nullable = false, unique = true)
-    String sessionTrackerid;
+    String sessionTrackerId;
     /**
      * id of the reservation that the session tracker is monitoring
      */
