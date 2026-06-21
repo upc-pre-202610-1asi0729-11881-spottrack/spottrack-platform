@@ -40,7 +40,7 @@ public class SessionTrackerController {
             };
     }
 
-    @PatchMapping("/sessionTracker/{sessionTrackerId}/verify")
+    @GetMapping("/sessionTracker/{sessionTrackerId}/verify")
     public ResponseEntity verifySessionUsage(@PathVariable String sessionTrackerId) {
         var command = new VerifyUsageSessionCommand(sessionTrackerId);
         var result = sessionTrackerCommandService.handle(command);
