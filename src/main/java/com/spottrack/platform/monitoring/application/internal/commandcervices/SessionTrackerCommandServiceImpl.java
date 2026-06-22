@@ -2,12 +2,10 @@ package com.spottrack.platform.monitoring.application.internal.commandcervices;
 
 import com.spottrack.platform.monitoring.application.commandServices.SessionTrackerCommandService;
 import com.spottrack.platform.monitoring.domain.model.aggregates.SessionTracker;
-import com.spottrack.platform.monitoring.domain.model.commands.CameraCaptureMotionCommand;
-import com.spottrack.platform.monitoring.domain.model.commands.CreateSessionTrackerCommand;
-import com.spottrack.platform.monitoring.domain.model.commands.MotionSensorCaptureCommand;
-import com.spottrack.platform.monitoring.domain.model.commands.VerifyUsageSessionCommand;
+import com.spottrack.platform.monitoring.domain.model.commands.*;
 import com.spottrack.platform.monitoring.domain.model.valueobjects.SessionTrackerId;
 import com.spottrack.platform.monitoring.domain.repositories.SessionTrackerRepository;
+import com.spottrack.platform.monitoring.infrastructure.persistence.jpa.assemblers.SessionTrackerPersistenceAssembler;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
 import org.springframework.stereotype.Service;
@@ -59,5 +57,21 @@ public class SessionTrackerCommandServiceImpl implements SessionTrackerCommandSe
     @Override
     public Result<SessionTracker, ApplicationError> handle(CameraCaptureMotionCommand command) {
         return null;
+    }
+
+    @Override
+    public Result<SessionTracker, ApplicationError> handle(EndUsageSessionCommand command) {
+        /**
+         * This command will retrieve a sessiontracker, and access its attributes and set one of the booleans to true
+         */
+        try {
+            var entity = sessionTrackerRepository.findSessionByUuid(command.sessionTrackerId());
+            var session = entity.get();
+            session.endSession();
+            var patchedEntity = sessionTrackerRepository.save(session);
+            return Result.success(patchedEntity);
+        } catch (RuntimeException e) {
+            throw new IllegalArgumentException(e.getMessage());
+        }
     }
 }
