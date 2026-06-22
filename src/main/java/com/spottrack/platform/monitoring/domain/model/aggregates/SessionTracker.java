@@ -1,6 +1,7 @@
 package com.spottrack.platform.monitoring.domain.model.aggregates;
 
 import com.spottrack.platform.monitoring.domain.model.commands.CreateSessionTrackerCommand;
+import com.spottrack.platform.monitoring.domain.model.events.SessionTimeCalculatedEvent;
 import com.spottrack.platform.monitoring.domain.model.events.UsageSessionVerifiedEvent;
 import com.spottrack.platform.monitoring.domain.model.valueobjects.ReservationId;
 import com.spottrack.platform.monitoring.domain.model.valueobjects.SessionTrackerId;
@@ -73,6 +74,7 @@ public class SessionTracker extends AbstractDomainAggregateRoot {
         var inactivity = Duration.between(lastActivityAt, this.usageActivity.seconds());
 
         var trueActivity = activity.minus(inactivity);
+        registerDomainEvent(new SessionTimeCalculatedEvent(this.sessionTrackerId, trueActivity));
         return trueActivity;
     }
 

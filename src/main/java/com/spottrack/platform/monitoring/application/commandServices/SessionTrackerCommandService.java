@@ -11,4 +11,5 @@ public interface SessionTrackerCommandService {
     Result<SessionTracker, ApplicationError> handle(MotionSensorCaptureCommand command);
     Result<SessionTracker, ApplicationError> handle(CameraCaptureMotionCommand command);
     Result<SessionTracker, ApplicationError> handle(EndUsageSessionCommand command);
+    Result<SessionTracker, ApplicationError> handle(CalculateSessionTimeCommand command);
 }

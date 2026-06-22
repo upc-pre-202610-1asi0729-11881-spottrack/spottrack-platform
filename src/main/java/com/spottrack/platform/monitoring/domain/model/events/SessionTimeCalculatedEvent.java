@@ -4,5 +4,5 @@ import com.spottrack.platform.monitoring.domain.model.valueobjects.SessionTracke
 
 import java.time.LocalTime;
 
-public record SessionTimeCalculatedEvent(SessionTrackerId sessionTrackerId, LocalTime activity, LocalTime inactivity) {
+public record SessionTimeCalculatedEvent(SessionTrackerId sessionTrackerId, LocalTime trueActivity) {
 }
