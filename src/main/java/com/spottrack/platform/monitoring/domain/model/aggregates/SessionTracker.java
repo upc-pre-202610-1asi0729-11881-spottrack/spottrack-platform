@@ -64,4 +64,16 @@ public class SessionTracker extends AbstractDomainAggregateRoot {
         this.sessionIsInactive = true;
     }
 
+
+    /**
+     * This is a simple calculation substracting the inactivity time to the actual continouous activity
+     */
+    public LocalTime calculateSessionTime() {
+        var activity = this.usageActivity.seconds();
+        var inactivity = Duration.between(lastActivityAt, this.usageActivity.seconds());
+
+        var trueActivity = activity.minus(inactivity);
+        return trueActivity;
+    }
+
 }
