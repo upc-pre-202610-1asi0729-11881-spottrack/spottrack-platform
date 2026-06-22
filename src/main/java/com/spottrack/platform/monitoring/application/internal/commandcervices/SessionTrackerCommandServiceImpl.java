@@ -69,7 +69,8 @@ public class SessionTrackerCommandServiceImpl implements SessionTrackerCommandSe
             var session = entity.get();
             session.setSessionIsActive(false);
             session.setSessionIsInactive(true);
-            return Result.success(session);
+            var patchedEntity = sessionTrackerRepository.save(session);
+            return Result.success(patchedEntity);
         } catch (RuntimeException e) {
             throw new IllegalArgumentException(e.getMessage());
         }

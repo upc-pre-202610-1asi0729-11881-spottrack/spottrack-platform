@@ -3,7 +3,9 @@ package com.spottrack.platform.monitoring.interfaces.rest;
 import com.spottrack.platform.monitoring.application.commandServices.SessionTrackerCommandService;
 import com.spottrack.platform.monitoring.application.queryServices.SessionTrackerQueryService;
 import com.spottrack.platform.monitoring.domain.model.aggregates.SessionTracker;
+import com.spottrack.platform.monitoring.domain.model.commands.EndUsageSessionCommand;
 import com.spottrack.platform.monitoring.domain.model.commands.VerifyUsageSessionCommand;
+import com.spottrack.platform.monitoring.domain.model.valueobjects.SessionTrackerId;
 import com.spottrack.platform.monitoring.infrastructure.persistence.jpa.assemblers.SessionTrackerPersistenceAssembler;
 import com.spottrack.platform.monitoring.interfaces.rest.resources.CreateSessionTrackerResource;
 import com.spottrack.platform.monitoring.interfaces.rest.transform.CreateSessionTrackerCommandFromResource;
@@ -50,6 +52,18 @@ public class SessionTrackerController {
             case Result.Failure<SessionTracker, ApplicationError> f ->
                 ResponseEntity.badRequest().body(f.error());
         };
+    }
+
+    @PatchMapping("/sessionTracker/{sessionTrackerId}/end")
+    public ResponseEntity endUsageSession(@PathVariable String sessionTrackerId){
+        var command = new EndUsageSessionCommand(new SessionTrackerId(sessionTrackerId));
+        var result = sessionTrackerCommandService.handle(command);
+         return switch(result){
+             case Result.Success<SessionTracker, ApplicationError> s ->
+                 ResponseEntity.ok(SessionTrackerResourceFromEntity.toResourceFromEntity(s.value()));
+             case Result.Failure<SessionTracker, ApplicationError> f ->
+                 ResponseEntity.badRequest().body(f.error());
+         };
     }
 }
 
