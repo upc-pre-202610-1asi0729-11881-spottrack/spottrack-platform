@@ -60,4 +60,9 @@ public class SessionTracker extends AbstractDomainAggregateRoot {
         return active;
     }
 
+    public void endSession(){
+        this.sessionIsActive= false;
+        this.sessionIsInactive = true;
+    }
+
 }

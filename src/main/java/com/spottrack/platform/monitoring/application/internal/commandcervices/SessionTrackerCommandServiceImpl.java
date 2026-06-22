@@ -67,8 +67,7 @@ public class SessionTrackerCommandServiceImpl implements SessionTrackerCommandSe
         try {
             var entity = sessionTrackerRepository.findSessionByUuid(command.sessionTrackerId());
             var session = entity.get();
-            session.setSessionIsActive(false);
-            session.setSessionIsInactive(true);
+            session.endSession();
             var patchedEntity = sessionTrackerRepository.save(session);
             return Result.success(patchedEntity);
         } catch (RuntimeException e) {
