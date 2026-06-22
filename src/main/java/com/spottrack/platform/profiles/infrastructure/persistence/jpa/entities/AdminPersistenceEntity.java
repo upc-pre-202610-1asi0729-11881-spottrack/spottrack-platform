@@ -6,8 +6,10 @@ import com.spottrack.platform.profiles.infrastructure.persistence.jpa.embeddable
 import com.spottrack.platform.shared.infrastructure.persistence.jpa.entities.AuditableAbstractPersistenceEntity;
 import jakarta.persistence.*;
 
+
 @Entity
 @Table(name = "admins")
+
 public class AdminPersistenceEntity extends AuditableAbstractPersistenceEntity {
 
     @Column(name = "user_id", nullable = false, unique = true)
