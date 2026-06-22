@@ -20,9 +20,9 @@ public class SessionTrackerCommandServiceImpl implements SessionTrackerCommandSe
     @Override
     public Result<SessionTracker, ApplicationError> handle(VerifyUsageSessionCommand command) {
         try {
-            var session = sessionTrackerRepository.findSessionByUuid(new SessionTrackerId(command.sessionTrackerId()));
+            var session = sessionTrackerRepository.findSessionByUuid(command.sessionTrackerId());
             if (session.isEmpty()) {
-                return Result.failure(ApplicationError.notFound("sessionTracker", command.sessionTrackerId()));
+                return Result.failure(ApplicationError.notFound("sessionTracker", command.sessionTrackerId().uuid()));
             }
             var tracker = session.get();
             tracker.verifyUsageSession();

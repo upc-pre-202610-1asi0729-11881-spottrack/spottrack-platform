@@ -8,7 +8,7 @@ import java.util.Optional;
 
 public interface SessionTrackerRepository {
     Optional<SessionTracker> findSessionByUuid(SessionTrackerId uuid);
-    List<SessionTracker> findBySessionIsActive(SessionTrackerId uuid, boolean active);
+    List<SessionTracker> findAllBySessionIsActive(SessionTrackerId uuid, boolean active);
     SessionTracker save(SessionTracker sessionTracker);
 
 }

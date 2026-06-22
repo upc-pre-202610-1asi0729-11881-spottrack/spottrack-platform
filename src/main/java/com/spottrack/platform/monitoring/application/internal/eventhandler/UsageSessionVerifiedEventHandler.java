@@ -5,8 +5,9 @@ import com.spottrack.platform.monitoring.application.queryServices.SessionTracke
 import com.spottrack.platform.monitoring.domain.model.commands.EndUsageSessionCommand;
 import com.spottrack.platform.monitoring.domain.model.events.UsageSessionVerifiedEvent;
 import com.spottrack.platform.monitoring.domain.model.queries.GetSessionTrackerByIdQuery;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 @Service
 public class UsageSessionVerifiedEventHandler {
@@ -19,7 +20,7 @@ public class UsageSessionVerifiedEventHandler {
     }
 
 
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void on(UsageSessionVerifiedEvent event){
         /**
          * This event handler needs to execute the command of end session if the inactivity of a session fulfill specific conditions

@@ -29,7 +29,7 @@ public class SessionTrackerRepositoryImpl implements SessionTrackerRepository {
     }
 
     @Override
-    public List<SessionTracker> findBySessionIsActive(SessionTrackerId uuid, boolean active) {
+    public List<SessionTracker> findAllBySessionIsActive(SessionTrackerId uuid, boolean active) {
         return sessionTrackerPersistenceRepository.findAllBySessionIsActiveTrue().stream().map(SessionTrackerPersistenceAssembler::toDomainFromPersistence).toList();
     }
 

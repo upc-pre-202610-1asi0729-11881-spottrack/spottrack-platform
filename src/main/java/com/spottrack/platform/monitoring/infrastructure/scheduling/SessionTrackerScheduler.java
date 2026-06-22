@@ -2,6 +2,7 @@ package com.spottrack.platform.monitoring.infrastructure.scheduling;
 
 import com.spottrack.platform.monitoring.application.commandServices.SessionTrackerCommandService;
 import com.spottrack.platform.monitoring.domain.model.commands.VerifyUsageSessionCommand;
+import com.spottrack.platform.monitoring.domain.model.valueobjects.SessionTrackerId;
 import com.spottrack.platform.monitoring.infrastructure.persistence.jpa.repositories.SessionTrackerPersistenceRepository;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -23,7 +24,7 @@ public class SessionTrackerScheduler {
     public void verifyActiveSessions() {
         var activeSessions = repository.findAllBySessionIsActiveTrue();
         for (var session : activeSessions) {
-            var command = new VerifyUsageSessionCommand(session.getSessionTrackerId());
+            var command = new VerifyUsageSessionCommand(new SessionTrackerId(session.getSessionTrackerId()));
             commandService.handle(command);
         }
     }
