@@ -12,4 +12,5 @@ public class Report {
     LocalTime detectionStamp;
     EquipmentId targetEquipmentId;
     ZoneId zoneId;
+    String description;
 }
