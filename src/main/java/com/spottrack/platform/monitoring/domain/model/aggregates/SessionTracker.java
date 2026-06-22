@@ -1,6 +1,7 @@
 package com.spottrack.platform.monitoring.domain.model.aggregates;
 
 import com.spottrack.platform.monitoring.domain.model.commands.CreateSessionTrackerCommand;
+import com.spottrack.platform.monitoring.domain.model.events.UsageSessionVerifiedEvent;
 import com.spottrack.platform.monitoring.domain.model.valueobjects.ReservationId;
 import com.spottrack.platform.monitoring.domain.model.valueobjects.SessionTrackerId;
 import com.spottrack.platform.monitoring.domain.model.valueobjects.UsageActivity;
@@ -57,7 +58,8 @@ public class SessionTracker extends AbstractDomainAggregateRoot {
         boolean inactive = lastActivityAt != null && Duration.between(lastActivityAt, LocalDateTime.now()).toMinutes() >= 3;
         sessionIsActive = active;
         sessionIsInactive = inactive;
-        return active;
+        registerDomainEvent(new UsageSessionVerifiedEvent(this.sessionTrackerId));
+        return sessionIsInactive;
     }
 
     public void endSession(){
