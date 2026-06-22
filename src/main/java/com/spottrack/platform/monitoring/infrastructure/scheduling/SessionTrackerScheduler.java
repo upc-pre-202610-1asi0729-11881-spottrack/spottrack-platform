@@ -18,6 +18,7 @@ public class SessionTrackerScheduler {
         this.commandService = commandService;
     }
 
+
     @Scheduled(fixedRate = 60000) // Runs every 60 seconds
     public void verifyActiveSessions() {
         var activeSessions = repository.findAllBySessionIsActiveTrue();
@@ -26,4 +27,5 @@ public class SessionTrackerScheduler {
             commandService.handle(command);
         }
     }
+
 }
