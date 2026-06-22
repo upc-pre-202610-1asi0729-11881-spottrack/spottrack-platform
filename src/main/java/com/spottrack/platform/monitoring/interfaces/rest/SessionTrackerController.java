@@ -44,7 +44,7 @@ public class SessionTrackerController {
 
     @GetMapping("/sessionTracker/{sessionTrackerId}/verify")
     public ResponseEntity verifySessionUsage(@PathVariable String sessionTrackerId) {
-        var command = new VerifyUsageSessionCommand(sessionTrackerId);
+        var command = new VerifyUsageSessionCommand(new SessionTrackerId(sessionTrackerId));
         var result = sessionTrackerCommandService.handle(command);
         return switch (result) {
             case Result.Success<SessionTracker, ApplicationError> s ->

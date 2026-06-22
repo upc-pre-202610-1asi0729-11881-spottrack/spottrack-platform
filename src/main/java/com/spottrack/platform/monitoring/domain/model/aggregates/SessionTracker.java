@@ -54,10 +54,7 @@ public class SessionTracker extends AbstractDomainAggregateRoot {
     }
 
     public boolean verifyUsageSession() {
-        boolean active = usageActivity.continuousActivity().toSecondOfDay() >= 10;
-        boolean inactive = lastActivityAt != null && Duration.between(lastActivityAt, LocalDateTime.now()).toMinutes() >= 3;
-        sessionIsActive = active;
-        sessionIsInactive = inactive;
+        sessionIsInactive = lastActivityAt != null && Duration.between(lastActivityAt, LocalDateTime.now()).toMinutes() >= 3;
         registerDomainEvent(new UsageSessionVerifiedEvent(this.sessionTrackerId));
         return sessionIsInactive;
     }

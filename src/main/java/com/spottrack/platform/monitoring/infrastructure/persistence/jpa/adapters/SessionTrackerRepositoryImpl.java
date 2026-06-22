@@ -8,6 +8,7 @@ import com.spottrack.platform.monitoring.infrastructure.persistence.jpa.reposito
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -25,6 +26,11 @@ public class SessionTrackerRepositoryImpl implements SessionTrackerRepository {
         var entity = sessionTrackerPersistenceRepository.findBySessionTrackerId(uuid.uuid());
         var domain = entity.map(SessionTrackerPersistenceAssembler::toDomainFromPersistence);
         return domain;
+    }
+
+    @Override
+    public List<SessionTracker> findAllBySessionIsActive(SessionTrackerId uuid, boolean active) {
+        return sessionTrackerPersistenceRepository.findAllBySessionIsActiveTrue().stream().map(SessionTrackerPersistenceAssembler::toDomainFromPersistence).toList();
     }
 
     @Override

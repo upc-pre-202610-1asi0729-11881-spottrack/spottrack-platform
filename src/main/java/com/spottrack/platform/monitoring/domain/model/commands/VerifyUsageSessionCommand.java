@@ -1,4 +1,6 @@
 package com.spottrack.platform.monitoring.domain.model.commands;
 
-public record VerifyUsageSessionCommand(String sessionTrackerId) {
+import com.spottrack.platform.monitoring.domain.model.valueobjects.SessionTrackerId;
+
+public record VerifyUsageSessionCommand(SessionTrackerId sessionTrackerId) {
 }
