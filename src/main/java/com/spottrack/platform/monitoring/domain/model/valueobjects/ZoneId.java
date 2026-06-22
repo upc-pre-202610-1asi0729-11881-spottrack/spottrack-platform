@@ -1,7 +1,4 @@
-package com.spottrack.platform.gym.domain.model.valueobjects;
-
-import jakarta.persistence.Embeddable;
-
+package com.spottrack.platform.monitoring.domain.model.valueobjects;
 
 public record ZoneId(String uuid) {
     private static final String NOT_BLANK = "zone.error.zoneId.notBlank";
