@@ -26,11 +26,11 @@ public class UsageSessionVerifiedEventHandler {
          */
         var query = new GetSessionTrackerByIdQuery(event.sessionTrackerId());
         var session = sessionTrackerQueryService.handle(query);
-        var activity = session.get().verifyUsageSession();
+        var inactive = session.get().isSessionIsInactive();
 
-        if (activity == false){
+        if (inactive){
             var command = new EndUsageSessionCommand(event.sessionTrackerId());
-            var result = sessionTrackerCommandService.handle(command);
+            sessionTrackerCommandService.handle(command);
         }
 
 

@@ -4,6 +4,7 @@ import com.spottrack.platform.monitoring.infrastructure.persistence.jpa.entities
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 
@@ -11,4 +12,5 @@ import java.util.Optional;
 public interface SessionTrackerPersistenceRepository extends JpaRepository<SessionTrackerPersistenceEntity, Long> {
     Optional<SessionTrackerPersistenceEntity> findBySessionTrackerId(String sessionTrackerId);
     Optional<SessionTrackerPersistenceEntity> findByReservationId(String reservationId);
+    List<SessionTrackerPersistenceEntity> findAllBySessionIsActiveTrue();
 }
