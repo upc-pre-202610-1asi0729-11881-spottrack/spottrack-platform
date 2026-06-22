@@ -7,8 +7,6 @@ import java.time.LocalTime;
 /**
  *
  * @param sessionTrackerId
- * @param activity Represents the actual time that the user has been actively using an equipment
- * @param inactivity Represents the time where the user was idle
  */
-public record CalculateSessionTimeCommand(SessionTrackerId sessionTrackerId, LocalTime activity, LocalTime inactivity) {
+public record CalculateSessionTimeCommand(SessionTrackerId sessionTrackerId) {
 }
