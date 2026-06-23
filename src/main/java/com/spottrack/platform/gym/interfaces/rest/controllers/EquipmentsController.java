@@ -10,6 +10,7 @@ import com.spottrack.platform.gym.domain.model.commands.DefineMaintenanceThresho
 import com.spottrack.platform.gym.domain.model.commands.MarkEquipmentOutOfService;
 import com.spottrack.platform.gym.domain.model.entities.Zone;
 import com.spottrack.platform.gym.domain.model.queries.GetEquipmentById;
+import com.spottrack.platform.gym.domain.model.queries.GetEquipments;
 import com.spottrack.platform.gym.domain.model.valueobjects.EquipmentId;
 import com.spottrack.platform.gym.domain.model.valueobjects.EquipmentStatus;
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.assemblers.EquipmentPersistenceAssembler;
@@ -18,10 +19,12 @@ import com.spottrack.platform.gym.interfaces.rest.transform.*;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.apache.coyote.Response;
+import org.apache.catalina.connector.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/equipments")
@@ -126,4 +129,16 @@ public class EquipmentsController {
         };
     }
 
+    @GetMapping("/equipments")
+    public ResponseEntity<?> getAllEquipments(){
+        var query = new GetEquipments();
+        var result = equipmentQueryService.handle(query);
+        return switch (result) {
+            case Result.Success<List<Equipment>, ApplicationError> s ->
+                    ResponseEntity.ok(s.value().stream().map(EquipmentResourceFromEntityAssembler::toResourceFromEntity).toList());
+            case Result.Failure<List<Equipment>, ApplicationError> f ->
+                    ResponseEntity.badRequest().body(f.error());
+        };
+
+    }
 }

@@ -6,6 +6,8 @@ import com.spottrack.platform.gym.domain.model.queries.GetEquipments;
 import com.spottrack.platform.gym.domain.model.queries.GetEquipmentById;
 import com.spottrack.platform.gym.domain.model.queries.GetEquipmentByName;
 
+import com.spottrack.platform.shared.application.result.ApplicationError;
+import com.spottrack.platform.shared.application.result.Result;
 import java.util.List;
 import java.util.Optional;
 
@@ -13,5 +15,5 @@ public interface EquipmentQueryService {
    Optional<Equipment> handle(GetEquipmentById query);
     Optional<Equipment> handle(GetEquipmentByName query);
     Optional<Equipment>handle(GetEquipmentStatus query);
-    List<Equipment> handle(GetEquipments query);
+    Result<List<Equipment>, ApplicationError> handle(GetEquipments query);
 }
