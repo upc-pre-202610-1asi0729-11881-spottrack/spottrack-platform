@@ -10,6 +10,8 @@ import com.spottrack.platform.gym.domain.model.valueobjects.EquipmentId;
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.assemblers.EquipmentPersistenceAssembler;
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.entities.EquipmentPersistenceEntity;
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.repositories.EquipmentPersistenceRepository;
+import com.spottrack.platform.shared.application.result.ApplicationError;
+import com.spottrack.platform.shared.application.result.Result;
 import org.springframework.stereotype.Service;
 
 import javax.swing.text.html.Option;
@@ -43,9 +45,9 @@ public class EquipmentQueryServiceImpl implements EquipmentQueryService {
 
 
     @Override
-    public List<Equipment> handle(GetEquipments query) {
+    public Result<List<Equipment>, ApplicationError> handle(GetEquipments query) {
         var persistenceEquipment = equipmentPersistenceRepository.findAll();
-        var persistenceToDomain = persistenceEquipment.stream().map(EquipmentPersistenceAssembler::toDomainFromPersistence);
-        return persistenceToDomain.toList();
+        var domain = persistenceEquipment.stream().map(EquipmentPersistenceAssembler::toDomainFromPersistence).toList();
+        return Result.success(domain);
     }
 }
