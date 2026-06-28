@@ -5,7 +5,7 @@ import com.spottrack.platform.reservation.domain.model.commands.EndReservation;
 import com.spottrack.platform.reservation.domain.model.events.EquipmentStatusChangeToAvailableRequestedEvent;
 import com.spottrack.platform.reservation.domain.model.valueobjects.ReservationId;
 import com.spottrack.platform.reservation.domain.model.valueobjects.ReservationStatus;
-import com.spottrack.platform.reservation.infrastructure.persistence.jpa.ReservationPersistenceRepository;
+import com.spottrack.platform.reservation.infrastructure.persistence.jpa.repositories.ReservationPersistenceRepository;
 import com.spottrack.platform.reservation.interfaces.events.EquipmentStatusChangeToAvailableRequestedIntegrationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;

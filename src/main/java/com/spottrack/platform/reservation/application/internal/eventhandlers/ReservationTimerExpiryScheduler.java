@@ -5,8 +5,8 @@ import com.spottrack.platform.reservation.domain.model.commands.RequestEquipment
 import com.spottrack.platform.reservation.domain.model.valueobjects.ReservationRequestId;
 import com.spottrack.platform.reservation.domain.model.valueobjects.ReservationRequestStatus;
 import com.spottrack.platform.reservation.domain.model.valueobjects.ReservationStatus;
-import com.spottrack.platform.reservation.infrastructure.persistence.jpa.ReservationPersistenceRepository;
-import com.spottrack.platform.reservation.infrastructure.persistence.jpa.ReservationRequestPersistenceRepository;
+import com.spottrack.platform.reservation.infrastructure.persistence.jpa.repositories.ReservationPersistenceRepository;
+import com.spottrack.platform.reservation.infrastructure.persistence.jpa.repositories.ReservationRequestPersistenceRepository;
 import com.spottrack.platform.reservation.infrastructure.persistence.jpa.entities.ReservationPersistenceEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;

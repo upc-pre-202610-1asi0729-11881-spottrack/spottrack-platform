@@ -1,12 +1,14 @@
 package com.spottrack.platform.reservation.infrastructure.persistence.jpa.adapters;
 
 import com.spottrack.platform.reservation.domain.model.aggregates.Reservation;
+import com.spottrack.platform.reservation.domain.model.valueobjects.ReservationStatus;
 import com.spottrack.platform.reservation.domain.repositories.ReservationRepository;
-import com.spottrack.platform.reservation.infrastructure.persistence.jpa.ReservationPersistenceRepository;
+import com.spottrack.platform.reservation.infrastructure.persistence.jpa.repositories.ReservationPersistenceRepository;
 import com.spottrack.platform.reservation.infrastructure.persistence.jpa.assemblers.ReservationPersistenceAssembler;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -29,6 +31,14 @@ public class ReservationRepositoryImpl implements ReservationRepository {
     @Override
     public Optional<Reservation> findById(Long id) {
         return reservationPersistenceRepository.findById(id).map(ReservationPersistenceAssembler::toDomainFromPersistence);
+    }
+
+    @Override
+    public List<Reservation> findAll() {
+        var list = reservationPersistenceRepository.findAll();
+        return list.stream()
+                .map(ReservationPersistenceAssembler::toDomainFromPersistence)
+                .toList();
     }
 
     @Override
