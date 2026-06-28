@@ -6,6 +6,7 @@ import com.spottrack.platform.reservation.domain.model.commands.CancelReservatio
 import com.spottrack.platform.reservation.domain.model.commands.EndReservation;
 import com.spottrack.platform.reservation.domain.model.commands.InitiateExpressReservation;
 import com.spottrack.platform.reservation.domain.model.commands.StartReservationTimer;
+import com.spottrack.platform.reservation.domain.model.valueobjects.ReservationStatus;
 import com.spottrack.platform.reservation.domain.repositories.ReservationRepository;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
@@ -24,6 +25,10 @@ public class ReservationCommandServiceImpl implements ReservationCommandService 
     public Result<Reservation, ApplicationError> handle(InitiateExpressReservation command) {
         try {
             var reservation = new Reservation(command);
+            var alreadyReserved = reservationRepository.findByClientIdAndStatus(reservation.getClientId().clientId(), ReservationStatus.ACTIVE);
+            if (alreadyReserved == true) {
+                return Result.failure(ApplicationError.validationError("Reservation", "Client already has an active reservation"));
+            }
             var savedReservation = reservationRepository.save(reservation);
             return Result.success(savedReservation);
         } catch (IllegalArgumentException e) {
