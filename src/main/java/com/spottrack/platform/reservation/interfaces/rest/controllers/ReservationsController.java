@@ -1,20 +1,21 @@
 package com.spottrack.platform.reservation.interfaces.rest.controllers;
 
 import com.spottrack.platform.reservation.application.commandServices.ReservationCommandService;
+import com.spottrack.platform.reservation.application.queryservices.ReservationQueryService;
 import com.spottrack.platform.reservation.domain.model.aggregates.Reservation;
 import com.spottrack.platform.reservation.domain.model.commands.CancelReservation;
-import com.spottrack.platform.reservation.domain.model.commands.EndReservation;
 import com.spottrack.platform.reservation.domain.model.commands.StartReservationTimer;
+import com.spottrack.platform.reservation.domain.model.queries.GetAllReservationsQuery;
 import com.spottrack.platform.reservation.domain.model.valueobjects.ReservationId;
-import com.spottrack.platform.reservation.interfaces.rest.resources.EndReservationCommandResource;
 import com.spottrack.platform.reservation.interfaces.rest.resources.InitiateExpressReservationResource;
-import com.spottrack.platform.reservation.interfaces.rest.resources.ReservationResource;
 import com.spottrack.platform.reservation.interfaces.rest.resources.StartReservationTimerResource;
 import com.spottrack.platform.reservation.interfaces.rest.transform.EndReservationCommandFromResourceAssembler;
 import com.spottrack.platform.reservation.interfaces.rest.transform.InitiateExpressReservationCommandFromResourceAssembler;
 import com.spottrack.platform.reservation.interfaces.rest.transform.ReservationResourceFromEntityAssembler;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,9 +27,11 @@ import org.springframework.web.bind.annotation.*;
 public class ReservationsController {
 
     private final ReservationCommandService commandService;
+    private final ReservationQueryService reservationQueryService;
 
-    public ReservationsController(ReservationCommandService commandService) {
+    public ReservationsController(ReservationCommandService commandService, ReservationQueryService reservationQueryService) {
         this.commandService = commandService;
+        this.reservationQueryService = reservationQueryService;
     }
 
     /**
@@ -98,5 +101,21 @@ public class ReservationsController {
             case Result.Failure<Reservation, ApplicationError> f ->
                     ResponseEntity.status(HttpStatus.NOT_FOUND).body(f.error());
         };
+    }
+
+
+    @GetMapping
+    @Operation(
+            summary="get all users",
+            description="gets all users",
+            security=@SecurityRequirement(name="bearerAuth")
+    )
+    public ResponseEntity<?> getAllReservations() {
+        var query =  new GetAllReservationsQuery();
+        var list = reservationQueryService.handle(query);
+        var listResources = list.stream()
+                .map(ReservationResourceFromEntityAssembler::toResourceFromEntity)
+                .toList();
+        return ResponseEntity.ok(listResources);
     }
 }

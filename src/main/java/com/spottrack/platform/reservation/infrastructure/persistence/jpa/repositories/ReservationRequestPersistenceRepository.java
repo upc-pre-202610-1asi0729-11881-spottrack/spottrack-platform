@@ -1,4 +1,4 @@
-package com.spottrack.platform.reservation.infrastructure.persistence.jpa;
+package com.spottrack.platform.reservation.infrastructure.persistence.jpa.repositories;
 
 import com.spottrack.platform.reservation.domain.model.valueobjects.ReservationRequestStatus;
 import com.spottrack.platform.reservation.infrastructure.persistence.jpa.entities.ReservationRequestPersistenceEntity;

@@ -1,4 +1,4 @@
 package com.spottrack.platform.reservation.domain.model.queries;
 
-public record getAllReservations() {
+public record GetAllReservationsQuery() {
 }
