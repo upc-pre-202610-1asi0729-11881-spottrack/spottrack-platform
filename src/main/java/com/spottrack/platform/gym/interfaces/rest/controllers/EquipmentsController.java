@@ -129,7 +129,7 @@ public class EquipmentsController {
         };
     }
 
-    @GetMapping("/equipments")
+    @GetMapping()
     public ResponseEntity<?> getAllEquipments(){
         var query = new GetEquipments();
         var result = equipmentQueryService.handle(query);
