@@ -25,7 +25,7 @@ public class ReservationCommandServiceImpl implements ReservationCommandService 
     public Result<Reservation, ApplicationError> handle(InitiateExpressReservation command) {
         try {
             var reservation = new Reservation(command);
-            var alreadyReserved = reservationRepository.findByClientIdAndStatus(reservation.getClientId().clientId(), ReservationStatus.ACTIVE);
+            var alreadyReserved = reservationRepository.existsByClientIdAndStatus(reservation.getClientId().clientId(), ReservationStatus.ACTIVE);
             if (alreadyReserved == true) {
                 return Result.failure(ApplicationError.validationError("Reservation", "Client already has an active reservation"));
             }
