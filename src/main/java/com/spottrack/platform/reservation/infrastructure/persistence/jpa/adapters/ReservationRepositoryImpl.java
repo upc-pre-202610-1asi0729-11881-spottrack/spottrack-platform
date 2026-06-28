@@ -42,10 +42,10 @@ public class ReservationRepositoryImpl implements ReservationRepository {
     }
 
     @Override
-    public boolean findByClientIdAndStatus(Long clientId, ReservationStatus status) {
-        return reservationPersistenceRepository.findByClientIdAndStatus(clientId, status) ? true : false;
-
+    public boolean existsByClientIdAndStatus(Long clientId, ReservationStatus status) {
+        return reservationPersistenceRepository.existsByClientIdAndStatus(clientId, status) ? true : false;
     }
+
 
     @Override
     public Reservation save(Reservation reservation) {
