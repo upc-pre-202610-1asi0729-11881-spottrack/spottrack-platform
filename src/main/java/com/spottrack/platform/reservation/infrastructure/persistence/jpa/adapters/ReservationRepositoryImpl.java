@@ -56,4 +56,11 @@ public class ReservationRepositoryImpl implements ReservationRepository {
         }
         return savedReservation;
     }
+
+    @Override
+    public Optional<Reservation> findByStatus(ReservationStatus status) {
+        var reservation = reservationPersistenceRepository.findByStatus(status);
+        return reservation.map(ReservationPersistenceAssembler::toDomainFromPersistence);
+    }
 }
+

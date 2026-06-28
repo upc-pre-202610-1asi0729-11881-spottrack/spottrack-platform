@@ -12,5 +12,6 @@ public interface ReservationRepository {
     Optional<Reservation> findById(Long Id);
     List<Reservation> findAll();
     Reservation save(Reservation reservation);
+    Optional<Reservation> findByStatus(ReservationStatus status);
 }
 
