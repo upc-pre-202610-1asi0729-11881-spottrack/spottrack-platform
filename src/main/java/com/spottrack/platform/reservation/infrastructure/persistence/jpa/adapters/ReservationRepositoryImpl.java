@@ -42,6 +42,12 @@ public class ReservationRepositoryImpl implements ReservationRepository {
     }
 
     @Override
+    public boolean findByClientIdAndStatus(Long clientId, ReservationStatus status) {
+        return reservationPersistenceRepository.findByClientIdAndStatus(clientId, status) ? true : false;
+
+    }
+
+    @Override
     public Reservation save(Reservation reservation) {
         boolean isNew = reservationPersistenceRepository.findByUuid(reservation.getId().uuid()).isEmpty();
         var savedEntity = reservationPersistenceRepository.save(ReservationPersistenceAssembler.toPersistenceFromDomain(reservation));
@@ -59,8 +65,7 @@ public class ReservationRepositoryImpl implements ReservationRepository {
 
     @Override
     public Optional<Reservation> findByStatus(ReservationStatus status) {
-        var reservation = reservationPersistenceRepository.findByStatus(status);
-        return reservation.map(ReservationPersistenceAssembler::toDomainFromPersistence);
+        return  null;
     }
 }
 
