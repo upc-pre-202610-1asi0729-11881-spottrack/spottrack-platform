@@ -12,7 +12,7 @@ import com.spottrack.platform.membership.domain.model.events.PlanUpgradedEvent;
 import com.spottrack.platform.membership.domain.model.valueobjects.MembershipId;
 import com.spottrack.platform.membership.domain.model.valueobjects.MembershipPeriod;
 import com.spottrack.platform.membership.domain.model.valueobjects.MembershipStatus;
-import com.spottrack.platform.membership.domain.model.valueobjects.MembershipType;
+import com.spottrack.platform.membership.domain.model.valueobjects.MembershipId;
 import com.spottrack.platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
 import com.spottrack.platform.shared.domain.model.valueobjects.Money;
 import lombok.Getter;
@@ -31,7 +31,7 @@ public class Membership extends AbstractDomainAggregateRoot<Membership> {
     private Long clientId;
 
     @Getter
-    private MembershipType membershipType;
+    private MembershipId membershipType;
 
     @Getter
     private Money price;
