@@ -9,10 +9,7 @@ import com.spottrack.platform.membership.domain.model.events.MembershipCancelled
 import com.spottrack.platform.membership.domain.model.events.MembershipCreatedEvent;
 import com.spottrack.platform.membership.domain.model.events.MembershipSuspendedEvent;
 import com.spottrack.platform.membership.domain.model.events.PlanUpgradedEvent;
-import com.spottrack.platform.membership.domain.model.valueobjects.MembershipId;
-import com.spottrack.platform.membership.domain.model.valueobjects.MembershipPeriod;
-import com.spottrack.platform.membership.domain.model.valueobjects.MembershipStatus;
-import com.spottrack.platform.membership.domain.model.valueobjects.MembershipId;
+import com.spottrack.platform.membership.domain.model.valueobjects.*;
 import com.spottrack.platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
 import com.spottrack.platform.shared.domain.model.valueobjects.Money;
 import lombok.Getter;
@@ -31,7 +28,7 @@ public class Membership extends AbstractDomainAggregateRoot<Membership> {
     private Long clientId;
 
     @Getter
-    private MembershipId membershipType;
+    MembershipTier membershipTier;
 
     @Getter
     private Money price;
@@ -42,12 +39,12 @@ public class Membership extends AbstractDomainAggregateRoot<Membership> {
     @Getter
     private MembershipStatus status;
 
-    public Membership(Long id, MembershipId membershipId, Long clientId, MembershipType membershipType,
+    public Membership(Long id, MembershipId membershipId, Long clientId, MembershipTier membershipTier,
                       Money price, MembershipPeriod membershipPeriod, MembershipStatus status) {
         this.id = id;
         this.membershipId = membershipId;
         this.clientId = clientId;
-        this.membershipType = membershipType;
+        this.membershipTier = membershipTier;
         this.price = price;
         this.membershipPeriod = membershipPeriod;
         this.status = status;
@@ -57,7 +54,7 @@ public class Membership extends AbstractDomainAggregateRoot<Membership> {
         this(null,
                 new MembershipId(),
                 command.clientId(),
-                command.membershipType(),
+                command.membershipTier(),
                 command.price(),
                 new MembershipPeriod(command.startDate(), command.endDate()),
                 MembershipStatus.PENDING_ACTIVATION);
@@ -88,7 +85,7 @@ public class Membership extends AbstractDomainAggregateRoot<Membership> {
     }
 
     public void upgradePlan(UpgradeMembershipPlanCommand command) {
-        this.membershipType = command.newMembershipType();
+        this.membershipTier = command.newMembershipTier();
         registerDomainEvent(PlanUpgradedEvent.from(this));
     }
 

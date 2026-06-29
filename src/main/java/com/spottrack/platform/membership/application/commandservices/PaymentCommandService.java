@@ -8,7 +8,7 @@ import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
 
 public interface PaymentCommandService {
-    Result<Payment, ApplicationError> handle(PayMembershipCommand command);
+    Result<String, ApplicationError> handle(PayMembershipCommand command);
     Result<Payment, ApplicationError> handle(ConfirmPaymentCommand command);
     Result<Payment, ApplicationError> handle(FailPaymentCommand command);
 }

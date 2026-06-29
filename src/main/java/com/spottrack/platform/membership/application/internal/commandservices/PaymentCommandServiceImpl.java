@@ -8,10 +8,20 @@ import com.spottrack.platform.membership.domain.model.commands.PayMembershipComm
 import com.spottrack.platform.membership.domain.repositories.PaymentRepository;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
+import com.stripe.exception.StripeException;
+import com.stripe.model.checkout.Session;
+import com.stripe.param.checkout.SessionCreateParams;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
 public class PaymentCommandServiceImpl implements PaymentCommandService {
+
+    @Value("${stripe.success-url}")
+    private String successUrl;
+
+    @Value("${stripe.cancel-url}")
+    private String cancelUrl;
 
     private final PaymentRepository paymentRepository;
 
@@ -20,16 +30,33 @@ public class PaymentCommandServiceImpl implements PaymentCommandService {
     }
 
     @Override
-    public Result<Payment, ApplicationError> handle(PayMembershipCommand command) {
+    public Result<String, ApplicationError> handle(PayMembershipCommand command) {
         try {
             var payment = new Payment(command);
             var saved = paymentRepository.save(payment);
 
-            // TODO: initiate Stripe payment session here using saved.getPaymentId()
-            // On success webhook -> call handle(ConfirmPaymentCommand)
-            // On failure webhook -> call handle(FailPaymentCommand)
+            var params = SessionCreateParams.builder()
+                    .setMode(SessionCreateParams.Mode.PAYMENT)
+                    .setSuccessUrl(successUrl + "?session_id={CHECKOUT_SESSION_ID}")
+                    .setCancelUrl(cancelUrl)
+                    .addLineItem(SessionCreateParams.LineItem.builder()
+                            .setQuantity(1L)
+                            .setPriceData(SessionCreateParams.LineItem.PriceData.builder()
+                                    .setCurrency(command.amount().currency().toLowerCase())
+                                    .setUnitAmount(command.amount().amount().longValueExact() * 100L)
+                                    .setProductData(SessionCreateParams.LineItem.PriceData.ProductData.builder()
+                                            .setName("SpotTrack Membership: " + command.membershipTier().name())
+                                            .build())
+                                    .build())
+                            .build())
+                    .putMetadata("paymentId", saved.getPaymentId().uuid().toString())
+                    .build();
 
-            return Result.success(saved);
+            Session session = Session.create(params);
+            return Result.success(session.getUrl());
+
+        } catch (StripeException e) {
+            return Result.failure(ApplicationError.unexpected("Stripe session creation", e.getMessage()));
         } catch (IllegalArgumentException e) {
             return Result.failure(ApplicationError.validationError("Payment", e.getMessage()));
         } catch (Exception e) {
