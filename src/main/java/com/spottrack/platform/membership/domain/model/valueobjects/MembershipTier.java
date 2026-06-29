@@ -1,6 +1,6 @@
 package com.spottrack.platform.membership.domain.model.valueobjects;
 
-public enum MembershipType {
+public enum MembershipTier {
     BASIC,
     MID,
     PLATINUM
