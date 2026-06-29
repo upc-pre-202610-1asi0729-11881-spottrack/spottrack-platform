@@ -1,0 +1,14 @@
+package com.spottrack.platform.membership.application.commandservices;
+
+import com.spottrack.platform.membership.domain.model.aggregates.Payment;
+import com.spottrack.platform.membership.domain.model.commands.ConfirmPaymentCommand;
+import com.spottrack.platform.membership.domain.model.commands.FailPaymentCommand;
+import com.spottrack.platform.membership.domain.model.commands.PayMembershipCommand;
+import com.spottrack.platform.shared.application.result.ApplicationError;
+import com.spottrack.platform.shared.application.result.Result;
+
+public interface PaymentCommandService {
+    Result<String, ApplicationError> handle(PayMembershipCommand command);
+    Result<Payment, ApplicationError> handle(ConfirmPaymentCommand command);
+    Result<Payment, ApplicationError> handle(FailPaymentCommand command);
+}
