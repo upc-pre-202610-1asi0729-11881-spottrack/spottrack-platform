@@ -1,7 +1,7 @@
 package com.spottrack.platform.membership.infrastructure.persistence.jpa.entities;
 
 import com.spottrack.platform.membership.domain.model.valueobjects.MembershipStatus;
-import com.spottrack.platform.membership.domain.model.valueobjects.MembershipType;
+import com.spottrack.platform.membership.domain.model.valueobjects.MembershipTier;
 import com.spottrack.platform.shared.domain.model.valueobjects.Money;
 import com.spottrack.platform.shared.infrastructure.persistence.jpa.entities.AuditableAbstractPersistenceEntity;
 import jakarta.persistence.*;
@@ -19,8 +19,8 @@ public class MembershipPersistenceEntity extends AuditableAbstractPersistenceEnt
     private Long clientId;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "membership_type", nullable = false)
-    private MembershipType membershipType;
+    @Column(name = "membership_tier", nullable = false)
+    private MembershipTier membershipTier;
 
     @Embedded
     @AttributeOverrides({
@@ -47,8 +47,8 @@ public class MembershipPersistenceEntity extends AuditableAbstractPersistenceEnt
     public Long getClientId() { return clientId; }
     public void setClientId(Long clientId) { this.clientId = clientId; }
 
-    public MembershipType getMembershipType() { return membershipType; }
-    public void setMembershipType(MembershipType membershipType) { this.membershipType = membershipType; }
+    public MembershipTier getMembershipTier() { return membershipTier; }
+    public void setMembershipTier(MembershipTier membershipTier) { this.membershipTier = membershipTier; }
 
     public Money getPrice() { return price; }
     public void setPrice(Money price) { this.price = price; }

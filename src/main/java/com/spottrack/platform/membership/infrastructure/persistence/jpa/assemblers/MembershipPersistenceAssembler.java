@@ -16,7 +16,7 @@ public final class MembershipPersistenceAssembler {
                 entity.getId(),
                 new MembershipId(UUID.fromString(entity.getMembershipId())),
                 entity.getClientId(),
-                entity.getMembershipType(),
+                entity.getMembershipTier(),
                 entity.getPrice(),
                 new MembershipPeriod(entity.getStartDate(), entity.getEndDate()),
                 entity.getStatus()
@@ -28,7 +28,7 @@ public final class MembershipPersistenceAssembler {
         entity.setId(membership.getId());
         entity.setMembershipId(membership.getMembershipId().uuid().toString());
         entity.setClientId(membership.getClientId());
-        entity.setMembershipType(membership.getMembershipType());
+        entity.setMembershipTier(membership.getMembershipTier());
         entity.setPrice(membership.getPrice());
         entity.setStartDate(membership.getMembershipPeriod().startDate());
         entity.setEndDate(membership.getMembershipPeriod().endDate());
