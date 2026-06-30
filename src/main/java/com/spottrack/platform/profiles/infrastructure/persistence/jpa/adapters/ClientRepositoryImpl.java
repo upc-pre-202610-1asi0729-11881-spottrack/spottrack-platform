@@ -31,6 +31,12 @@ public class ClientRepositoryImpl implements ClientRepository {
     }
 
     @Override
+    public Optional<Client> findByUserId(Long userId) {
+        return clientPersistenceRepository.findByUserId(userId)
+                .map(ClientPersistenceAssembler::toDomainFromPersistence);
+    }
+
+    @Override
     public Optional<Client> findByEmailAddress(EmailAddress emailAddress) {
         return clientPersistenceRepository.findByEmailAddress(emailAddress)
                 .map(ClientPersistenceAssembler::toDomainFromPersistence);
