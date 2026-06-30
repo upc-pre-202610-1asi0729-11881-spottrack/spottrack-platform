@@ -1,6 +1,8 @@
 package com.spottrack.platform.membership.application.internal.eventhandlers;
 
 import com.spottrack.platform.membership.application.commandservices.MembershipCommandService;
+import com.spottrack.platform.membership.domain.model.aggregates.Membership;
+import com.spottrack.platform.membership.domain.model.commands.ActivateMembershipCommand;
 import com.spottrack.platform.membership.domain.model.commands.CreateMembershipCommand;
 import com.spottrack.platform.membership.domain.model.events.PaymentConfirmedEvent;
 import com.spottrack.platform.shared.application.result.ApplicationError;
@@ -23,24 +25,45 @@ public class PaymentConfirmedEventHandler {
 
     @EventListener
     public void on(PaymentConfirmedEvent event) {
-        var startDate = LocalDate.now();
-        var endDate = startDate.plusDays(30);
+        try {
+            log.info("Processing PaymentConfirmedEvent: paymentId={}, userId={}, tier={}, amount={}",
+                    event.paymentId(), event.userId(), event.membershipTier(), event.amount());
 
-        var command = new CreateMembershipCommand(
-                event.userId(),
-                event.membershipTier(),
-                event.amount(),
-                startDate,
-                endDate
-        );
+            var startDate = LocalDate.now();
+            var endDate = startDate.plusDays(30);
 
-        var result = membershipCommandService.handle(command);
+            var createCommand = new CreateMembershipCommand(
+                    event.userId(),
+                    event.membershipTier(),
+                    event.amount(),
+                    startDate,
+                    endDate
+            );
 
-        if (result instanceof Result.Failure<?, ?> failure && failure.error() instanceof ApplicationError error) {
-            log.warn("Failed to create membership after payment {} confirmed for user {}: {}",
-                    event.paymentId(), event.userId(), error.message());
-        } else {
-            log.info("Membership created for user {} after payment {} confirmed", event.userId(), event.paymentId());
+            var createResult = membershipCommandService.handle(createCommand);
+
+            if (createResult instanceof Result.Failure<?, ?> failure && failure.error() instanceof ApplicationError error) {
+                log.error("Failed to create membership after payment {} confirmed for user {}: {}",
+                        event.paymentId(), event.userId(), error.message());
+                return;
+            }
+
+            var membership = ((Result.Success<Membership, ?>) createResult).value();
+            log.info("Membership {} created for user {}, activating now", membership.getMembershipId(), event.userId());
+
+            var activateCommand = new ActivateMembershipCommand(membership.getMembershipId());
+            var activateResult = membershipCommandService.handle(activateCommand);
+
+            if (activateResult instanceof Result.Failure<?, ?> failure && failure.error() instanceof ApplicationError error) {
+                log.error("Membership created but activation failed for payment {} user {}: {}",
+                        event.paymentId(), event.userId(), error.message());
+            } else {
+                log.info("Membership {} activated for user {} after payment {} confirmed",
+                        membership.getMembershipId(), event.userId(), event.paymentId());
+            }
+        } catch (Exception e) {
+            log.error("Unexpected error in PaymentConfirmedEventHandler for payment {} user {}: {} - {}",
+                    event.paymentId(), event.userId(), e.getClass().getSimpleName(), e.getMessage(), e);
         }
     }
 }
