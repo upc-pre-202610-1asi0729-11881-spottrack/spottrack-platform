@@ -12,6 +12,8 @@ import java.util.Optional;
 @Repository
 public interface AdminPersistenceRepository extends JpaRepository<AdminPersistenceEntity, Long> {
 
+    Optional<AdminPersistenceEntity> findByUserId(Long userId);
+
     @Query("select a from AdminPersistenceEntity a where a.emailAddress = :emailAddress")
     Optional<AdminPersistenceEntity> findByEmailAddress(@Param("emailAddress") EmailAddress emailAddress);
 
