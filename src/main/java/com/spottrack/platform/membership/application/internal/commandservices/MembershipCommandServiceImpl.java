@@ -11,8 +11,10 @@ import com.spottrack.platform.membership.domain.model.commands.UpgradeMembership
 import com.spottrack.platform.membership.domain.repositories.MembershipRepository;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class MembershipCommandServiceImpl implements MembershipCommandService {
 
@@ -29,9 +31,12 @@ public class MembershipCommandServiceImpl implements MembershipCommandService {
             var saved = membershipRepository.save(membership);
             return Result.success(saved);
         } catch (IllegalArgumentException e) {
+            log.error("Validation error creating membership: {}", e.getMessage(), e);
             return Result.failure(ApplicationError.validationError("Membership", e.getMessage()));
         } catch (Exception e) {
-            return Result.failure(ApplicationError.unexpected("Membership creation", e.getMessage()));
+            log.error("Unexpected error creating membership ({}): {}", e.getClass().getSimpleName(), e.getMessage(), e);
+            return Result.failure(ApplicationError.unexpected("Membership creation",
+                    e.getClass().getSimpleName() + ": " + e.getMessage()));
         }
     }
 

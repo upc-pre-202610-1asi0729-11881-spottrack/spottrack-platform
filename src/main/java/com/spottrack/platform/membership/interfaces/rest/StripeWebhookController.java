@@ -88,7 +88,7 @@ public class StripeWebhookController {
         }
 
         log.debug("SDK could not deserialize event {} — falling back to raw JSON parsing", event.getId());
-        try {
+        try {   
             var node = MAPPER.readTree(rawJson);
             var sessionId = node.path("id").asText(null);
             var paymentIdStr = node.path("metadata").path("paymentId").asText(null);
