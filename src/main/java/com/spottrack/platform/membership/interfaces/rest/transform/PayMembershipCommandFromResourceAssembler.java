@@ -7,7 +7,7 @@ import com.spottrack.platform.shared.domain.model.valueobjects.Money;
 
 public class PayMembershipCommandFromResourceAssembler {
 
-    public static PayMembershipCommand toCommand(PayMembershipResource resource) {
+    public static PayMembershipCommand toCommandFromResource(PayMembershipResource resource) {
         return new PayMembershipCommand(
                 resource.userId(),
                 MembershipTier.valueOf(resource.membershipTier()),
