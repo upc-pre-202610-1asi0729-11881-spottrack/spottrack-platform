@@ -3,7 +3,6 @@ package com.spottrack.platform.reservation.interfaces.rest.transform;
 import com.spottrack.platform.reservation.domain.model.commands.InitiateExpressReservation;
 import com.spottrack.platform.reservation.domain.model.valueobjects.ClientId;
 import com.spottrack.platform.reservation.domain.model.valueobjects.EquipmentId;
-import com.spottrack.platform.reservation.domain.model.valueobjects.ReservationStatus;
 import com.spottrack.platform.reservation.domain.model.valueobjects.TimeInterval;
 import com.spottrack.platform.reservation.interfaces.rest.resources.InitiateExpressReservationResource;
 
@@ -15,9 +14,6 @@ public class InitiateExpressReservationCommandFromResourceAssembler {
         return new InitiateExpressReservation(
                 new ClientId(clientId),
                 new EquipmentId(resource.equipmentId()),
-                new TimeInterval(Time.valueOf(resource.startTime()), Time.valueOf(resource.endTime())),
-                ReservationStatus.ACTIVE,
-                resource.startedAt(),
-                resource.timeExpiry());
+                new TimeInterval(Time.valueOf(resource.startTime()), Time.valueOf(resource.endTime())));
     }
 }
