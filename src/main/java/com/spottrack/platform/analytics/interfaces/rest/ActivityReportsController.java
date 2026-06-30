@@ -7,6 +7,7 @@ import com.spottrack.platform.analytics.interfaces.rest.transform.ActivityReport
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,6 +24,7 @@ public class ActivityReportsController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ActivityReportResource> createActivityReport(@RequestBody RequestActivityAnalysisCommand command) {
         var activityReport = activityReportCommandService.handle(command);
         if (activityReport.isEmpty()) return ResponseEntity.badRequest().build();
