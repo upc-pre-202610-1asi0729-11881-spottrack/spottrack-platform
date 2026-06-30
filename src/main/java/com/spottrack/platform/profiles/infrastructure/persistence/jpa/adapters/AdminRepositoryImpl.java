@@ -31,6 +31,12 @@ public class AdminRepositoryImpl implements AdminRepository {
     }
 
     @Override
+    public Optional<Admin> findByUserId(Long userId) {
+        return adminPersistenceRepository.findByUserId(userId)
+                .map(AdminPersistenceAssembler::toDomainFromPersistence);
+    }
+
+    @Override
     public Optional<Admin> findByEmailAddress(EmailAddress emailAddress) {
         return adminPersistenceRepository.findByEmailAddress(emailAddress)
                 .map(AdminPersistenceAssembler::toDomainFromPersistence);
