@@ -2,6 +2,7 @@ package com.spottrack.platform.membership.interfaces.rest;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.spottrack.platform.membership.application.commandservices.PaymentCommandService;
 import com.spottrack.platform.membership.domain.model.commands.ConfirmPaymentCommand;
 import com.spottrack.platform.membership.domain.model.commands.FailPaymentCommand;
@@ -31,15 +32,15 @@ import java.util.UUID;
 @Tag(name = "Webhooks", description = "Stripe webhook event receiver")
 public class StripeWebhookController {
 
+    private static final ObjectMapper MAPPER = JsonMapper.builder().build();
+
     private final PaymentCommandService paymentCommandService;
-    private final ObjectMapper objectMapper;
 
     @Value("${stripe.webhook-secret}")
     private String webhookSecret;
 
-    public StripeWebhookController(PaymentCommandService paymentCommandService, ObjectMapper objectMapper) {
+    public StripeWebhookController(PaymentCommandService paymentCommandService) {
         this.paymentCommandService = paymentCommandService;
-        this.objectMapper = objectMapper;
     }
 
     @PostMapping("/stripe")
@@ -88,7 +89,7 @@ public class StripeWebhookController {
 
         log.debug("SDK could not deserialize event {} — falling back to raw JSON parsing", event.getId());
         try {
-            var node = objectMapper.readTree(rawJson);
+            var node = MAPPER.readTree(rawJson);
             var sessionId = node.path("id").asText(null);
             var paymentIdStr = node.path("metadata").path("paymentId").asText(null);
             if (sessionId == null || sessionId.isBlank()) {
