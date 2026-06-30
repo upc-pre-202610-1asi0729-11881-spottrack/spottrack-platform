@@ -6,9 +6,9 @@ import com.spottrack.platform.profiles.interfaces.rest.resources.CreateAdminReso
 
 public class CreateAdminCommandFromResourceAssembler {
 
-    public static CreateAdminCommand toCommandFromResource(CreateAdminResource resource) {
+    public static CreateAdminCommand toCommandFromResource(CreateAdminResource resource, Long userId) {
         return new CreateAdminCommand(
-                resource.userId(),
+                userId,
                 new EmailAddress(resource.email()));
     }
 }
