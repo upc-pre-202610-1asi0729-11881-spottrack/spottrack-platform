@@ -7,9 +7,9 @@ import com.spottrack.platform.routine.interfaces.rest.resources.CreateRoutineRes
 
 public class CreateRoutineCommandFromResourceAssembler {
 
-    public static CreateRoutineCommand toCommandFromResource(CreateRoutineResource resource) {
+    public static CreateRoutineCommand toCommandFromResource(CreateRoutineResource resource, Long clientId) {
         return new CreateRoutineCommand(
                 new RoutineName(resource.routineName()),
-                new ClientId(resource.clientId()));
+                new ClientId(clientId));
     }
 }

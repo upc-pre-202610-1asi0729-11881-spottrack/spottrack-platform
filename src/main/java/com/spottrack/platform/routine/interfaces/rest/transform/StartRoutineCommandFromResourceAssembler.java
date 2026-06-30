@@ -6,10 +6,10 @@ import com.spottrack.platform.routine.interfaces.rest.resources.StartRoutineReso
 
 public class StartRoutineCommandFromResourceAssembler {
 
-    public static StartRoutineCommand toCommandFromResource(StartRoutineResource resource) {
+    public static StartRoutineCommand toCommandFromResource(StartRoutineResource resource, Long clientId) {
         return new StartRoutineCommand(
                 resource.routineId(),
-                new ClientId(resource.clientId())
+                new ClientId(clientId)
         );
     }
 }
