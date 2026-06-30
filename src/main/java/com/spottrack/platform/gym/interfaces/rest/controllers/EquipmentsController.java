@@ -22,6 +22,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.catalina.connector.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -40,6 +41,7 @@ public class EquipmentsController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> registerEquipment(@RequestBody RegisterEquipmentResource resource){
         var command = RegisterEquipmentCommandFromResourceAssembler.toCommandFromResource(resource);
         var result = commandService.handle(command);
@@ -66,6 +68,7 @@ public class EquipmentsController {
     }
 
     @PatchMapping("/{equipmentId}/out-of-service")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> markEquipmentOutOfService(@RequestBody MarkEquipmentOutOfServiceResource resource) {
         var command = EquipmentMarkOutOfServiceFromResourceAssembler.toCommandFromResource(resource);
         var result = commandService.handle(command);
@@ -82,6 +85,7 @@ public class EquipmentsController {
 
 
     @PatchMapping("/{equipmentId}/status")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> UpdateEquipmentStatus(@RequestBody UpdateEquipmentStatusResource resource) {
         var command = UpdateEquipmentStatusCommandFromResourceAssembler.toCommandFromResource(resource);
         var result = commandService.handle(command);
@@ -95,6 +99,7 @@ public class EquipmentsController {
     }
 
     @PatchMapping("/{equipmentId}/relocate")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> relocateEquipment(@PathVariable String equipmentId, @RequestBody RelocateEquipmentResource resource) {
         var command = RelocateEquipmentCommandFromResourceAssembler.toCommandFromResource(equipmentId, resource);
         var result = commandService.handle(command);
@@ -107,6 +112,7 @@ public class EquipmentsController {
     }
 
     @PatchMapping("/{equipmentId}/decomission")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> decomissionEquipment(@RequestBody DecomissionEquipmentResource resource) {
         var command = DecomissionEquipmentCommandFromResourceAssembler.toCommandFromResource(resource);
         var result = commandService.handle(command);
@@ -119,6 +125,7 @@ public class EquipmentsController {
     }
 
     @PatchMapping("/{equipmentId}/maintenance-threshold")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> defineMaintenanceThreshold(@RequestBody DefineMaintenanceThresholdResource resource){
         var command = DefineMaintenanceThresholdCommandFromResourceAssembler.toCommandFromResource(resource);
         var result = commandService.handle(command);

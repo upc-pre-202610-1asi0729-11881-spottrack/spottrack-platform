@@ -7,7 +7,7 @@ import com.spottrack.platform.shared.domain.model.valueobjects.Money;
 
 public class CreateMembershipCommandFromResourceAssembler {
 
-    public static CreateMembershipCommand toCommand(CreateMembershipResource resource) {
+    public static CreateMembershipCommand toCommandFromResource(CreateMembershipResource resource) {
         return new CreateMembershipCommand(
                 resource.clientId(),
                 MembershipTier.valueOf(resource.membershipTier()),

@@ -7,6 +7,7 @@ import com.spottrack.platform.analytics.interfaces.rest.transform.MaintenanceQuo
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -19,6 +20,7 @@ public class MaintenanceQuotesController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<MaintenanceQuoteResource> createQuote(@RequestBody RequestADetailedMaintenanceQuoteCommand command) {
         var quote = maintenanceQuoteCommandService.handle(command);
         return quote.map(value -> new ResponseEntity<>(MaintenanceQuoteResourceFromEntityAssembler.toResourceFromEntity(value), HttpStatus.CREATED))
