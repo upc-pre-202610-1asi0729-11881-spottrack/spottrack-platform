@@ -33,6 +33,7 @@ import com.spottrack.platform.shared.application.result.Result;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -47,6 +48,7 @@ public class MaintenanceController {
     }
 
     @PostMapping("/requests")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> requestMaintenance(@RequestBody RequestMaintenanceResource resource) {
         var command = RequestMaintenanceCommandFromResourceAssembler.toCommandFromResource(resource);
         var result = commandService.handle(command);
@@ -60,6 +62,7 @@ public class MaintenanceController {
     }
 
     @PostMapping("/tickets")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> createTechnicalTicket(@RequestBody CreateTechnicalTicketResource resource) {
         var command = CreateTechnicalTicketCommandFromResourceAssembler.toCommandFromResource(resource);
         var result = commandService.handle(command);
@@ -73,6 +76,7 @@ public class MaintenanceController {
     }
 
     @PatchMapping("/tickets/{ticketId}/assign/{technicianId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> assignTechnicalTicket(@PathVariable String ticketId, @PathVariable String technicianId) {
         var command = new AssignTechnicalTicket(new TechnicalTicketId(ticketId), technicianId);
         var result = commandService.handle(command);
@@ -85,6 +89,7 @@ public class MaintenanceController {
     }
 
     @PatchMapping("/jobs/{jobId}/accept/{technicianId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> acceptMaintenance(@PathVariable String jobId, @PathVariable String technicianId) {
         var command = new AcceptMaintenance(new MaintenanceJobId(jobId), technicianId);
         var result = commandService.handle(command);
@@ -97,6 +102,7 @@ public class MaintenanceController {
     }
 
     @PatchMapping("/tickets/{ticketId}/complete")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> completeMaintenance(@PathVariable String ticketId) {
         var command = new CompleteMaintenance(new TechnicalTicketId(ticketId));
         var result = commandService.handle(command);
@@ -109,6 +115,7 @@ public class MaintenanceController {
     }
 
     @PatchMapping("/tickets/{ticketId}/status")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> modifyTicketStatus(@PathVariable String ticketId, @RequestBody ModifyTicketStatusResource resource) {
         var command = new com.spottrack.platform.maintenance.domain.model.commands.ModifyTicketStatus(
                 new TechnicalTicketId(ticketId), resource.newStatus());
@@ -122,6 +129,7 @@ public class MaintenanceController {
     }
 
     @PostMapping("/tickets/{ticketId}/completion-log")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> registerMaintenanceCompletion(
             @PathVariable String ticketId,
             @RequestBody RegisterMaintenanceCompletionResource resource) {
@@ -140,6 +148,7 @@ public class MaintenanceController {
     }
 
     @PatchMapping("/tickets/{ticketId}/maintenance-status/request")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> requestUpdateMaintenanceStatus(
             @PathVariable String ticketId,
             @RequestBody UpdateMaintenanceStatusResource resource) {
@@ -154,6 +163,7 @@ public class MaintenanceController {
     }
 
     @PatchMapping("/tickets/{ticketId}/maintenance-status")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> updateMaintenanceStatus(
             @PathVariable String ticketId,
             @RequestBody UpdateMaintenanceStatusResource resource) {
@@ -168,6 +178,7 @@ public class MaintenanceController {
     }
 
     @DeleteMapping("/equipment/{equipmentId}/decommission")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> decommissionEquipment(
             @PathVariable String equipmentId,
             @RequestBody DecommissionEquipmentResource resource) {
@@ -182,6 +193,7 @@ public class MaintenanceController {
     }
 
     @PostMapping("/equipment/{equipmentId}/transfer-recommendation")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> recommendEquipmentTransfer(
             @PathVariable String equipmentId,
             @RequestBody DecommissionEquipmentResource resource) {
