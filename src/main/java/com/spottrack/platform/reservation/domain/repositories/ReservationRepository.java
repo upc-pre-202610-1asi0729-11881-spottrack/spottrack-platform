@@ -11,6 +11,7 @@ public interface ReservationRepository {
     Optional<Reservation> findByUuid(String Id);
     Optional<Reservation> findById(Long Id);
     List<Reservation> findAll();
+    List<Reservation> findByClientId(Long clientId);
     boolean existsByClientIdAndStatus(Long clientId, ReservationStatus status);
     Reservation save(Reservation reservation);
     Optional<Reservation> findByStatus(ReservationStatus status);
