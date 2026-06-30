@@ -87,7 +87,10 @@ public class UserCommandServiceImpl implements UserCommandService {
         if (!hashingService.matches(command.password(), user.getPassword())) {
             return Result.failure(ApplicationError.validationError("credentials", "Invalid credentials"));
         }
-        String token = tokenService.generateToken(user.getUsername());
+        List<String> roleNames = user.getRoles().stream()
+                .map(Role::getStringName)
+                .toList();
+        String token = tokenService.generateToken(user.getUsername(), roleNames);
         return Result.success(ImmutablePair.of(user, token));
     }
 
