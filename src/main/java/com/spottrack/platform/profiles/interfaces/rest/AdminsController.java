@@ -1,8 +1,10 @@
 package com.spottrack.platform.profiles.interfaces.rest;
 
+import com.spottrack.platform.iam.interfaces.acl.IamContextFacade;
 import com.spottrack.platform.profiles.application.commandservices.AdminCommandService;
 import com.spottrack.platform.profiles.application.queryservices.AdminQueryService;
 import com.spottrack.platform.profiles.domain.model.queries.GetAdminByIdQuery;
+import com.spottrack.platform.profiles.domain.model.queries.GetAdminByUserIdQuery;
 import com.spottrack.platform.profiles.domain.model.valueobjects.AdminId;
 import com.spottrack.platform.profiles.interfaces.rest.resources.AdminResource;
 import com.spottrack.platform.profiles.interfaces.rest.resources.CreateAdminResource;
@@ -24,6 +26,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -33,16 +36,21 @@ public class AdminsController {
 
     private final AdminCommandService adminCommandService;
     private final AdminQueryService adminQueryService;
+    private final IamContextFacade iamContextFacade;
 
-    public AdminsController(AdminCommandService adminCommandService, AdminQueryService adminQueryService) {
+    public AdminsController(
+            AdminCommandService adminCommandService,
+            AdminQueryService adminQueryService,
+            IamContextFacade iamContextFacade) {
         this.adminCommandService = adminCommandService;
         this.adminQueryService = adminQueryService;
+        this.iamContextFacade = iamContextFacade;
     }
 
     @PostMapping
     @Operation(
             summary = "Create a new admin",
-            description = "Creates a new admin profile with personal and contact information."
+            description = "Creates a new admin profile for the authenticated user."
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -51,15 +59,87 @@ public class AdminsController {
                     content = @Content(schema = @Schema(implementation = AdminResource.class))
             ),
             @ApiResponse(responseCode = "400", description = "Invalid input data"),
+            @ApiResponse(responseCode = "404", description = "Authenticated user not found in IAM"),
             @ApiResponse(responseCode = "409", description = "Conflict - admin already exists")
     })
-    public ResponseEntity<?> createAdmin(@Valid @RequestBody CreateAdminResource resource) {
-        var command = CreateAdminCommandFromResourceAssembler.toCommandFromResource(resource);
+    public ResponseEntity<?> createAdmin(
+            Authentication authentication,
+            @Valid @RequestBody CreateAdminResource resource) {
+        var optionalUserId = iamContextFacade.fetchUserIdByUsername(authentication.getName());
+        if (optionalUserId.isEmpty()) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.notFound("User", authentication.getName()));
+        }
+        var command = CreateAdminCommandFromResourceAssembler.toCommandFromResource(resource, optionalUserId.get());
         var result = adminCommandService.handle(command);
         return ResponseEntityAssembler.toResponseEntityFromResult(
                 result,
                 AdminResourceFromEntityAssembler::toResourceFromEntity,
                 HttpStatus.CREATED
+        );
+    }
+
+    @GetMapping("/me")
+    @Operation(
+            summary = "Get my admin profile",
+            description = "Retrieves the admin profile of the currently authenticated user."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Profile found",
+                    content = @Content(schema = @Schema(implementation = AdminResource.class))
+            ),
+            @ApiResponse(responseCode = "404", description = "Profile not found")
+    })
+    public ResponseEntity<?> getMyProfile(Authentication authentication) {
+        var optionalUserId = iamContextFacade.fetchUserIdByUsername(authentication.getName());
+        if (optionalUserId.isEmpty()) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.notFound("User", authentication.getName()));
+        }
+        var admin = adminQueryService.handle(new GetAdminByUserIdQuery(optionalUserId.get()));
+        if (admin.isEmpty()) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.notFound("Admin", "userId:" + optionalUserId.get()));
+        }
+        return ResponseEntity.ok(AdminResourceFromEntityAssembler.toResourceFromEntity(admin.get()));
+    }
+
+    @PutMapping("/me")
+    @Operation(
+            summary = "Update my admin profile",
+            description = "Updates personal data (name, phone number, DNI) for the currently authenticated admin."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Profile updated successfully",
+                    content = @Content(schema = @Schema(implementation = AdminResource.class))
+            ),
+            @ApiResponse(responseCode = "400", description = "Invalid input data"),
+            @ApiResponse(responseCode = "404", description = "Profile not found")
+    })
+    public ResponseEntity<?> updateMyProfile(
+            Authentication authentication,
+            @Valid @RequestBody UpdateAdminProfileResource resource) {
+        var optionalUserId = iamContextFacade.fetchUserIdByUsername(authentication.getName());
+        if (optionalUserId.isEmpty()) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.notFound("User", authentication.getName()));
+        }
+        var admin = adminQueryService.handle(new GetAdminByUserIdQuery(optionalUserId.get()));
+        if (admin.isEmpty()) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.notFound("Admin", "userId:" + optionalUserId.get()));
+        }
+        var command = UpdateAdminProfileCommandFromResourceAssembler
+                .toCommandFromResource(admin.get().getId(), resource);
+        var result = adminCommandService.handle(command);
+        return ResponseEntityAssembler.toResponseEntityFromResult(
+                result,
+                AdminResourceFromEntityAssembler::toResourceFromEntity,
+                HttpStatus.OK
         );
     }
 
