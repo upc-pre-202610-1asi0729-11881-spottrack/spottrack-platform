@@ -16,6 +16,7 @@ import com.spottrack.platform.shared.application.result.Result;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -31,6 +32,7 @@ public class GymController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> createGym(@RequestBody CreateGymResource resource) {
         var command = CreateGymCommandFromResourceAssembler.toCommandFromResource(resource);
         var result = commandService.handle(command);
@@ -43,6 +45,7 @@ public class GymController {
     }
 
     @PostMapping("/{gymId}/branches")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> addBranch(@PathVariable String gymId, @RequestBody AddBranchResource resource) {
         var gym = gymQueryService.handle(new GetGymById(new GymId(gymId)));
         if (gym.isEmpty()) return ResponseEntity.notFound().build();
@@ -58,6 +61,7 @@ public class GymController {
 
 
     @PostMapping("/{gymId}/branches/{branchId}/zones")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> addZone(@RequestBody AddZoneResource resource){
         var command = AddZoneCommandFromResourceAssembler.toCommandFromResource(resource);
         var result = commandService.handle(command);
