@@ -1,12 +1,9 @@
 package com.spottrack.platform.membership.application.internal.eventhandlers;
 
-import com.spottrack.platform.membership.application.commandservices.MembershipCommandService;
 import com.spottrack.platform.membership.domain.model.aggregates.Membership;
-import com.spottrack.platform.membership.domain.model.commands.ActivateMembershipCommand;
 import com.spottrack.platform.membership.domain.model.commands.CreateMembershipCommand;
 import com.spottrack.platform.membership.domain.model.events.PaymentConfirmedEvent;
-import com.spottrack.platform.shared.application.result.ApplicationError;
-import com.spottrack.platform.shared.application.result.Result;
+import com.spottrack.platform.membership.domain.repositories.MembershipRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -17,10 +14,10 @@ import java.time.LocalDate;
 @Service
 public class PaymentConfirmedEventHandler {
 
-    private final MembershipCommandService membershipCommandService;
+    private final MembershipRepository membershipRepository;
 
-    PaymentConfirmedEventHandler(MembershipCommandService membershipCommandService) {
-        this.membershipCommandService = membershipCommandService;
+    PaymentConfirmedEventHandler(MembershipRepository membershipRepository) {
+        this.membershipRepository = membershipRepository;
     }
 
     @EventListener
@@ -32,7 +29,7 @@ public class PaymentConfirmedEventHandler {
             var startDate = LocalDate.now();
             var endDate = startDate.plusDays(30);
 
-            var createCommand = new CreateMembershipCommand(
+            var command = new CreateMembershipCommand(
                     event.userId(),
                     event.membershipTier(),
                     event.amount(),
@@ -40,30 +37,20 @@ public class PaymentConfirmedEventHandler {
                     endDate
             );
 
-            var createResult = membershipCommandService.handle(createCommand);
+            // Create membership (initially PENDING_ACTIVATION per domain rules)
+            Membership membership = membershipRepository.save(new Membership(command));
+            log.info("Membership {} created for user {}, activating", membership.getMembershipId(), event.userId());
 
-            if (createResult instanceof Result.Failure<?, ?> failure && failure.error() instanceof ApplicationError error) {
-                log.error("Failed to create membership after payment {} confirmed for user {}: {}",
-                        event.paymentId(), event.userId(), error.message());
-                return;
-            }
+            // Activate immediately — payment is already confirmed, no further check needed
+            membership.activate();
+            membershipRepository.save(membership);
 
-            var membership = ((Result.Success<Membership, ?>) createResult).value();
-            log.info("Membership {} created for user {}, activating now", membership.getMembershipId(), event.userId());
+            log.info("Membership {} is now ACTIVE for user {} (payment {})",
+                    membership.getMembershipId(), event.userId(), event.paymentId());
 
-            var activateCommand = new ActivateMembershipCommand(membership.getMembershipId());
-            var activateResult = membershipCommandService.handle(activateCommand);
-
-            if (activateResult instanceof Result.Failure<?, ?> failure && failure.error() instanceof ApplicationError error) {
-                log.error("Membership created but activation failed for payment {} user {}: {}",
-                        event.paymentId(), event.userId(), error.message());
-            } else {
-                log.info("Membership {} activated for user {} after payment {} confirmed",
-                        membership.getMembershipId(), event.userId(), event.paymentId());
-            }
         } catch (Exception e) {
-            log.error("Unexpected error in PaymentConfirmedEventHandler for payment {} user {}: {} - {}",
-                    event.paymentId(), event.userId(), e.getClass().getSimpleName(), e.getMessage(), e);
+            log.error("Error in PaymentConfirmedEventHandler for payment {} user {}: {}",
+                    event.paymentId(), event.userId(), e.getMessage(), e);
         }
     }
 }
