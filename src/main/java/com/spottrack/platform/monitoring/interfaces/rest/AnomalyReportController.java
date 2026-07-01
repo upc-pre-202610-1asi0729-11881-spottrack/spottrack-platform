@@ -3,7 +3,9 @@ package com.spottrack.platform.monitoring.interfaces.rest;
 import com.spottrack.platform.monitoring.application.commandservices.AnomalyReportCommandService;
 import com.spottrack.platform.monitoring.application.queryservices.AnomalyReportQueryService;
 import com.spottrack.platform.monitoring.domain.model.aggregates.AnomalyReport;
+import com.spottrack.platform.monitoring.domain.model.commands.ResolveAnomalyReportCommand;
 import com.spottrack.platform.monitoring.domain.model.queries.GetAnomalyReportsQuery;
+import com.spottrack.platform.monitoring.domain.model.valueobjects.AnomalyReportId;
 import com.spottrack.platform.monitoring.interfaces.rest.resources.ReportAnomalyResource;
 import com.spottrack.platform.monitoring.interfaces.rest.transform.AnomalyReportResponseResourceFromEntityAssembler;
 import com.spottrack.platform.monitoring.interfaces.rest.transform.ReportAnomalyCommandFromResourceAssembler;
@@ -52,6 +54,18 @@ public class AnomalyReportController {
             case Result.Success<AnomalyReport, ApplicationError> s ->
                     ResponseEntity.status(HttpStatus.CREATED)
                             .body(AnomalyReportResponseResourceFromEntityAssembler.toResourceFromEntity(s.value()));
+            case Result.Failure<AnomalyReport, ApplicationError> f ->
+                    ResponseEntity.badRequest().body(f.error());
+        };
+    }
+
+    @PatchMapping("/anomaly-reports/{anomalyReportId}/resolve")
+    public ResponseEntity<?> resolveAnomalyReport(@PathVariable String anomalyReportId) {
+        var command = new ResolveAnomalyReportCommand(new AnomalyReportId(anomalyReportId));
+        var result = anomalyReportCommandService.handle(command);
+        return switch (result) {
+            case Result.Success<AnomalyReport, ApplicationError> s ->
+                    ResponseEntity.ok(AnomalyReportResponseResourceFromEntityAssembler.toResourceFromEntity(s.value()));
             case Result.Failure<AnomalyReport, ApplicationError> f ->
                     ResponseEntity.badRequest().body(f.error());
         };
