@@ -7,7 +7,6 @@ import com.spottrack.platform.membership.domain.model.commands.InitiateBusinessP
 import com.spottrack.platform.membership.domain.model.valueobjects.MembershipTier;
 import com.spottrack.platform.membership.interfaces.rest.resources.BusinessRegistrationResource;
 import com.spottrack.platform.membership.interfaces.rest.resources.BusinessRegistrationResponse;
-import com.spottrack.platform.shared.domain.model.valueobjects.Money;
 import com.spottrack.platform.shared.interfaces.rest.transform.ResponseEntityAssembler;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -52,12 +51,14 @@ public class BusinessRegistrationController {
                 resource.membershipTier()
         );
 
+        var tier = MembershipTier.valueOf(resource.membershipTier());
+
         var result = iamContextFacade.savePendingRegistration(savePendingCommand)
                 .flatMap(pendingId -> {
                     var paymentCommand = new InitiateBusinessPaymentCommand(
                             pendingId,
-                            MembershipTier.valueOf(resource.membershipTier()),
-                            new Money(resource.amount(), resource.currency())
+                            tier,
+                            tier.toMoney()
                     );
                     return paymentCommandService.handle(paymentCommand)
                             .map(checkoutUrl -> new BusinessRegistrationResponse(checkoutUrl, pendingId.toString()));
