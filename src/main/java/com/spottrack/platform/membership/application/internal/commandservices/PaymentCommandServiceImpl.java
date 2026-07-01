@@ -4,6 +4,7 @@ import com.spottrack.platform.membership.application.commandservices.PaymentComm
 import com.spottrack.platform.membership.domain.model.aggregates.Payment;
 import com.spottrack.platform.membership.domain.model.commands.ConfirmPaymentCommand;
 import com.spottrack.platform.membership.domain.model.commands.FailPaymentCommand;
+import com.spottrack.platform.membership.domain.model.commands.InitiateBusinessPaymentCommand;
 import com.spottrack.platform.membership.domain.model.commands.PayMembershipCommand;
 import com.spottrack.platform.membership.domain.repositories.PaymentRepository;
 import com.spottrack.platform.shared.application.result.ApplicationError;
@@ -61,6 +62,42 @@ public class PaymentCommandServiceImpl implements PaymentCommandService {
             return Result.failure(ApplicationError.validationError("Payment", e.getMessage()));
         } catch (Exception e) {
             return Result.failure(ApplicationError.unexpected("Payment recording", e.getMessage()));
+        }
+    }
+
+    @Override
+    public Result<String, ApplicationError> handle(InitiateBusinessPaymentCommand command) {
+        try {
+            var payment = new Payment(command);
+            var saved = paymentRepository.save(payment);
+
+            var params = SessionCreateParams.builder()
+                    .setMode(SessionCreateParams.Mode.PAYMENT)
+                    .setSuccessUrl(successUrl + "?session_id={CHECKOUT_SESSION_ID}")
+                    .setCancelUrl(cancelUrl)
+                    .addLineItem(SessionCreateParams.LineItem.builder()
+                            .setQuantity(1L)
+                            .setPriceData(SessionCreateParams.LineItem.PriceData.builder()
+                                    .setCurrency(command.amount().currency().toLowerCase())
+                                    .setUnitAmount(command.amount().amount().longValueExact() * 100L)
+                                    .setProductData(SessionCreateParams.LineItem.PriceData.ProductData.builder()
+                                            .setName("SpotTrack Membership: " + command.membershipTier().name())
+                                            .build())
+                                    .build())
+                            .build())
+                    .putMetadata("paymentId", saved.getPaymentId().uuid().toString())
+                    .putMetadata("pendingRegistrationId", command.pendingRegistrationId().toString())
+                    .build();
+
+            Session session = Session.create(params);
+            return Result.success(session.getUrl());
+
+        } catch (StripeException e) {
+            return Result.failure(ApplicationError.unexpected("Stripe session creation", e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            return Result.failure(ApplicationError.validationError("BusinessPayment", e.getMessage()));
+        } catch (Exception e) {
+            return Result.failure(ApplicationError.unexpected("Business payment recording", e.getMessage()));
         }
     }
 
