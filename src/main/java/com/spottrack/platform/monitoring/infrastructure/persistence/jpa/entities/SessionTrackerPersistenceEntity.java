@@ -7,8 +7,6 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name="session_trackers")
@@ -40,9 +38,5 @@ public class SessionTrackerPersistenceEntity {
     LocalTime continuousActivity;
     @Column
     LocalDateTime lastActivityAt;
-
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "session_tracker_id")
-    private List<AnomalyReportPersistenceEntity> anomalyReports = new ArrayList<>();
 
 }

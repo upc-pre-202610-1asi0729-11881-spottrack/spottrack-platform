@@ -1,6 +1,8 @@
 package com.spottrack.platform.monitoring.domain.model.aggregates;
 
+import com.spottrack.platform.monitoring.domain.model.commands.ReportAnomalyManuallyCommand;
 import com.spottrack.platform.monitoring.domain.model.valueobjects.AnomalyReportId;
+import com.spottrack.platform.monitoring.domain.model.valueobjects.AnomalyType;
 import com.spottrack.platform.monitoring.domain.model.valueobjects.SessionTrackerId;
 import com.spottrack.platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
 import lombok.Getter;
@@ -16,18 +18,18 @@ public class AnomalyReport extends AbstractDomainAggregateRoot<AnomalyReport> {
     private Long persistenceId;
     private AnomalyReportId anomalyReportId;
     private SessionTrackerId sessionTrackerId;
-    private String anomalyType;
+    private AnomalyType anomalyType;
     private String description;
     private LocalDateTime reportedAt;
     private boolean resolved;
 
     protected AnomalyReport() {}
 
-    public AnomalyReport(SessionTrackerId sessionTrackerId, String anomalyType, String description) {
+    public AnomalyReport(ReportAnomalyManuallyCommand command) {
         this.anomalyReportId = new AnomalyReportId(UUID.randomUUID().toString());
-        this.sessionTrackerId = sessionTrackerId;
-        this.anomalyType = anomalyType;
-        this.description = description;
+        this.sessionTrackerId = command.sessionTrackerId();
+        this.anomalyType = command.anomalyType();
+        this.description = command.description();
         this.reportedAt = LocalDateTime.now();
         this.resolved = false;
     }
@@ -36,8 +38,8 @@ public class AnomalyReport extends AbstractDomainAggregateRoot<AnomalyReport> {
                          String anomalyType, String description, LocalDateTime reportedAt, boolean resolved) {
         this.persistenceId = persistenceId;
         this.anomalyReportId = new AnomalyReportId(anomalyReportId);
-        this.sessionTrackerId = sessionTrackerId != null ? new SessionTrackerId(sessionTrackerId) : null;
-        this.anomalyType = anomalyType;
+        this.sessionTrackerId = new SessionTrackerId(sessionTrackerId);
+        this.anomalyType = AnomalyType.valueOf(anomalyType);
         this.description = description;
         this.reportedAt = reportedAt;
         this.resolved = resolved;
