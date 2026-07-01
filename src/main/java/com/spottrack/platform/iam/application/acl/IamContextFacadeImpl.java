@@ -13,6 +13,7 @@ import com.spottrack.platform.iam.domain.repositories.PendingRegistrationReposit
 import com.spottrack.platform.iam.interfaces.acl.IamContextFacade;
 import com.spottrack.platform.iam.interfaces.acl.dto.PendingRegistrationDto;
 import com.spottrack.platform.iam.interfaces.acl.dto.ProvisionedAccountDto;
+import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
