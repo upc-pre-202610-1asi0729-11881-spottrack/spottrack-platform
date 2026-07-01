@@ -44,7 +44,7 @@ public class SessionTrackerCommandServiceImpl implements SessionTrackerCommandSe
           return Result.success(saved);
       }
       catch (IllegalArgumentException exception) {
-          return Result.failure(ApplicationError.validationError("sessionTracier", exception.getMessage()));
+          return Result.failure(ApplicationError.validationError("sessionTracker", exception.getMessage()));
       }
       catch (Exception e) {
           return Result.failure(ApplicationError.validationError("sessionTracker", e.getMessage()));
