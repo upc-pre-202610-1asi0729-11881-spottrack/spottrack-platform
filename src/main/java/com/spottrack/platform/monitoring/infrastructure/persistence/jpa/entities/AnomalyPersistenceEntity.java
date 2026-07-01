@@ -23,21 +23,20 @@ import java.time.LocalDate;
 @Setter
 public class AnomalyPersistenceEntity extends AuditableAbstractPersistenceEntity {
 
-    @Embedded
     @Convert(converter = AnomalyIdPersistenceConverter.class)
+    @Column(nullable = false, unique = true)
     private AnomalyId anomalyId;
 
-    @Embedded
+    @Column(nullable = false, unique = true)
     @Convert(converter = ReservationIdPersistenceConverter.class)
     private ReservationId reservationId;
 
-    @Embedded
     @Convert(converter = EquipmentIdPersistenceConverter.class)
+    @Column(nullable = false, unique = true)
     private EquipmentId equipmentId;
 
-
-    @Embedded
     @Convert(converter = ZoneIdPersistenceConverter.class)
+    @Column(nullable = false, unique = true)
     private ZoneId zoneId;
 
     @Column(nullable = false)

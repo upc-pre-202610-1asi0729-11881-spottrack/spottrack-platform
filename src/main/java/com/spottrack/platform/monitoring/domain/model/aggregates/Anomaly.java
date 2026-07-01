@@ -35,7 +35,7 @@ public class Anomaly extends AbstractDomainAggregateRoot<Anomaly> {
     }
 
     public Anomaly(ReportAnomalyCommand command){
-        this.id = 0L;
+        this.id = null;
         this.anomalyId = new AnomalyId();
         this.reservationId = new ReservationId(command.reservationId());
         this.equipmentId = new EquipmentId(command.equipmentId());
