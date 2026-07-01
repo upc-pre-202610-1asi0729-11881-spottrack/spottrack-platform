@@ -4,6 +4,7 @@ import com.spottrack.platform.monitoring.application.commandservices.AnomalyRepo
 import com.spottrack.platform.monitoring.application.queryservices.AnomalyReportQueryService;
 import com.spottrack.platform.monitoring.domain.model.aggregates.AnomalyReport;
 import com.spottrack.platform.monitoring.domain.model.commands.ResolveAnomalyReportCommand;
+import com.spottrack.platform.monitoring.domain.model.queries.GetAnomalyReportsBySessionTrackerQuery;
 import com.spottrack.platform.monitoring.domain.model.queries.GetAnomalyReportsQuery;
 import com.spottrack.platform.monitoring.domain.model.valueobjects.AnomalyReportId;
 import com.spottrack.platform.monitoring.interfaces.rest.resources.ReportAnomalyResource;
@@ -36,6 +37,20 @@ public class AnomalyReportController {
     @GetMapping("/anomaly-reports")
     public ResponseEntity<?> getAnomalyReports() {
         var result = anomalyReportQueryService.handle(new GetAnomalyReportsQuery());
+        return switch (result) {
+            case Result.Success<List<AnomalyReport>, ApplicationError> s ->
+                    ResponseEntity.ok(s.value().stream()
+                            .map(AnomalyReportResponseResourceFromEntityAssembler::toResourceFromEntity)
+                            .toList());
+            case Result.Failure<List<AnomalyReport>, ApplicationError> f ->
+                    ResponseEntity.badRequest().body(f.error());
+        };
+    }
+
+    @GetMapping("/anomaly-reports/session-tracker/{sessionTrackerId}")
+    public ResponseEntity<?> getAnomalyReportsBySessionTracker(@PathVariable String sessionTrackerId) {
+        var query = new GetAnomalyReportsBySessionTrackerQuery(sessionTrackerId);
+        var result = anomalyReportQueryService.handle(query);
         return switch (result) {
             case Result.Success<List<AnomalyReport>, ApplicationError> s ->
                     ResponseEntity.ok(s.value().stream()
