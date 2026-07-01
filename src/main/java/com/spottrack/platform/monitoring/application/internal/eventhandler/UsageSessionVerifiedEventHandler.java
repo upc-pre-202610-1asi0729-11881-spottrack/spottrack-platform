@@ -19,7 +19,6 @@ public class UsageSessionVerifiedEventHandler {
         this.sessionTrackerQueryService = sessionTrackerQueryService;
     }
 
-
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void on(UsageSessionVerifiedEvent event){
         /**
@@ -33,7 +32,7 @@ public class UsageSessionVerifiedEventHandler {
             var command = new EndUsageSessionCommand(event.sessionTrackerId());
             sessionTrackerCommandService.handle(command);
         }
-
-
     }
+
+
 }
