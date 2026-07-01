@@ -12,6 +12,8 @@ import java.util.Optional;
 @Repository
 public interface ClientPersistenceRepository extends JpaRepository<ClientPersistenceEntity, Long> {
 
+    Optional<ClientPersistenceEntity> findByUserId(Long userId);
+
     @Query("select c from ClientPersistenceEntity c where c.emailAddress = :emailAddress")
     Optional<ClientPersistenceEntity> findByEmailAddress(@Param("emailAddress") EmailAddress emailAddress);
 

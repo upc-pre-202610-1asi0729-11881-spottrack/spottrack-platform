@@ -7,6 +7,7 @@ import com.spottrack.platform.analytics.interfaces.rest.transform.ROIProjectionR
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -19,6 +20,7 @@ public class ROIProjectionsController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ROIProjectionResource> createROI(@RequestBody RequestRoiCommand command) {
         var roi = roiProjectionCommandService.handle(command);
         return roi.map(value -> new ResponseEntity<>(ROIProjectionResourceFromEntityAssembler.toResourceFromEntity(value), HttpStatus.CREATED))

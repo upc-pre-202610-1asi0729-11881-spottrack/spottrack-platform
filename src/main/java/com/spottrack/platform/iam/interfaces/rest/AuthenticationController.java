@@ -1,7 +1,9 @@
 package com.spottrack.platform.iam.interfaces.rest;
 
 import com.spottrack.platform.iam.application.commandservices.UserCommandService;
+import com.spottrack.platform.iam.domain.model.commands.SignUpCommand;
 import com.spottrack.platform.iam.interfaces.rest.resources.DeactivateAccountResource;
+import com.spottrack.platform.iam.interfaces.rest.resources.PublicSignUpResource;
 import com.spottrack.platform.iam.interfaces.rest.resources.ResetPasswordResource;
 import com.spottrack.platform.iam.interfaces.rest.resources.SignInResource;
 import com.spottrack.platform.iam.interfaces.rest.resources.SignOutResource;
@@ -18,7 +20,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/authentication")
@@ -43,7 +48,19 @@ public class AuthenticationController {
     }
 
     @PostMapping("/sign-up")
-    public ResponseEntity<?> signUp(@Valid @RequestBody SignUpResource resource) {
+    public ResponseEntity<?> signUp(@Valid @RequestBody PublicSignUpResource resource) {
+        var command = new SignUpCommand(resource.username(), resource.password(), List.of());
+        var result = userCommandService.handle(command);
+        return ResponseEntityAssembler.toResponseEntityFromResult(
+                result,
+                UserResourceFromEntityAssembler::toResourceFromEntity,
+                HttpStatus.CREATED
+        );
+    }
+
+    @PostMapping("/sign-up-staff")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> signUpStaff(@Valid @RequestBody SignUpResource resource) {
         var command = SignUpCommandFromResourceAssembler.toCommandFromResource(resource);
         var result = userCommandService.handle(command);
         return ResponseEntityAssembler.toResponseEntityFromResult(

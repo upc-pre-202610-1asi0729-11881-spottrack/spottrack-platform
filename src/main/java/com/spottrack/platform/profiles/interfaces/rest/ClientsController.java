@@ -1,8 +1,10 @@
 package com.spottrack.platform.profiles.interfaces.rest;
 
+import com.spottrack.platform.iam.interfaces.acl.IamContextFacade;
 import com.spottrack.platform.profiles.application.commandservices.ClientCommandService;
 import com.spottrack.platform.profiles.application.queryservices.ClientQueryService;
 import com.spottrack.platform.profiles.domain.model.queries.GetClientByIdQuery;
+import com.spottrack.platform.profiles.domain.model.queries.GetClientByUserIdQuery;
 import com.spottrack.platform.profiles.domain.model.valueobjects.ClientId;
 import com.spottrack.platform.profiles.interfaces.rest.resources.ClientResource;
 import com.spottrack.platform.profiles.interfaces.rest.resources.CreateClientResource;
@@ -24,6 +26,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -33,10 +36,15 @@ public class ClientsController {
 
     private final ClientCommandService clientCommandService;
     private final ClientQueryService clientQueryService;
+    private final IamContextFacade iamContextFacade;
 
-    public ClientsController(ClientCommandService clientCommandService, ClientQueryService clientQueryService) {
+    public ClientsController(
+            ClientCommandService clientCommandService,
+            ClientQueryService clientQueryService,
+            IamContextFacade iamContextFacade) {
         this.clientCommandService = clientCommandService;
         this.clientQueryService = clientQueryService;
+        this.iamContextFacade = iamContextFacade;
     }
 
     @PostMapping
@@ -60,6 +68,71 @@ public class ClientsController {
                 result,
                 ClientResourceFromEntityAssembler::toResourceFromEntity,
                 HttpStatus.CREATED
+        );
+    }
+
+    @GetMapping("/me")
+    @Operation(
+            summary = "Get my client profile",
+            description = "Retrieves the client profile of the currently authenticated user."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Profile found",
+                    content = @Content(schema = @Schema(implementation = ClientResource.class))
+            ),
+            @ApiResponse(responseCode = "404", description = "Profile not found")
+    })
+    public ResponseEntity<?> getMyProfile(Authentication authentication) {
+        var optionalUserId = iamContextFacade.fetchUserIdByUsername(authentication.getName());
+        if (optionalUserId.isEmpty()) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.notFound("User", authentication.getName()));
+        }
+        var query = new GetClientByUserIdQuery(optionalUserId.get());
+        var client = clientQueryService.handle(query);
+        if (client.isEmpty()) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.notFound("Client", "userId:" + optionalUserId.get()));
+        }
+        return ResponseEntity.ok(ClientResourceFromEntityAssembler.toResourceFromEntity(client.get()));
+    }
+
+    @PutMapping("/me")
+    @Operation(
+            summary = "Update my client profile",
+            description = "Updates personal data (name, phone number, DNI) for the currently authenticated client."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Profile updated successfully",
+                    content = @Content(schema = @Schema(implementation = ClientResource.class))
+            ),
+            @ApiResponse(responseCode = "400", description = "Invalid input data"),
+            @ApiResponse(responseCode = "404", description = "Profile not found")
+    })
+    public ResponseEntity<?> updateMyProfile(
+            Authentication authentication,
+            @Valid @RequestBody UpdateClientProfileResource resource) {
+        var optionalUserId = iamContextFacade.fetchUserIdByUsername(authentication.getName());
+        if (optionalUserId.isEmpty()) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.notFound("User", authentication.getName()));
+        }
+        var client = clientQueryService.handle(new GetClientByUserIdQuery(optionalUserId.get()));
+        if (client.isEmpty()) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.notFound("Client", "userId:" + optionalUserId.get()));
+        }
+        var command = UpdateClientProfileCommandFromResourceAssembler
+                .toCommandFromResource(client.get().getId(), resource);
+        var result = clientCommandService.handle(command);
+        return ResponseEntityAssembler.toResponseEntityFromResult(
+                result,
+                ClientResourceFromEntityAssembler::toResourceFromEntity,
+                HttpStatus.OK
         );
     }
 

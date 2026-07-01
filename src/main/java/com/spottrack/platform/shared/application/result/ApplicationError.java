@@ -72,4 +72,14 @@ public record ApplicationError(
                 "Unexpected error in %s".formatted(context),
                 reason);
     }
+
+    /**
+     * Forbidden error: caller does not own the requested resource
+     */
+    public static ApplicationError forbidden(String resource, String reason) {
+        return new ApplicationError(
+                "FORBIDDEN",
+                "Access denied to %s".formatted(resource),
+                reason);
+    }
 }
