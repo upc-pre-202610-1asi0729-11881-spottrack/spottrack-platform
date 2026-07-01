@@ -16,7 +16,7 @@ import java.time.LocalTime;
 
 @Getter
 @Setter
-public class SessionTracker extends AbstractDomainAggregateRoot {
+public class SessionTracker extends AbstractDomainAggregateRoot<SessionTracker> {
     /**
      * For security measures, we will use uuids as secondary Ids aside from the real DB Long Ids
      */

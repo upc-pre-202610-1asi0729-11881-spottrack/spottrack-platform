@@ -11,7 +11,6 @@ import com.spottrack.platform.monitoring.domain.model.queries.GetSessionTrackerB
 import com.spottrack.platform.monitoring.domain.model.valueobjects.SessionTrackerId;
 import com.spottrack.platform.monitoring.infrastructure.persistence.jpa.assemblers.SessionTrackerPersistenceAssembler;
 import com.spottrack.platform.monitoring.interfaces.rest.resources.CreateSessionTrackerResource;
-import com.spottrack.platform.monitoring.interfaces.rest.resources.SessionTrackerResource;
 import com.spottrack.platform.monitoring.interfaces.rest.transform.CreateSessionTrackerCommandFromResource;
 import com.spottrack.platform.monitoring.interfaces.rest.transform.SessionTrackerResourceFromEntity;
 import com.spottrack.platform.shared.application.result.ApplicationError;
@@ -24,7 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping
+@RequestMapping("/api/v1")
 @Tag(name="SessionTracker")
 public class SessionTrackerController {
     private final SessionTrackerCommandService sessionTrackerCommandService;
