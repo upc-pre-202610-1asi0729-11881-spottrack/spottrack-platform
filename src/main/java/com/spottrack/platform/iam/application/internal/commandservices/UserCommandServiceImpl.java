@@ -5,11 +5,13 @@ import com.spottrack.platform.iam.application.internal.outboundservices.hashing.
 import com.spottrack.platform.iam.application.internal.outboundservices.tokens.TokenService;
 import com.spottrack.platform.iam.domain.model.aggregates.User;
 import com.spottrack.platform.iam.domain.model.commands.DeactivateAccountCommand;
+import com.spottrack.platform.iam.domain.model.commands.ProvisionIamAccountCommand;
 import com.spottrack.platform.iam.domain.model.commands.ResetPasswordCommand;
 import com.spottrack.platform.iam.domain.model.commands.SignInCommand;
 import com.spottrack.platform.iam.domain.model.commands.SignOutCommand;
 import com.spottrack.platform.iam.domain.model.commands.SignUpCommand;
 import com.spottrack.platform.iam.domain.model.entities.Role;
+import com.spottrack.platform.iam.domain.repositories.PendingRegistrationRepository;
 import com.spottrack.platform.iam.domain.repositories.RoleRepository;
 import com.spottrack.platform.iam.domain.repositories.UserRepository;
 import com.spottrack.platform.iam.interfaces.events.RoleAssignedIntegrationEvent;
@@ -29,24 +31,34 @@ public class UserCommandServiceImpl implements UserCommandService {
     private final TokenService tokenService;
     private final RoleRepository roleRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final PendingRegistrationRepository pendingRegistrationRepository;
 
     public UserCommandServiceImpl(
             UserRepository userRepository,
             HashingService hashingService,
             TokenService tokenService,
             RoleRepository roleRepository,
-            ApplicationEventPublisher eventPublisher) {
+            ApplicationEventPublisher eventPublisher,
+            PendingRegistrationRepository pendingRegistrationRepository) {
         this.userRepository = userRepository;
         this.hashingService = hashingService;
         this.tokenService = tokenService;
         this.roleRepository = roleRepository;
         this.eventPublisher = eventPublisher;
+        this.pendingRegistrationRepository = pendingRegistrationRepository;
     }
 
     @Override
     public Result<User, ApplicationError> handle(SignUpCommand command) {
         if (userRepository.existsByUsername(command.username())) {
             return Result.failure(ApplicationError.conflict("USER", "Username already exists: " + command.username()));
+        }
+
+        if (pendingRegistrationRepository.existsActivePendingByEmail(command.username())) {
+            return Result.failure(ApplicationError.conflict(
+                    "USER",
+                    "A pending business registration exists for: " + command.username()
+            ));
         }
 
         List<Role> roles = Role.validateRoleSet(command.roles()).stream()
@@ -124,6 +136,24 @@ public class UserCommandServiceImpl implements UserCommandService {
         var user = userOptional.get();
         user.deactivate();
         var savedUser = userRepository.save(user);
+        return Result.success(savedUser);
+    }
+
+    @Override
+    public Result<User, ApplicationError> handle(ProvisionIamAccountCommand command) {
+        if (userRepository.existsByUsername(command.username())) {
+            return Result.failure(ApplicationError.conflict("USER", "Username already exists: " + command.username()));
+        }
+
+        List<Role> roles = Role.validateRoleSet(command.roles()).stream()
+                .map(role -> roleRepository.findByName(role.getName()).orElse(role))
+                .toList();
+
+        // alreadyHashedPassword is a BCrypt hash stored in pending_registrations.
+        // It must NOT be re-encoded here — doing so would produce a hash-of-hash
+        // that can never match the original password at sign-in time.
+        User user = new User(command.username(), command.alreadyHashedPassword(), roles);
+        User savedUser = userRepository.save(user);
         return Result.success(savedUser);
     }
 }

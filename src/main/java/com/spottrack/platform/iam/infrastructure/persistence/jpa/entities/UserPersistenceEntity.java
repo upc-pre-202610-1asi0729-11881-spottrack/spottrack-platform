@@ -9,6 +9,9 @@ import java.util.List;
 @Table(name = "users")
 public class UserPersistenceEntity extends AuditableAbstractPersistenceEntity {
 
+    // unique=true adds a DB-level UNIQUE KEY on top of the application-level existsByUsername check,
+    // closing the race-condition window that existed when only the application layer guarded uniqueness.
+    @Column(name = "username", unique = true)
     private String username;
     private String password;
     private boolean active = true;
