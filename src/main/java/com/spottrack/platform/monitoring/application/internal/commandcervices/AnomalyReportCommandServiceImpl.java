@@ -3,6 +3,7 @@ package com.spottrack.platform.monitoring.application.internal.commandcervices;
 import com.spottrack.platform.monitoring.application.commandservices.AnomalyReportCommandService;
 import com.spottrack.platform.monitoring.domain.model.aggregates.AnomalyReport;
 import com.spottrack.platform.monitoring.domain.model.commands.ReportAnomalyManuallyCommand;
+import com.spottrack.platform.monitoring.domain.model.commands.ResolveAnomalyReportCommand;
 import com.spottrack.platform.monitoring.domain.repositories.AnomalyReportRepository;
 import com.spottrack.platform.monitoring.domain.repositories.SessionTrackerRepository;
 import com.spottrack.platform.shared.application.result.ApplicationError;
@@ -30,6 +31,24 @@ public class AnomalyReportCommandServiceImpl implements AnomalyReportCommandServ
                 return Result.failure(ApplicationError.notFound("SessionTracker", command.sessionTrackerId().uuid()));
             }
             var saved = anomalyReportRepository.save(new AnomalyReport(command));
+            return Result.success(saved);
+        } catch (IllegalArgumentException e) {
+            return Result.failure(ApplicationError.validationError("anomaly", e.getMessage()));
+        } catch (Exception e) {
+            return Result.failure(ApplicationError.unexpected("anomaly", e.getMessage()));
+        }
+    }
+
+    @Override
+    public Result<AnomalyReport, ApplicationError> handle(ResolveAnomalyReportCommand command) {
+        try {
+            var report = anomalyReportRepository.findById(command.anomalyReportId());
+            if (report.isEmpty()) {
+                return Result.failure(ApplicationError.notFound("AnomalyReport", command.anomalyReportId().uuid()));
+            }
+            var anomalyReport = report.get();
+            anomalyReport.resolve();
+            var saved = anomalyReportRepository.save(anomalyReport);
             return Result.success(saved);
         } catch (IllegalArgumentException e) {
             return Result.failure(ApplicationError.validationError("anomaly", e.getMessage()));
