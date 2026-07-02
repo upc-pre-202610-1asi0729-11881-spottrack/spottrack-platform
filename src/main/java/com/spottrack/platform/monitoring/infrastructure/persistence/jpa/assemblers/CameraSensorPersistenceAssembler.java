@@ -5,14 +5,14 @@ import com.spottrack.platform.monitoring.infrastructure.persistence.jpa.entities
 
 public class CameraSensorPersistenceAssembler {
     public static CameraSensor toDomainFromPersistence(CameraSensorPersistenceEntity entity) {
-        return new CameraSensor(entity.getId(), entity.getCameraSensorId(), entity.getZoneId(), entity.getRegisteredAt());
+        return new CameraSensor(entity.getId(), entity.getCameraSensorId(), entity.getEquipmentId(), entity.getRegisteredAt());
     }
 
     public static CameraSensorPersistenceEntity toPersistenceFromDomain(CameraSensor domain) {
         var entity = new CameraSensorPersistenceEntity();
         entity.setId(domain.getId());
         entity.setCameraSensorId(domain.getCameraSensorId());
-        entity.setZoneId(domain.getZoneId());
+        entity.setEquipmentId(domain.getEquipmentId());
         entity.setRegisteredAt(domain.getRegisteredAt());
         return entity;
     }

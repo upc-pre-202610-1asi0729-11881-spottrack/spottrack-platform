@@ -1,7 +1,7 @@
 package com.spottrack.platform.monitoring.infrastructure.persistence.jpa.adapters;
 
 import com.spottrack.platform.monitoring.domain.model.aggregates.CameraSensor;
-import com.spottrack.platform.monitoring.domain.model.valueobjects.ZoneId;
+import com.spottrack.platform.monitoring.domain.model.valueobjects.EquipmentId;
 import com.spottrack.platform.monitoring.domain.repositories.CameraSensorRepository;
 import com.spottrack.platform.monitoring.infrastructure.persistence.jpa.assemblers.CameraSensorPersistenceAssembler;
 import com.spottrack.platform.monitoring.infrastructure.persistence.jpa.repositories.CameraSensorPersistenceRepository;
@@ -21,8 +21,8 @@ public class CameraSensorRepositoryImpl implements CameraSensorRepository {
     }
 
     @Override
-    public boolean existsByZoneId(ZoneId zoneId) {
-        return cameraSensorPersistenceRepository.existsByZoneId(zoneId);
+    public boolean existsByEquipmentId(EquipmentId equipmentId) {
+        return cameraSensorPersistenceRepository.existsByEquipmentId(equipmentId);
     }
 
     @Override
