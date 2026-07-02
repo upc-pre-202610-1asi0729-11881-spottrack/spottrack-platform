@@ -14,5 +14,6 @@ public record MembershipResource(
         LocalDate startDate,
         LocalDate endDate,
         String status,
-        boolean cancelAtPeriodEnd
+        boolean cancelAtPeriodEnd,
+        String pendingDowngradeTier
 ) {}
