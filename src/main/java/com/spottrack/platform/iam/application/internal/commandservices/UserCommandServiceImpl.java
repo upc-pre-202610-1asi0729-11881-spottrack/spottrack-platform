@@ -6,8 +6,10 @@ import com.spottrack.platform.iam.application.internal.outboundservices.tokens.T
 import com.spottrack.platform.iam.domain.model.aggregates.User;
 import com.spottrack.platform.iam.domain.model.commands.ChangePasswordCommand;
 import com.spottrack.platform.iam.domain.model.commands.DeactivateAccountCommand;
+import com.spottrack.platform.iam.domain.model.commands.ForgotPasswordVerifyCommand;
 import com.spottrack.platform.iam.domain.model.commands.ProvisionIamAccountCommand;
 import com.spottrack.platform.iam.domain.model.commands.SignInCommand;
+import com.spottrack.platform.profiles.interfaces.acl.ProfilesContextFacade;
 import com.spottrack.platform.iam.domain.model.commands.SignOutCommand;
 import com.spottrack.platform.iam.domain.model.commands.SignUpCommand;
 import com.spottrack.platform.iam.domain.model.entities.Role;
@@ -32,6 +34,7 @@ public class UserCommandServiceImpl implements UserCommandService {
     private final RoleRepository roleRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final PendingRegistrationRepository pendingRegistrationRepository;
+    private final ProfilesContextFacade profilesContextFacade;
 
     public UserCommandServiceImpl(
             UserRepository userRepository,
@@ -39,13 +42,15 @@ public class UserCommandServiceImpl implements UserCommandService {
             TokenService tokenService,
             RoleRepository roleRepository,
             ApplicationEventPublisher eventPublisher,
-            PendingRegistrationRepository pendingRegistrationRepository) {
+            PendingRegistrationRepository pendingRegistrationRepository,
+            ProfilesContextFacade profilesContextFacade) {
         this.userRepository = userRepository;
         this.hashingService = hashingService;
         this.tokenService = tokenService;
         this.roleRepository = roleRepository;
         this.eventPublisher = eventPublisher;
         this.pendingRegistrationRepository = pendingRegistrationRepository;
+        this.profilesContextFacade = profilesContextFacade;
     }
 
     @Override
@@ -116,6 +121,26 @@ public class UserCommandServiceImpl implements UserCommandService {
         if (!hashingService.matches(command.currentPassword(), user.getPassword())) {
             return Result.failure(ApplicationError.validationError("password", "Current password is incorrect."));
         }
+        user.setPassword(hashingService.encode(command.newPassword()));
+        return Result.success(userRepository.save(user));
+    }
+
+    @Override
+    public Result<User, ApplicationError> handle(ForgotPasswordVerifyCommand command) {
+        var genericError = ApplicationError.validationError("credentials",
+                "Verification failed. The provided information does not match our records.");
+
+        var userOptional = userRepository.findByUsername(command.email());
+        if (userOptional.isEmpty()) {
+            return Result.failure(genericError);
+        }
+
+        var storedDni = profilesContextFacade.fetchDniByEmail(command.email());
+        if (storedDni.isBlank() || !storedDni.equals(command.dni())) {
+            return Result.failure(genericError);
+        }
+
+        var user = userOptional.get();
         user.setPassword(hashingService.encode(command.newPassword()));
         return Result.success(userRepository.save(user));
     }

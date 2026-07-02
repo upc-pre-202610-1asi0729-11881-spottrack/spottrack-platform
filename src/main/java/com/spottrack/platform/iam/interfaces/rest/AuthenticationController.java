@@ -3,12 +3,15 @@ package com.spottrack.platform.iam.interfaces.rest;
 import com.spottrack.platform.iam.application.commandservices.UserCommandService;
 import com.spottrack.platform.iam.domain.model.commands.SignUpCommand;
 import com.spottrack.platform.iam.interfaces.rest.resources.DeactivateAccountResource;
+import com.spottrack.platform.iam.interfaces.rest.resources.ForgotPasswordResource;
+import com.spottrack.platform.iam.interfaces.rest.resources.ForgotPasswordVerifyResource;
 import com.spottrack.platform.iam.interfaces.rest.resources.PublicSignUpResource;
 import com.spottrack.platform.iam.interfaces.rest.resources.SignInResource;
 import com.spottrack.platform.iam.interfaces.rest.resources.SignOutResource;
 import com.spottrack.platform.iam.interfaces.rest.resources.SignUpResource;
 import com.spottrack.platform.iam.interfaces.rest.transform.AuthenticatedUserResourceFromEntityAssembler;
 import com.spottrack.platform.iam.interfaces.rest.transform.DeactivateAccountCommandFromResourceAssembler;
+import com.spottrack.platform.iam.interfaces.rest.transform.ForgotPasswordVerifyCommandFromResourceAssembler;
 import com.spottrack.platform.iam.interfaces.rest.transform.SignInCommandFromResourceAssembler;
 import com.spottrack.platform.iam.interfaces.rest.transform.SignOutCommandFromResourceAssembler;
 import com.spottrack.platform.iam.interfaces.rest.transform.SignUpCommandFromResourceAssembler;
@@ -20,6 +23,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 import java.util.List;
 
@@ -65,6 +70,27 @@ public class AuthenticationController {
                 result,
                 UserResourceFromEntityAssembler::toResourceFromEntity,
                 HttpStatus.CREATED
+        );
+    }
+
+    // Step 1: validate email format only — no DB query, no timing difference between
+    // existing and non-existing emails.
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordResource resource) {
+        return ResponseEntity.ok(Map.of("message",
+                "If an account exists for this email, you may proceed to verify your identity."));
+    }
+
+    // Step 2: verify DNI ownership and set new password. All failure paths return the
+    // same generic message to avoid leaking account existence.
+    @PostMapping("/forgot-password/verify")
+    public ResponseEntity<?> forgotPasswordVerify(@Valid @RequestBody ForgotPasswordVerifyResource resource) {
+        var command = ForgotPasswordVerifyCommandFromResourceAssembler.toCommandFromResource(resource);
+        var result = userCommandService.handle(command);
+        return ResponseEntityAssembler.toResponseEntityFromResult(
+                result,
+                UserResourceFromEntityAssembler::toResourceFromEntity,
+                HttpStatus.OK
         );
     }
 
