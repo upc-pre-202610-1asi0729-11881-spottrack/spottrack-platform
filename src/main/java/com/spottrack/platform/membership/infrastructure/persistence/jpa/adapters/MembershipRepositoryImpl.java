@@ -2,12 +2,14 @@ package com.spottrack.platform.membership.infrastructure.persistence.jpa.adapter
 
 import com.spottrack.platform.membership.domain.model.aggregates.Membership;
 import com.spottrack.platform.membership.domain.model.valueobjects.MembershipId;
+import com.spottrack.platform.membership.domain.model.valueobjects.MembershipStatus;
 import com.spottrack.platform.membership.domain.repositories.MembershipRepository;
 import com.spottrack.platform.membership.infrastructure.persistence.jpa.assemblers.MembershipPersistenceAssembler;
 import com.spottrack.platform.membership.infrastructure.persistence.jpa.repositories.MembershipPersistenceRepository;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -63,5 +65,13 @@ public class MembershipRepositoryImpl implements MembershipRepository {
     @Override
     public boolean existsByMembershipId(MembershipId membershipId) {
         return membershipPersistenceRepository.existsByMembershipId(membershipId.uuid().toString());
+    }
+
+    @Override
+    public List<Membership> findActiveExpiredBefore(LocalDate date) {
+        return membershipPersistenceRepository.findByStatusAndEndDateBefore(MembershipStatus.ACTIVE, date)
+                .stream()
+                .map(MembershipPersistenceAssembler::toDomainFromPersistence)
+                .toList();
     }
 }
