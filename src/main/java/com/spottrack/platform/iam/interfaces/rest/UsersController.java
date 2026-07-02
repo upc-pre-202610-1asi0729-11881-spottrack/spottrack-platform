@@ -4,7 +4,9 @@ import com.spottrack.platform.iam.application.commandservices.UserCommandService
 import com.spottrack.platform.iam.application.queryservices.UserQueryService;
 import com.spottrack.platform.iam.domain.model.queries.GetAllUsersQuery;
 import com.spottrack.platform.iam.domain.model.queries.GetUserByIdQuery;
+import com.spottrack.platform.iam.interfaces.rest.resources.ChangePasswordResource;
 import com.spottrack.platform.iam.interfaces.rest.resources.SignUpResource;
+import com.spottrack.platform.iam.interfaces.rest.transform.ChangePasswordCommandFromResourceAssembler;
 import com.spottrack.platform.iam.interfaces.rest.transform.SignUpCommandFromResourceAssembler;
 import com.spottrack.platform.iam.interfaces.rest.transform.UserResourceFromEntityAssembler;
 import com.spottrack.platform.shared.interfaces.rest.transform.ResponseEntityAssembler;
@@ -13,6 +15,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -49,6 +52,19 @@ public class UsersController {
                 .map(UserResourceFromEntityAssembler::toResourceFromEntity)
                 .toList();
         return ResponseEntity.ok(resources);
+    }
+
+    @PatchMapping("/me/password")
+    public ResponseEntity<?> changePassword(
+            @Valid @RequestBody ChangePasswordResource resource,
+            Authentication authentication) {
+        var command = ChangePasswordCommandFromResourceAssembler.toCommandFromResource(resource, authentication.getName());
+        var result = userCommandService.handle(command);
+        return ResponseEntityAssembler.toResponseEntityFromResult(
+                result,
+                UserResourceFromEntityAssembler::toResourceFromEntity,
+                HttpStatus.OK
+        );
     }
 
     @GetMapping("/{userId}")

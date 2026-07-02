@@ -4,6 +4,7 @@ import com.spottrack.platform.iam.application.commandservices.UserCommandService
 import com.spottrack.platform.iam.application.internal.outboundservices.hashing.HashingService;
 import com.spottrack.platform.iam.application.internal.outboundservices.tokens.TokenService;
 import com.spottrack.platform.iam.domain.model.aggregates.User;
+import com.spottrack.platform.iam.domain.model.commands.ChangePasswordCommand;
 import com.spottrack.platform.iam.domain.model.commands.DeactivateAccountCommand;
 import com.spottrack.platform.iam.domain.model.commands.ProvisionIamAccountCommand;
 import com.spottrack.platform.iam.domain.model.commands.SignInCommand;
@@ -103,6 +104,20 @@ public class UserCommandServiceImpl implements UserCommandService {
                 .toList();
         String token = tokenService.generateToken(user.getUsername(), roleNames);
         return Result.success(ImmutablePair.of(user, token));
+    }
+
+    @Override
+    public Result<User, ApplicationError> handle(ChangePasswordCommand command) {
+        var userOptional = userRepository.findByUsername(command.username());
+        if (userOptional.isEmpty()) {
+            return Result.failure(ApplicationError.notFound("USER", command.username()));
+        }
+        var user = userOptional.get();
+        if (!hashingService.matches(command.currentPassword(), user.getPassword())) {
+            return Result.failure(ApplicationError.validationError("password", "Current password is incorrect."));
+        }
+        user.setPassword(hashingService.encode(command.newPassword()));
+        return Result.success(userRepository.save(user));
     }
 
     @Override
