@@ -4,6 +4,7 @@ import com.spottrack.platform.monitoring.domain.model.commands.CreateSessionTrac
 import com.spottrack.platform.monitoring.domain.model.events.CameraMotionCapturedEvent;
 import com.spottrack.platform.monitoring.domain.model.events.MotionCapturedEvent;
 import com.spottrack.platform.monitoring.domain.model.events.SessionTimeCalculatedEvent;
+import com.spottrack.platform.monitoring.domain.model.events.UsageSessionEndedEvent;
 import com.spottrack.platform.monitoring.domain.model.events.UsageSessionVerifiedEvent;
 import com.spottrack.platform.monitoring.domain.model.valueobjects.ReservationId;
 import com.spottrack.platform.monitoring.domain.model.valueobjects.SessionTrackerId;
@@ -83,6 +84,7 @@ public class SessionTracker extends AbstractDomainAggregateRoot {
     public void endSession(){
         this.sessionIsActive= false;
         this.sessionIsInactive = true;
+        registerDomainEvent(new UsageSessionEndedEvent(this.sessionTrackerId));
     }
 
 
@@ -90,8 +92,8 @@ public class SessionTracker extends AbstractDomainAggregateRoot {
      * This is a simple calculation substracting the inactivity time to the actual continouous activity
      */
     public LocalTime calculateSessionTime() {
-        var activity = this.usageActivity.seconds();
-        var inactivity = Duration.between(lastActivityAt, this.usageActivity.seconds());
+        var activity = this.usageActivity.continuousActivity();
+        var inactivity = Duration.between(lastActivityAt, LocalDateTime.now());
 
         var trueActivity = activity.minus(inactivity);
         registerDomainEvent(new SessionTimeCalculatedEvent(this.sessionTrackerId, trueActivity));
