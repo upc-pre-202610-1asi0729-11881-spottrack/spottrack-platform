@@ -19,7 +19,8 @@ public final class MembershipPersistenceAssembler {
                 entity.getMembershipTier(),
                 entity.getPrice(),
                 new MembershipPeriod(entity.getStartDate(), entity.getEndDate()),
-                entity.getStatus()
+                entity.getStatus(),
+                entity.isCancelAtPeriodEnd()
         );
     }
 
@@ -33,6 +34,7 @@ public final class MembershipPersistenceAssembler {
         entity.setStartDate(membership.getMembershipPeriod().startDate());
         entity.setEndDate(membership.getMembershipPeriod().endDate());
         entity.setStatus(membership.getStatus());
+        entity.setCancelAtPeriodEnd(membership.isCancelAtPeriodEnd());
         return entity;
     }
 }
