@@ -27,16 +27,16 @@ public class AnomalyPersistenceEntity extends AuditableAbstractPersistenceEntity
     @Column(nullable = false, unique = true)
     private AnomalyId anomalyId;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     @Convert(converter = ReservationIdPersistenceConverter.class)
     private ReservationId reservationId;
 
     @Convert(converter = EquipmentIdPersistenceConverter.class)
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private EquipmentId equipmentId;
 
     @Convert(converter = ZoneIdPersistenceConverter.class)
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private ZoneId zoneId;
 
     @Column(nullable = false)
