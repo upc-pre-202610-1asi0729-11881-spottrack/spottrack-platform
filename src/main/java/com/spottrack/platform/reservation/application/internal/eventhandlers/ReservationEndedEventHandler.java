@@ -1,6 +1,7 @@
 package com.spottrack.platform.reservation.application.internal.eventhandlers;
 
 import com.spottrack.platform.reservation.domain.model.events.ReservationEndedEvent;
+import com.spottrack.platform.reservation.interfaces.events.EquipmentStatusChangeToAvailableRequestedIntegrationEvent;
 import com.spottrack.platform.reservation.interfaces.events.ReservationEndedIntegrationEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,5 +41,8 @@ public class ReservationEndedEventHandler {
 
         eventPublisher.publishEvent(new ReservationEndedIntegrationEvent(
                 event.reservationId(), event.equipmentId(), event.clientId()));
+
+        eventPublisher.publishEvent(new EquipmentStatusChangeToAvailableRequestedIntegrationEvent(
+                event.reservationId(), event.equipmentId(), "AVAILABLE"));
     }
 }
