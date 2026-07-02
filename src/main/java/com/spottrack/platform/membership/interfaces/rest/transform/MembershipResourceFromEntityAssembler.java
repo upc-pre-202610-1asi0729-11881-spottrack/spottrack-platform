@@ -15,7 +15,8 @@ public class MembershipResourceFromEntityAssembler {
                 membership.getPrice().currency(),
                 membership.getMembershipPeriod().startDate(),
                 membership.getMembershipPeriod().endDate(),
-                membership.getStatus().name()
+                membership.getStatus().name(),
+                membership.isCancelAtPeriodEnd()
         );
     }
 }
