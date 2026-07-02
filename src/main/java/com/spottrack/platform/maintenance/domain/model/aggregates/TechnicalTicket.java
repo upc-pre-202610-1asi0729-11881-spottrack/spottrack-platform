@@ -18,6 +18,7 @@ import com.spottrack.platform.maintenance.domain.model.valueobjects.TicketType;
 import com.spottrack.platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
 import lombok.Getter;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
@@ -32,6 +33,7 @@ public class TechnicalTicket extends AbstractDomainAggregateRoot<TechnicalTicket
     private TicketType type;
     private TicketStatus ticketStatus;
     private MaintenanceStatus maintenanceStatus;
+    private LocalDateTime createdAt;
 
     protected TechnicalTicket() {}
 
@@ -50,7 +52,7 @@ public class TechnicalTicket extends AbstractDomainAggregateRoot<TechnicalTicket
 
     public TechnicalTicket(String ticketId, String maintenanceId, String equipmentId,
                            String technicianId, String description, TicketPriority priority, TicketType type,
-                           String ticketStatus, String maintenanceStatus) {
+                           String ticketStatus, String maintenanceStatus, LocalDateTime createdAt) {
         this.ticketId = new TechnicalTicketId(ticketId);
         this.maintenanceId = maintenanceId;
         this.equipmentId = equipmentId;
@@ -60,6 +62,7 @@ public class TechnicalTicket extends AbstractDomainAggregateRoot<TechnicalTicket
         this.type = type;
         this.ticketStatus = TicketStatus.valueOf(ticketStatus);
         this.maintenanceStatus = MaintenanceStatus.valueOf(maintenanceStatus);
+        this.createdAt = createdAt;
     }
 
     public void assign(AssignTechnicalTicket command) {

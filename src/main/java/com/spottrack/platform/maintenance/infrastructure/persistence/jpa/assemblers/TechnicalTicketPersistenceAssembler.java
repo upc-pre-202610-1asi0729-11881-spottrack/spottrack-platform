@@ -3,6 +3,8 @@ package com.spottrack.platform.maintenance.infrastructure.persistence.jpa.assemb
 import com.spottrack.platform.maintenance.domain.model.aggregates.TechnicalTicket;
 import com.spottrack.platform.maintenance.infrastructure.persistence.jpa.entities.TechnicalTicketPersistenceEntity;
 
+import java.time.ZoneId;
+
 public class TechnicalTicketPersistenceAssembler {
 
     public static TechnicalTicket toDomainFromPersistence(TechnicalTicketPersistenceEntity entity) {
@@ -15,7 +17,10 @@ public class TechnicalTicketPersistenceAssembler {
                 entity.getPriority(),
                 entity.getType(),
                 entity.getTicketStatus(),
-                entity.getMaintenanceStatus()
+                entity.getMaintenanceStatus(),
+                entity.getCreatedAt() != null
+                        ? entity.getCreatedAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()
+                        : null
         );
     }
 

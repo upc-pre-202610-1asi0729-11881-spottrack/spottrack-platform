@@ -5,6 +5,8 @@ import com.spottrack.platform.maintenance.domain.model.valueobjects.TicketPriori
 import com.spottrack.platform.maintenance.domain.model.valueobjects.TicketStatus;
 import com.spottrack.platform.maintenance.domain.model.valueobjects.TicketType;
 
+import java.time.LocalDateTime;
+
 public record TechnicalTicketResource(
         String id,
         String maintenanceId,
@@ -14,5 +16,6 @@ public record TechnicalTicketResource(
         TicketPriority priority,
         TicketType type,
         TicketStatus ticketStatus,
-        MaintenanceStatus maintenanceStatus
+        MaintenanceStatus maintenanceStatus,
+        LocalDateTime createdAt
 ) {}
