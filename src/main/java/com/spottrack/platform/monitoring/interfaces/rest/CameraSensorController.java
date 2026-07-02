@@ -1,5 +1,6 @@
 package com.spottrack.platform.monitoring.interfaces.rest;
 
+import com.spottrack.platform.gym.interfaces.acl.GymContextFacade;
 import com.spottrack.platform.monitoring.application.commandServices.CameraSensorCommandService;
 import com.spottrack.platform.monitoring.application.commandServices.SessionTrackerCommandService;
 import com.spottrack.platform.monitoring.application.queryServices.CameraSensorQueryService;
@@ -37,17 +38,22 @@ public class CameraSensorController {
     private final CameraSensorCommandService cameraSensorCommandService;
     private final CameraSensorQueryService cameraSensorQueryService;
     private final SessionTrackerCommandService sessionTrackerCommandService;
+    private final GymContextFacade gymContextFacade;
 
-    public CameraSensorController(CameraSensorCommandService cameraSensorCommandService, CameraSensorQueryService cameraSensorQueryService, SessionTrackerCommandService sessionTrackerCommandService) {
+    public CameraSensorController(CameraSensorCommandService cameraSensorCommandService, CameraSensorQueryService cameraSensorQueryService, SessionTrackerCommandService sessionTrackerCommandService, GymContextFacade gymContextFacade) {
         this.cameraSensorCommandService = cameraSensorCommandService;
         this.cameraSensorQueryService = cameraSensorQueryService;
         this.sessionTrackerCommandService = sessionTrackerCommandService;
+        this.gymContextFacade = gymContextFacade;
     }
 
     @GetMapping
     public List<CameraSensorResource> getAllCameraSensors() {
         return cameraSensorQueryService.handle(new GetAllCameraSensorsQuery()).stream()
-                .map(CameraSensorResourceFromEntity::toResourceFromEntity)
+                .map(sensor -> CameraSensorResourceFromEntity.toResourceFromEntity(
+                        sensor,
+                        gymContextFacade.findEquipmentById(sensor.getEquipmentId().uuid()).orElse(null)
+                ))
                 .toList();
     }
 
@@ -64,7 +70,10 @@ public class CameraSensorController {
         var result = cameraSensorCommandService.handle(command);
         return ResponseEntityAssembler.toResponseEntityFromResult(
                 result,
-                CameraSensorResourceFromEntity::toResourceFromEntity,
+                sensor -> CameraSensorResourceFromEntity.toResourceFromEntity(
+                        sensor,
+                        gymContextFacade.findEquipmentById(sensor.getEquipmentId().uuid()).orElse(null)
+                ),
                 HttpStatus.CREATED
         );
     }
