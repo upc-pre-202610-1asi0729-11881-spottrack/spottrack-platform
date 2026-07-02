@@ -2,12 +2,14 @@ package com.spottrack.platform.membership.domain.model.aggregates;
 
 import com.spottrack.platform.membership.domain.model.commands.InitiateBusinessPaymentCommand;
 import com.spottrack.platform.membership.domain.model.commands.InitiateDebtPaymentCommand;
+import com.spottrack.platform.membership.domain.model.commands.InitiateUpgradePaymentCommand;
 import com.spottrack.platform.membership.domain.model.commands.PayMembershipCommand;
 import com.spottrack.platform.membership.domain.model.events.MembershipPayedEvent;
 import com.spottrack.platform.membership.domain.model.events.PaymentConfirmedEvent;
 import com.spottrack.platform.membership.domain.model.events.PaymentFailedEvent;
 import com.spottrack.platform.membership.domain.model.valueobjects.MembershipTier;
 import com.spottrack.platform.membership.domain.model.valueobjects.PaymentId;
+import com.spottrack.platform.membership.domain.model.valueobjects.PaymentPurpose;
 import com.spottrack.platform.membership.domain.model.valueobjects.PaymentStatus;
 import com.spottrack.platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
 import com.spottrack.platform.shared.domain.model.valueobjects.Money;
@@ -46,9 +48,12 @@ public class Payment extends AbstractDomainAggregateRoot<Payment> {
     @Getter
     private String gatewayTransactionId;
 
+    @Getter
+    private PaymentPurpose paymentPurpose;
+
     public Payment(Long id, PaymentId paymentId, Long userId, UUID pendingRegistrationId,
                    UUID membershipId, MembershipTier membershipTier, Money amount,
-                   PaymentStatus status, String gatewayTransactionId) {
+                   PaymentStatus status, String gatewayTransactionId, PaymentPurpose paymentPurpose) {
         this.id = id;
         this.paymentId = paymentId;
         this.userId = userId;
@@ -58,21 +63,27 @@ public class Payment extends AbstractDomainAggregateRoot<Payment> {
         this.amount = amount;
         this.status = status;
         this.gatewayTransactionId = gatewayTransactionId;
+        this.paymentPurpose = paymentPurpose;
     }
 
     public Payment(PayMembershipCommand command) {
         this(null, new PaymentId(), command.userId(), null, null,
-                command.membershipTier(), command.amount(), PaymentStatus.PENDING, null);
+                command.membershipTier(), command.amount(), PaymentStatus.PENDING, null, PaymentPurpose.NEW_MEMBERSHIP);
     }
 
     public Payment(InitiateBusinessPaymentCommand command) {
         this(null, new PaymentId(), null, command.pendingRegistrationId(), null,
-                command.membershipTier(), command.amount(), PaymentStatus.PENDING, null);
+                command.membershipTier(), command.amount(), PaymentStatus.PENDING, null, PaymentPurpose.BUSINESS_REGISTRATION);
     }
 
     public Payment(InitiateDebtPaymentCommand command) {
         this(null, new PaymentId(), null, null, command.membershipId(),
-                command.membershipTier(), command.amount(), PaymentStatus.PENDING, null);
+                command.membershipTier(), command.amount(), PaymentStatus.PENDING, null, PaymentPurpose.DEBT_RENEWAL);
+    }
+
+    public Payment(InitiateUpgradePaymentCommand command) {
+        this(null, new PaymentId(), null, null, command.membershipId(),
+                command.newMembershipTier(), command.amount(), PaymentStatus.PENDING, null, PaymentPurpose.PLAN_UPGRADE);
     }
 
     public void confirm(String gatewayTransactionId) {
