@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping
+@RequestMapping("/api/v1/monitoring/session-trackers")
 @Tag(name="SessionTracker")
 public class SessionTrackerController {
     private final SessionTrackerCommandService sessionTrackerCommandService;
@@ -36,14 +36,14 @@ public class SessionTrackerController {
         this.sessionTrackerQueryService = sessionTrackerQueryService;
     }
 
-    @GetMapping("/sessionTracker")
+    @GetMapping
     public List<SessionTrackerResource> getAllSessionTrackers() {
         return sessionTrackerQueryService.handle(new GetAllSessionTrackersQuery()).stream()
                 .map(SessionTrackerResourceFromEntity::toResourceFromEntity)
                 .toList();
     }
 
-    @PostMapping("/sessionTracker/create")
+    @PostMapping("/create")
     public ResponseEntity createSessionTracker(@RequestBody CreateSessionTrackerResource resource){
             var command = CreateSessionTrackerCommandFromResource.toCommandFromResource(resource);
             var result = sessionTrackerCommandService.handle(command);
@@ -56,7 +56,7 @@ public class SessionTrackerController {
             };
     }
 
-    @GetMapping("/sessionTracker/{sessionTrackerId}/verify")
+    @GetMapping("/{sessionTrackerId}/verify")
     public ResponseEntity verifySessionUsage(@PathVariable String sessionTrackerId) {
         var command = new VerifyUsageSessionCommand(new SessionTrackerId(sessionTrackerId));
         var result = sessionTrackerCommandService.handle(command);
@@ -68,7 +68,7 @@ public class SessionTrackerController {
         };
     }
 
-    @PatchMapping("/sessionTracker/{sessionTrackerId}/end")
+    @PatchMapping("/{sessionTrackerId}/end")
     public ResponseEntity endUsageSession(@PathVariable String sessionTrackerId){
         var command = new EndUsageSessionCommand(new SessionTrackerId(sessionTrackerId));
         var result = sessionTrackerCommandService.handle(command);
@@ -80,7 +80,7 @@ public class SessionTrackerController {
          };
     }
 
-    @GetMapping("/sessionTracker/{sessionTrackerId}/time")
+    @GetMapping("/{sessionTrackerId}/time")
     public ResponseEntity calculateSessionTime(@PathVariable String sessionTrackerId){
             var query = new GetSessionTrackerByIdQuery(new SessionTrackerId(sessionTrackerId));
             var command = new CalculateSessionTimeCommand(query.sessionTrackerId());
