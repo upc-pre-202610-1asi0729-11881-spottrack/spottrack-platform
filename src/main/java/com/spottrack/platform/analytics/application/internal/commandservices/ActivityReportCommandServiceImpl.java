@@ -18,7 +18,7 @@ public class ActivityReportCommandServiceImpl implements ActivityReportCommandSe
     }
 
     public Optional<ActivityReport> handle(RequestActivityAnalysisCommand command) {
-        Long randomLongId = java.util.concurrent.ThreadLocalRandom.current().nextLong(1000, 100000);
+        Long randomLongId = java.util.concurrent.ThreadLocalRandom.current().nextLong(1, Long.MAX_VALUE);
         var activityReportId = new ActivityReportId(randomLongId);
 
         var activityReport = new ActivityReport(command, activityReportId);

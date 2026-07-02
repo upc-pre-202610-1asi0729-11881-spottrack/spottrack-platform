@@ -20,7 +20,7 @@ public class MaintenanceQuoteCommandServiceImpl implements MaintenanceQuoteComma
 
     public Optional<MaintenanceQuote> handle(RequestADetailedMaintenanceQuoteCommand command) {
         var maintenanceQuoteId = new MaintenanceQuoteId(
-            ThreadLocalRandom.current().nextLong(1000, 100000));
+            ThreadLocalRandom.current().nextLong(1, Long.MAX_VALUE));
         var maintenanceQuote = new MaintenanceQuote(maintenanceQuoteId);
         this.maintenanceQuoteRepository.save(maintenanceQuote);
         return Optional.of(maintenanceQuote);

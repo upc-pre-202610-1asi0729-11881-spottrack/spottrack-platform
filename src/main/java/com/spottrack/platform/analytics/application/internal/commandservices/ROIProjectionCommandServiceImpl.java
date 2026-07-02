@@ -20,7 +20,7 @@ public class ROIProjectionCommandServiceImpl implements ROIProjectionCommandServ
 
     public Optional<ROIProjection> handle(RequestRoiCommand command) {
         var roiProjectionId = new ROIProjectionId(
-            ThreadLocalRandom.current().nextLong(1000, 100000));
+            ThreadLocalRandom.current().nextLong(1, Long.MAX_VALUE));
         var roiProjection = new ROIProjection(roiProjectionId);
         this.roiProjectionRepository.save(roiProjection);
         return Optional.of(roiProjection);

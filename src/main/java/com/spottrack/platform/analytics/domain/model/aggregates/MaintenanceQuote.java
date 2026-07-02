@@ -3,19 +3,15 @@ package com.spottrack.platform.analytics.domain.model.aggregates;
 import com.spottrack.platform.analytics.domain.model.events.*;
 import com.spottrack.platform.analytics.domain.model.valueobjects.MaintenanceQuoteId;
 import com.spottrack.platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
-import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.Setter;
 
 @Getter
-@Entity
-@Table(name = "maintenance_quotes")
 public class MaintenanceQuote extends AbstractDomainAggregateRoot<MaintenanceQuote> {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Setter
     private Long id;
 
-    @Embedded
     private MaintenanceQuoteId maintenanceQuoteId;
 
     private Double correctiveActionsCost;
@@ -23,7 +19,7 @@ public class MaintenanceQuote extends AbstractDomainAggregateRoot<MaintenanceQuo
     private Double preventiveCost;
     private Double totalMaintenanceCost;
 
-    protected MaintenanceQuote() {
+    public MaintenanceQuote() {
     }
 
     public MaintenanceQuote(MaintenanceQuoteId maintenanceQuoteId) {
@@ -32,6 +28,16 @@ public class MaintenanceQuote extends AbstractDomainAggregateRoot<MaintenanceQuo
         this.sparePartsCost = 0.0;
         this.preventiveCost = 0.0;
         this.totalMaintenanceCost = 0.0;
+    }
+
+    public MaintenanceQuote(Long id, MaintenanceQuoteId maintenanceQuoteId, Double correctiveActionsCost,
+                             Double sparePartsCost, Double preventiveCost, Double totalMaintenanceCost) {
+        this.id = id;
+        this.maintenanceQuoteId = maintenanceQuoteId;
+        this.correctiveActionsCost = correctiveActionsCost;
+        this.sparePartsCost = sparePartsCost;
+        this.preventiveCost = preventiveCost;
+        this.totalMaintenanceCost = totalMaintenanceCost;
     }
 
     public void updateCorrectiveActionsCost(Double cost) {

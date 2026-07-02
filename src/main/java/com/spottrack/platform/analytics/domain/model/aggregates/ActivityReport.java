@@ -4,34 +4,37 @@ import com.spottrack.platform.analytics.domain.model.commands.RequestActivityAna
 import com.spottrack.platform.analytics.domain.model.events.*;
 import com.spottrack.platform.analytics.domain.model.valueobjects.ActivityReportId;
 import com.spottrack.platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
-import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.Setter;
 
 @Getter
-@Entity
-@Table(name = "activity_reports")
 public class ActivityReport extends AbstractDomainAggregateRoot<ActivityReport> {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Setter
     private Long id;
 
-    @Embedded
     private ActivityReportId activityReportId;
 
     private Long totalUsageTime;
     private Long downtimeCost;
     private Double percentageComparison;
 
-    protected ActivityReport() {
+    public ActivityReport() {
     }
 
-    // Constructor de negocio: Nace a partir del primer comando del Event Storming
     public ActivityReport(RequestActivityAnalysisCommand command, ActivityReportId activityReportId) {
         this.activityReportId = activityReportId;
         this.totalUsageTime = 0L;
         this.downtimeCost = 0L;
         this.percentageComparison = 0.0;
+    }
+
+    public ActivityReport(Long id, ActivityReportId activityReportId, Long totalUsageTime, Long downtimeCost, Double percentageComparison) {
+        this.id = id;
+        this.activityReportId = activityReportId;
+        this.totalUsageTime = totalUsageTime;
+        this.downtimeCost = downtimeCost;
+        this.percentageComparison = percentageComparison;
     }
 
     public void updateTotalUsageTime(Long totalUsageTime) {
