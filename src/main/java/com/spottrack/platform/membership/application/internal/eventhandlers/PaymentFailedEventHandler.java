@@ -33,6 +33,9 @@ public class PaymentFailedEventHandler {
                 case BUSINESS_REGISTRATION -> log.info(
                         "Business registration payment failed for pendingRegistrationId={} — no membership to suspend",
                         event.pendingRegistrationId());
+                case RESUBSCRIPTION -> log.info(
+                        "Resubscription payment failed for userId={} (payment={}) — user remains without active membership",
+                        event.userId(), event.paymentId());
             }
         } catch (Exception e) {
             log.error("Error in PaymentFailedEventHandler for payment {}: {}",
