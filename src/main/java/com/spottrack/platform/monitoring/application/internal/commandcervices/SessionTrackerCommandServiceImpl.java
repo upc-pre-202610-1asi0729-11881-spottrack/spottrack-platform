@@ -127,4 +127,19 @@ public class SessionTrackerCommandServiceImpl implements SessionTrackerCommandSe
         }
 
     }
+
+    /**
+     * A session tracker's job ends once its final activity data has been reported —
+     * it's an ephemeral vehicle for that computation, not a record worth keeping.
+     */
+    @Transactional
+    @Override
+    public Result<Void, ApplicationError> handle(DeleteSessionTrackerCommand command) {
+        try {
+            sessionTrackerRepository.deleteBySessionTrackerId(command.sessionTrackerId());
+            return Result.success(null);
+        } catch (Exception e) {
+            return Result.failure(ApplicationError.unexpected("sessionTracker", e.getMessage()));
+        }
+    }
 }
