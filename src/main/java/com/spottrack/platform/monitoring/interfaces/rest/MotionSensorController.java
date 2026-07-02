@@ -1,9 +1,9 @@
 package com.spottrack.platform.monitoring.interfaces.rest;
 
 import com.spottrack.platform.monitoring.application.commandServices.MotionSensorCommandService;
+import com.spottrack.platform.monitoring.application.commandServices.SessionTrackerCommandService;
 import com.spottrack.platform.monitoring.application.queryServices.MotionSensorQueryService;
 import com.spottrack.platform.monitoring.domain.model.queries.GetAllMotionSensorsQuery;
-import com.spottrack.platform.monitoring.application.commandServices.SessionTrackerCommandService;
 import com.spottrack.platform.monitoring.interfaces.rest.resources.CaptureMotionSensorReadingResource;
 import com.spottrack.platform.monitoring.interfaces.rest.resources.MotionSensorResource;
 import com.spottrack.platform.monitoring.interfaces.rest.resources.RegisterMotionSensorResource;
@@ -36,10 +36,12 @@ import java.util.List;
 public class MotionSensorController {
     private final MotionSensorCommandService motionSensorCommandService;
     private final MotionSensorQueryService motionSensorQueryService;
+    private final SessionTrackerCommandService sessionTrackerCommandService;
 
-    public MotionSensorController(MotionSensorCommandService motionSensorCommandService, MotionSensorQueryService motionSensorQueryService) {
+    public MotionSensorController(MotionSensorCommandService motionSensorCommandService, MotionSensorQueryService motionSensorQueryService, SessionTrackerCommandService sessionTrackerCommandService) {
         this.motionSensorCommandService = motionSensorCommandService;
         this.motionSensorQueryService = motionSensorQueryService;
+        this.sessionTrackerCommandService = sessionTrackerCommandService;
     }
 
     @GetMapping
@@ -47,11 +49,6 @@ public class MotionSensorController {
         return motionSensorQueryService.handle(new GetAllMotionSensorsQuery()).stream()
                 .map(MotionSensorResourceFromEntity::toResourceFromEntity)
                 .toList();
-    private final SessionTrackerCommandService sessionTrackerCommandService;
-
-    public MotionSensorController(MotionSensorCommandService motionSensorCommandService, SessionTrackerCommandService sessionTrackerCommandService) {
-        this.motionSensorCommandService = motionSensorCommandService;
-        this.sessionTrackerCommandService = sessionTrackerCommandService;
     }
 
     @PostMapping
