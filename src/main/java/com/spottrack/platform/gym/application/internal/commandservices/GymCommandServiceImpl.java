@@ -4,18 +4,23 @@ import com.spottrack.platform.gym.application.commandServices.GymCommandService;
 import com.spottrack.platform.gym.domain.model.aggregates.Equipment;
 import com.spottrack.platform.gym.domain.model.aggregates.Gym;
 import com.spottrack.platform.gym.domain.model.commands.AddBranchCommand;
+import com.spottrack.platform.gym.domain.model.commands.AddDniToWhitelistCommand;
 import com.spottrack.platform.gym.domain.model.commands.AddZoneCommand;
 import com.spottrack.platform.gym.domain.model.commands.CreateGym;
+import com.spottrack.platform.gym.domain.model.commands.RemoveDniFromWhitelistCommand;
 import com.spottrack.platform.gym.domain.model.commands.RequestEquipmentRelocation;
 import com.spottrack.platform.gym.domain.model.entities.Branch;
+import com.spottrack.platform.gym.domain.model.entities.GymWhitelistEntry;
 import com.spottrack.platform.gym.domain.model.entities.Zone;
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.assemblers.BranchPersistenceAssembler;
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.assemblers.GymPersistenceAssembler;
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.assemblers.ZonePersistenceAssembler;
+import com.spottrack.platform.gym.infrastructure.persistence.jpa.entities.GymWhitelistPersistenceEntity;
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.entities.ZonePersistenceEntity;
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.repositories.BranchPersistenceRepository;
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.repositories.EquipmentPersistenceRepository;
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.repositories.GymPersistenceRepository;
+import com.spottrack.platform.gym.infrastructure.persistence.jpa.repositories.GymWhitelistPersistenceRepository;
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.repositories.ZonePersistenceRepository;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
@@ -28,13 +33,18 @@ public class GymCommandServiceImpl implements GymCommandService {
     EquipmentPersistenceRepository equipmentPersistenceRepository;
     BranchPersistenceRepository branchPersistenceRepository;
     ZonePersistenceRepository zonePersistenceRepository;
+    GymWhitelistPersistenceRepository gymWhitelistPersistenceRepository;
 
-    public GymCommandServiceImpl(GymPersistenceRepository gymPersistenceRepository, EquipmentPersistenceRepository equipmentPersistenceRepository, BranchPersistenceRepository branchPersistenceRepository, ZonePersistenceRepository zonePersistenceRepository){
+    public GymCommandServiceImpl(GymPersistenceRepository gymPersistenceRepository,
+                                 EquipmentPersistenceRepository equipmentPersistenceRepository,
+                                 BranchPersistenceRepository branchPersistenceRepository,
+                                 ZonePersistenceRepository zonePersistenceRepository,
+                                 GymWhitelistPersistenceRepository gymWhitelistPersistenceRepository) {
         this.gymPersistenceRepository = gymPersistenceRepository;
         this.zonePersistenceRepository = zonePersistenceRepository;
         this.equipmentPersistenceRepository = equipmentPersistenceRepository;
         this.branchPersistenceRepository = branchPersistenceRepository;
-
+        this.gymWhitelistPersistenceRepository = gymWhitelistPersistenceRepository;
     }
 
     @Override
@@ -70,5 +80,22 @@ public class GymCommandServiceImpl implements GymCommandService {
         return Result.success(savedZone);
     }
 
+    @Transactional
+    @Override
+    public Result<GymWhitelistEntry, ApplicationError> handle(AddDniToWhitelistCommand command) {
+        var dniValue = command.dni().value();
+        if (gymWhitelistPersistenceRepository.existsByGymIdAndDni(command.gymId(), dniValue)) {
+            return Result.failure(ApplicationError.conflict("GymWhitelist", "gym.error.whitelist.dniAlreadyExists"));
+        }
+        var entity = new GymWhitelistPersistenceEntity(command.gymId(), dniValue);
+        var saved = gymWhitelistPersistenceRepository.save(entity);
+        return Result.success(new GymWhitelistEntry(saved.getId(), saved.getGymId(), command.dni()));
+    }
+
+    @Transactional
+    @Override
+    public void handle(RemoveDniFromWhitelistCommand command) {
+        gymWhitelistPersistenceRepository.deleteByGymIdAndDni(command.gymId(), command.dni());
+    }
 
 }
