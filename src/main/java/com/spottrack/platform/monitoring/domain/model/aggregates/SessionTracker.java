@@ -2,6 +2,7 @@ package com.spottrack.platform.monitoring.domain.model.aggregates;
 
 import com.spottrack.platform.monitoring.domain.model.commands.CreateSessionTrackerCommand;
 import com.spottrack.platform.monitoring.domain.model.events.SessionTimeCalculatedEvent;
+import com.spottrack.platform.monitoring.domain.model.events.UsageSessionEndedEvent;
 import com.spottrack.platform.monitoring.domain.model.events.UsageSessionVerifiedEvent;
 import com.spottrack.platform.monitoring.domain.model.valueobjects.ReservationId;
 import com.spottrack.platform.monitoring.domain.model.valueobjects.SessionTrackerId;
@@ -63,6 +64,7 @@ public class SessionTracker extends AbstractDomainAggregateRoot {
     public void endSession(){
         this.sessionIsActive= false;
         this.sessionIsInactive = true;
+        registerDomainEvent(new UsageSessionEndedEvent(this.sessionTrackerId));
     }
 
 
