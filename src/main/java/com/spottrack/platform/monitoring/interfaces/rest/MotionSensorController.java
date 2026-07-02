@@ -1,6 +1,8 @@
 package com.spottrack.platform.monitoring.interfaces.rest;
 
 import com.spottrack.platform.monitoring.application.commandServices.MotionSensorCommandService;
+import com.spottrack.platform.monitoring.application.queryServices.MotionSensorQueryService;
+import com.spottrack.platform.monitoring.domain.model.queries.GetAllMotionSensorsQuery;
 import com.spottrack.platform.monitoring.interfaces.rest.resources.MotionSensorResource;
 import com.spottrack.platform.monitoring.interfaces.rest.resources.RegisterMotionSensorResource;
 import com.spottrack.platform.monitoring.interfaces.rest.transform.MotionSensorResourceFromEntity;
@@ -15,19 +17,31 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequestMapping(value = "/api/v1/monitoring/motion-sensors", produces = MediaType.APPLICATION_JSON_VALUE)
 @Tag(name = "MotionSensors", description = "Motion sensor registration endpoints")
 public class MotionSensorController {
     private final MotionSensorCommandService motionSensorCommandService;
+    private final MotionSensorQueryService motionSensorQueryService;
 
-    public MotionSensorController(MotionSensorCommandService motionSensorCommandService) {
+    public MotionSensorController(MotionSensorCommandService motionSensorCommandService, MotionSensorQueryService motionSensorQueryService) {
         this.motionSensorCommandService = motionSensorCommandService;
+        this.motionSensorQueryService = motionSensorQueryService;
+    }
+
+    @GetMapping
+    public List<MotionSensorResource> getAllMotionSensors() {
+        return motionSensorQueryService.handle(new GetAllMotionSensorsQuery()).stream()
+                .map(MotionSensorResourceFromEntity::toResourceFromEntity)
+                .toList();
     }
 
     @PostMapping
