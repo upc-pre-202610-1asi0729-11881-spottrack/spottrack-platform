@@ -8,7 +8,7 @@ public class CameraSensorResourceFromEntity {
         return new CameraSensorResource(
                 entity.getId(),
                 entity.getCameraSensorId().uuid(),
-                entity.getZoneId().uuid(),
+                entity.getEquipmentId().uuid(),
                 entity.getRegisteredAt()
         );
     }

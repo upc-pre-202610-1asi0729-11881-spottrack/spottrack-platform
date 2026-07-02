@@ -1,9 +1,9 @@
 package com.spottrack.platform.monitoring.infrastructure.persistence.jpa.entities;
 
 import com.spottrack.platform.monitoring.domain.model.valueobjects.CameraSensorId;
-import com.spottrack.platform.monitoring.domain.model.valueobjects.ZoneId;
+import com.spottrack.platform.monitoring.domain.model.valueobjects.EquipmentId;
 import com.spottrack.platform.monitoring.infrastructure.persistence.jpa.converters.CameraSensorIdPersistenceConverter;
-import com.spottrack.platform.monitoring.infrastructure.persistence.jpa.converters.ZoneIdPersistenceConverter;
+import com.spottrack.platform.monitoring.infrastructure.persistence.jpa.converters.EquipmentIdPersistenceConverter;
 import com.spottrack.platform.shared.infrastructure.persistence.jpa.entities.AuditableAbstractPersistenceEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -21,9 +21,9 @@ public class CameraSensorPersistenceEntity extends AuditableAbstractPersistenceE
     @Column(nullable = false, unique = true)
     private CameraSensorId cameraSensorId;
 
-    @Convert(converter = ZoneIdPersistenceConverter.class)
+    @Convert(converter = EquipmentIdPersistenceConverter.class)
     @Column(nullable = false, unique = true)
-    private ZoneId zoneId;
+    private EquipmentId equipmentId;
 
     @Column(nullable = false)
     private LocalDateTime registeredAt;
