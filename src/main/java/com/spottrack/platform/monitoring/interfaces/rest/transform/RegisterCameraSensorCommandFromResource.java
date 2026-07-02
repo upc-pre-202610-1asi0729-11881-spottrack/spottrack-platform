@@ -5,6 +5,6 @@ import com.spottrack.platform.monitoring.interfaces.rest.resources.RegisterCamer
 
 public class RegisterCameraSensorCommandFromResource {
     public static RegisterCameraSensorCommand toCommandFromResource(RegisterCameraSensorResource resource) {
-        return new RegisterCameraSensorCommand(resource.zoneId());
+        return new RegisterCameraSensorCommand(resource.equipmentId());
     }
 }

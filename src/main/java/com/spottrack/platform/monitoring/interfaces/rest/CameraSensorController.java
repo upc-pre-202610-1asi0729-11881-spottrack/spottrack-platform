@@ -52,12 +52,12 @@ public class CameraSensorController {
     }
 
     @PostMapping
-    @Operation(summary = "Register a camera sensor", description = "Registers a new camera sensor watching a specific zone.")
+    @Operation(summary = "Register a camera sensor", description = "Registers a new camera sensor attached to a specific equipment.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Camera sensor registered successfully",
                     content = @Content(schema = @Schema(implementation = CameraSensorResource.class))),
             @ApiResponse(responseCode = "400", description = "Invalid input data"),
-            @ApiResponse(responseCode = "409", description = "Conflict - a camera sensor is already registered for this zone")
+            @ApiResponse(responseCode = "409", description = "Conflict - a camera sensor is already registered for this equipment")
     })
     public ResponseEntity<?> registerCameraSensor(@RequestBody RegisterCameraSensorResource resource) {
         var command = RegisterCameraSensorCommandFromResource.toCommandFromResource(resource);

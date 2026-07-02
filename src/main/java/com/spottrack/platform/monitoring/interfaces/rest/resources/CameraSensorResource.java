@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 public record CameraSensorResource(
         @Schema Long id,
         @Schema String cameraSensorId,
-        @Schema String zoneId,
+        @Schema String equipmentId,
         @Schema LocalDateTime registeredAt
 ) {
 }
