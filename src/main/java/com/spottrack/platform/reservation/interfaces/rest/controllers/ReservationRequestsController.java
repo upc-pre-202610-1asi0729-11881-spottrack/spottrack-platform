@@ -1,8 +1,8 @@
 package com.spottrack.platform.reservation.interfaces.rest.controllers;
 
 import com.spottrack.platform.iam.interfaces.acl.IamContextFacade;
-import com.spottrack.platform.membership.interfaces.acl.MembershipContextFacade;
 import com.spottrack.platform.profiles.interfaces.acl.ProfilesContextFacade;
+import com.spottrack.platform.shared.interfaces.rest.guards.GymMembershipAccessGuard;
 import com.spottrack.platform.reservation.application.commandServices.ReservationRequestCommandService;
 import com.spottrack.platform.reservation.application.queryservices.ReservationRequestQueryService;
 import com.spottrack.platform.reservation.domain.model.aggregates.ReservationRequest;
@@ -34,19 +34,19 @@ public class ReservationRequestsController {
     private final ReservationRequestQueryService queryService;
     private final IamContextFacade iamContextFacade;
     private final ProfilesContextFacade profilesContextFacade;
-    private final MembershipContextFacade membershipContextFacade;
+    private final GymMembershipAccessGuard gymMembershipAccessGuard;
 
     public ReservationRequestsController(
             ReservationRequestCommandService commandService,
             ReservationRequestQueryService queryService,
             IamContextFacade iamContextFacade,
             ProfilesContextFacade profilesContextFacade,
-            MembershipContextFacade membershipContextFacade) {
+            GymMembershipAccessGuard gymMembershipAccessGuard) {
         this.commandService = commandService;
         this.queryService = queryService;
         this.iamContextFacade = iamContextFacade;
         this.profilesContextFacade = profilesContextFacade;
-        this.membershipContextFacade = membershipContextFacade;
+        this.gymMembershipAccessGuard = gymMembershipAccessGuard;
     }
 
     @PostMapping
@@ -58,7 +58,7 @@ public class ReservationRequestsController {
             return ErrorResponseAssembler.toErrorResponseFromApplicationError(
                     ApplicationError.notFound("Client", authentication.getName()));
         }
-        var membershipError = checkMembershipAccess(clientId);
+        var membershipError = gymMembershipAccessGuard.check(clientId);
         if (membershipError.isPresent()) return membershipError.get();
         var command = SubmitRequestOccupyEquipmentCommandFromResourceAssembler.toCommandFromResource(resource, clientId);
         var result = commandService.handle(command);
@@ -81,7 +81,7 @@ public class ReservationRequestsController {
             return ErrorResponseAssembler.toErrorResponseFromApplicationError(
                     ApplicationError.notFound("Client", authentication.getName()));
         }
-        var membershipError = checkMembershipAccess(clientId);
+        var membershipError = gymMembershipAccessGuard.check(clientId);
         if (membershipError.isPresent()) return membershipError.get();
         var request = queryService.handle(new GetReservationRequestByUuidQuery(id));
         if (request.isEmpty()) {
@@ -122,16 +122,6 @@ public class ReservationRequestsController {
             case Result.Failure<ReservationRequest, ApplicationError> f ->
                     ResponseEntity.status(HttpStatus.NOT_FOUND).body(f.error());
         };
-    }
-
-    private Optional<ResponseEntity<?>> checkMembershipAccess(Long clientId) {
-        var accessStatus = membershipContextFacade.fetchMembershipAccessStatus(clientId);
-        if ("ACTIVE".equals(accessStatus)) return Optional.empty();
-        var errorCode = "SUSPENDED".equals(accessStatus)
-                ? "membership.error.access.suspended"
-                : "membership.error.access.inactive";
-        return Optional.of(ErrorResponseAssembler.toErrorResponseFromApplicationError(
-                ApplicationError.forbidden("Membership", errorCode)));
     }
 
     private Long resolveClientId(Authentication authentication) {

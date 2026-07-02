@@ -1,8 +1,8 @@
 package com.spottrack.platform.routine.interfaces.rest;
 
 import com.spottrack.platform.iam.interfaces.acl.IamContextFacade;
-import com.spottrack.platform.membership.interfaces.acl.MembershipContextFacade;
 import com.spottrack.platform.profiles.interfaces.acl.ProfilesContextFacade;
+import com.spottrack.platform.shared.interfaces.rest.guards.GymMembershipAccessGuard;
 import com.spottrack.platform.routine.application.commandservices.RoutineSessionCommandService;
 import com.spottrack.platform.routine.application.queryservices.RoutineSessionQueryService;
 import com.spottrack.platform.routine.domain.model.commands.CompleteRoutineCommand;
@@ -43,19 +43,19 @@ public class RoutineSessionsController {
     private final RoutineSessionQueryService routineSessionQueryService;
     private final IamContextFacade iamContextFacade;
     private final ProfilesContextFacade profilesContextFacade;
-    private final MembershipContextFacade membershipContextFacade;
+    private final GymMembershipAccessGuard gymMembershipAccessGuard;
 
     public RoutineSessionsController(
             RoutineSessionCommandService routineSessionCommandService,
             RoutineSessionQueryService routineSessionQueryService,
             IamContextFacade iamContextFacade,
             ProfilesContextFacade profilesContextFacade,
-            MembershipContextFacade membershipContextFacade) {
+            GymMembershipAccessGuard gymMembershipAccessGuard) {
         this.routineSessionCommandService = routineSessionCommandService;
         this.routineSessionQueryService = routineSessionQueryService;
         this.iamContextFacade = iamContextFacade;
         this.profilesContextFacade = profilesContextFacade;
-        this.membershipContextFacade = membershipContextFacade;
+        this.gymMembershipAccessGuard = gymMembershipAccessGuard;
     }
 
     @PostMapping
@@ -74,7 +74,7 @@ public class RoutineSessionsController {
             return ErrorResponseAssembler.toErrorResponseFromApplicationError(
                     ApplicationError.notFound("Client", authentication.getName()));
         }
-        var membershipError = checkMembershipAccess(clientId);
+        var membershipError = gymMembershipAccessGuard.check(clientId);
         if (membershipError.isPresent()) return membershipError.get();
         var command = StartRoutineCommandFromResourceAssembler.toCommandFromResource(resource, clientId);
         var result = routineSessionCommandService.handle(command);
@@ -153,7 +153,7 @@ public class RoutineSessionsController {
             return ErrorResponseAssembler.toErrorResponseFromApplicationError(
                     ApplicationError.notFound("Client", authentication.getName()));
         }
-        var membershipError = checkMembershipAccess(clientId);
+        var membershipError = gymMembershipAccessGuard.check(clientId);
         if (membershipError.isPresent()) return membershipError.get();
         var session = routineSessionQueryService.handle(new GetRoutineSessionByIdQuery(routineSessionId));
         if (session.isEmpty()) {
@@ -204,16 +204,6 @@ public class RoutineSessionsController {
                 RoutineSessionResourceFromEntityAssembler::toResourceFromEntity,
                 HttpStatus.OK
         );
-    }
-
-    private Optional<ResponseEntity<?>> checkMembershipAccess(Long clientId) {
-        var accessStatus = membershipContextFacade.fetchMembershipAccessStatus(clientId);
-        if ("ACTIVE".equals(accessStatus)) return Optional.empty();
-        var errorCode = "SUSPENDED".equals(accessStatus)
-                ? "membership.error.access.suspended"
-                : "membership.error.access.inactive";
-        return Optional.of(ErrorResponseAssembler.toErrorResponseFromApplicationError(
-                ApplicationError.forbidden("Membership", errorCode)));
     }
 
     private Long resolveClientId(Authentication authentication) {
