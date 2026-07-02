@@ -1,6 +1,7 @@
 package com.spottrack.platform.maintenance.interfaces.rest.controllers;
 
 import com.spottrack.platform.maintenance.application.commandServices.MaintenanceCommandService;
+import com.spottrack.platform.maintenance.application.queryservices.MaintenanceLogQueryService;
 import com.spottrack.platform.maintenance.application.queryservices.TechnicalTicketQueryService;
 import com.spottrack.platform.maintenance.domain.model.aggregates.Maintenance;
 import com.spottrack.platform.maintenance.domain.model.aggregates.MaintenanceJob;
@@ -15,6 +16,7 @@ import com.spottrack.platform.maintenance.domain.model.commands.RegisterMaintena
 import com.spottrack.platform.maintenance.domain.model.commands.RequestUpdateMaintenanceStatus;
 import com.spottrack.platform.maintenance.domain.model.commands.UpdateMaintenanceStatus;
 import com.spottrack.platform.maintenance.domain.model.queries.GetAllTicketsQuery;
+import com.spottrack.platform.maintenance.domain.model.queries.GetMaintenanceLogsByTicketIdQuery;
 import com.spottrack.platform.maintenance.domain.model.valueobjects.MaintenanceId;
 import com.spottrack.platform.maintenance.domain.model.valueobjects.MaintenanceJobId;
 import com.spottrack.platform.maintenance.domain.model.valueobjects.TechnicalTicketId;
@@ -45,11 +47,14 @@ public class MaintenanceController {
 
     private final MaintenanceCommandService commandService;
     private final TechnicalTicketQueryService technicalTicketQueryService;
+    private final MaintenanceLogQueryService maintenanceLogQueryService;
 
     public MaintenanceController(MaintenanceCommandService commandService,
-                                  TechnicalTicketQueryService technicalTicketQueryService) {
+                                  TechnicalTicketQueryService technicalTicketQueryService,
+                                  MaintenanceLogQueryService maintenanceLogQueryService) {
         this.commandService = commandService;
         this.technicalTicketQueryService = technicalTicketQueryService;
+        this.maintenanceLogQueryService = maintenanceLogQueryService;
     }
 
     @PostMapping("/requests")
@@ -160,6 +165,16 @@ public class MaintenanceController {
             case Result.Failure<MaintenanceLog, ApplicationError> f ->
                     ResponseEntity.badRequest().body(f.error());
         };
+    }
+
+    @GetMapping("/tickets/{ticketId}/completion-log")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getMaintenanceCompletionLog(@PathVariable String ticketId) {
+        var logs = maintenanceLogQueryService.handle(new GetMaintenanceLogsByTicketIdQuery(ticketId));
+        var resources = logs.stream()
+                .map(MaintenanceLogResourceFromEntityAssembler::toResourceFromEntity)
+                .toList();
+        return ResponseEntity.ok(resources);
     }
 
     @PatchMapping("/tickets/{ticketId}/maintenance-status/request")
