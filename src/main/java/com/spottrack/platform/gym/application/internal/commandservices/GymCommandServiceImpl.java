@@ -45,10 +45,10 @@ public class GymCommandServiceImpl implements GymCommandService {
     @Transactional
     @Override
     public Result<Gym, ApplicationError> handle(CreateGym command) {
-        var gym = new Gym(command.gymName());
+        var gym = new Gym(command.gymName(), command.adminUserId());
         var gymEntity = GymPersistenceAssembler.toPersistenceFromDomain(gym);
-        gymPersistenceRepository.save(gymEntity);
-        return Result.success(gym);
+        var savedEntity = gymPersistenceRepository.save(gymEntity);
+        return Result.success(GymPersistenceAssembler.toDomainFromPersistence(savedEntity));
     }
 
     @Transactional
