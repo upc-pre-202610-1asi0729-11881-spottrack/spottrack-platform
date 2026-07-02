@@ -3,19 +3,15 @@ package com.spottrack.platform.analytics.domain.model.aggregates;
 import com.spottrack.platform.analytics.domain.model.events.*;
 import com.spottrack.platform.analytics.domain.model.valueobjects.ROIProjectionId;
 import com.spottrack.platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
-import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.Setter;
 
 @Getter
-@Entity
-@Table(name = "roi_projections")
 public class ROIProjection extends AbstractDomainAggregateRoot<ROIProjection> {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Setter
     private Long id;
 
-    @Embedded
     private ROIProjectionId roiProjectionId;
 
     private Double requestedDowntimeCost;
@@ -23,7 +19,7 @@ public class ROIProjection extends AbstractDomainAggregateRoot<ROIProjection> {
     private Double roiIndex;
     private String demandStatus;
 
-    protected ROIProjection() {
+    public ROIProjection() {
     }
 
     public ROIProjection(ROIProjectionId roiProjectionId) {
@@ -32,6 +28,16 @@ public class ROIProjection extends AbstractDomainAggregateRoot<ROIProjection> {
         this.requestedEarnings = 0.0;
         this.roiIndex = 0.0;
         this.demandStatus = "NORMAL";
+    }
+
+    public ROIProjection(Long id, ROIProjectionId roiProjectionId, Double requestedDowntimeCost,
+                          Double requestedEarnings, Double roiIndex, String demandStatus) {
+        this.id = id;
+        this.roiProjectionId = roiProjectionId;
+        this.requestedDowntimeCost = requestedDowntimeCost;
+        this.requestedEarnings = requestedEarnings;
+        this.roiIndex = roiIndex;
+        this.demandStatus = demandStatus;
     }
 
     public void updateDowntimeCost(Double cost) {

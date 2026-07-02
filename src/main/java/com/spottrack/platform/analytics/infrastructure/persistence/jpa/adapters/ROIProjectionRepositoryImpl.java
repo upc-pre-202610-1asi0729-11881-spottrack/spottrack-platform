@@ -3,7 +3,9 @@ package com.spottrack.platform.analytics.infrastructure.persistence.jpa.adapters
 import com.spottrack.platform.analytics.domain.model.aggregates.ROIProjection;
 import com.spottrack.platform.analytics.domain.model.valueobjects.ROIProjectionId;
 import com.spottrack.platform.analytics.domain.repositories.ROIProjectionRepository;
+import com.spottrack.platform.analytics.infrastructure.persistence.jpa.assemblers.ROIProjectionPersistenceAssembler;
 import com.spottrack.platform.analytics.infrastructure.persistence.jpa.repositories.JpaROIProjectionRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
@@ -11,18 +13,26 @@ import java.util.Optional;
 public class ROIProjectionRepositoryImpl implements ROIProjectionRepository {
 
     private final JpaROIProjectionRepository jpaROIProjectionRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
-    public ROIProjectionRepositoryImpl(JpaROIProjectionRepository jpaROIProjectionRepository) {
+    public ROIProjectionRepositoryImpl(JpaROIProjectionRepository jpaROIProjectionRepository, ApplicationEventPublisher eventPublisher) {
         this.jpaROIProjectionRepository = jpaROIProjectionRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
     public ROIProjection save(ROIProjection roiProjection) {
-        return this.jpaROIProjectionRepository.save(roiProjection);
+        var entity = ROIProjectionPersistenceAssembler.toPersistenceFromDomain(roiProjection);
+        var savedEntity = jpaROIProjectionRepository.save(entity);
+        var savedRoiProjection = ROIProjectionPersistenceAssembler.toDomainFromPersistence(savedEntity);
+        roiProjection.domainEvents().forEach(eventPublisher::publishEvent);
+        roiProjection.clearDomainEvents();
+        return savedRoiProjection;
     }
 
     @Override
     public Optional<ROIProjection> findByRoiProjectionId(ROIProjectionId roiProjectionId) {
-        return this.jpaROIProjectionRepository.findByRoiProjectionId(roiProjectionId);
+        return this.jpaROIProjectionRepository.findByRoiProjectionId(roiProjectionId)
+                .map(ROIProjectionPersistenceAssembler::toDomainFromPersistence);
     }
 }
