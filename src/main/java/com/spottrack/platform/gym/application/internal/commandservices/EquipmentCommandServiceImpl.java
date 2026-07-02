@@ -7,8 +7,9 @@ import com.spottrack.platform.gym.domain.model.valueobjects.EquipmentId;
 import com.spottrack.platform.gym.domain.repositories.EquipmentRepository;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
-import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class EquipmentCommandServiceImpl implements EquipmentCommandService {
@@ -52,7 +53,15 @@ public class EquipmentCommandServiceImpl implements EquipmentCommandService {
         }
     }
 
-    @Transactional
+    /**
+     * REQUIRES_NEW: this command is invoked (via the various cross-context
+     * integration event handlers) from @TransactionalEventListener(AFTER_COMMIT)
+     * callbacks, i.e. after the triggering transaction has already committed.
+     * Joining that transaction's (already-completing) context instead of
+     * starting a fresh one means the write can end up not being flushed
+     * until some unrelated later transaction happens to touch the session.
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
     public Result<Equipment, ApplicationError> handle(UpdateEquipmentStatus command) {
         try {
