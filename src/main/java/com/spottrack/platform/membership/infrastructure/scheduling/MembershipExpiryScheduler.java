@@ -34,9 +34,16 @@ public class MembershipExpiryScheduler {
         var expired = membershipRepository.findActiveExpiredBefore(today);
         log.debug("Membership expiry check: found {} active membership(s) past endDate", expired.size());
         expired.forEach(membership -> {
-            membership.expire();
-            membershipRepository.save(membership);
-            log.info("Membership {} expired (clientId={})", membership.getMembershipId().uuid(), membership.getClientId());
+            if (membership.getPendingDowngradeTier() != null) {
+                membership.applyDowngrade();
+                membershipRepository.save(membership);
+                log.info("Membership {} downgraded to tier {} at period end (clientId={})",
+                        membership.getMembershipId().uuid(), membership.getMembershipTier(), membership.getClientId());
+            } else {
+                membership.expire();
+                membershipRepository.save(membership);
+                log.info("Membership {} expired (clientId={})", membership.getMembershipId().uuid(), membership.getClientId());
+            }
         });
     }
 }
