@@ -11,6 +11,7 @@ public record PaymentConfirmedEvent(
         UUID paymentId,
         Long userId,
         UUID pendingRegistrationId,
+        UUID membershipId,
         MembershipTier membershipTier,
         Money amount,
         String gatewayTransactionId
@@ -21,6 +22,7 @@ public record PaymentConfirmedEvent(
                 payment.getPaymentId().uuid(),
                 payment.getUserId(),
                 payment.getPendingRegistrationId(),
+                payment.getMembershipId(),
                 payment.getMembershipTier(),
                 payment.getAmount(),
                 payment.getGatewayTransactionId()
