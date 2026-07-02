@@ -4,6 +4,7 @@ import com.spottrack.platform.iam.interfaces.acl.IamContextFacade;
 import com.spottrack.platform.membership.domain.model.aggregates.Membership;
 import com.spottrack.platform.membership.domain.model.commands.CreateMembershipCommand;
 import com.spottrack.platform.membership.domain.model.commands.RenewMembershipCommand;
+import com.spottrack.platform.membership.domain.model.commands.UpgradeMembershipPlanCommand;
 import com.spottrack.platform.membership.domain.model.events.PaymentConfirmedEvent;
 import com.spottrack.platform.membership.domain.model.valueobjects.MembershipId;
 import com.spottrack.platform.membership.domain.model.valueobjects.MembershipStatus;
@@ -33,19 +34,14 @@ public class PaymentConfirmedEventHandler {
 
     @EventListener
     public void on(PaymentConfirmedEvent event) {
-        log.info("Processing PaymentConfirmedEvent: paymentId={}, userId={}, pendingRegistrationId={}, tier={}, amount={}",
-                event.paymentId(), event.userId(), event.pendingRegistrationId(),
-                event.membershipTier(), event.amount());
+        log.info("Processing PaymentConfirmedEvent: paymentId={}, purpose={}, tier={}, amount={}",
+                event.paymentId(), event.paymentPurpose(), event.membershipTier(), event.amount());
         try {
-            if (event.membershipId() != null) {
-                handleDebtPayment(event);
-            } else if (event.userId() != null) {
-                handleExistingUserPayment(event);
-            } else if (event.pendingRegistrationId() != null) {
-                handleBusinessRegistrationPayment(event);
-            } else {
-                log.error("PaymentConfirmedEvent for payment {} has no routing key — skipping",
-                        event.paymentId());
+            switch (event.paymentPurpose()) {
+                case PLAN_UPGRADE -> handlePlanUpgradePayment(event);
+                case DEBT_RENEWAL -> handleDebtPayment(event);
+                case NEW_MEMBERSHIP -> handleExistingUserPayment(event);
+                case BUSINESS_REGISTRATION -> handleBusinessRegistrationPayment(event);
             }
         } catch (Exception e) {
             log.error("Error in PaymentConfirmedEventHandler for payment {} : {}",
@@ -77,6 +73,31 @@ public class PaymentConfirmedEventHandler {
         membershipRepository.save(m);
         log.info("Membership {} renewed after debt payment (clientId={}, payment {})",
                 event.membershipId(), m.getClientId(), event.paymentId());
+    }
+
+    private void handlePlanUpgradePayment(PaymentConfirmedEvent event) {
+        var membership = membershipRepository.findByMembershipId(new MembershipId(event.membershipId()));
+        if (membership.isEmpty()) {
+            log.error("Plan upgrade payment confirmed for unknown membershipId={} (payment {}) — skipping",
+                    event.membershipId(), event.paymentId());
+            return;
+        }
+        var m = membership.get();
+        if (m.getMembershipTier() == event.membershipTier()) {
+            log.info("Membership {} already at tier {} — upgrade payment idempotent (payment {})",
+                    event.membershipId(), event.membershipTier(), event.paymentId());
+            return;
+        }
+        if (m.getStatus() != MembershipStatus.ACTIVE) {
+            log.warn("Membership {} is in status {} — cannot apply plan upgrade (payment {}). Manual review required.",
+                    event.membershipId(), m.getStatus(), event.paymentId());
+            return;
+        }
+        var command = new UpgradeMembershipPlanCommand(new MembershipId(event.membershipId()), event.membershipTier());
+        m.upgradePlan(command);
+        membershipRepository.save(m);
+        log.info("Membership {} upgraded to tier {} (clientId={}, payment {})",
+                event.membershipId(), event.membershipTier(), m.getClientId(), event.paymentId());
     }
 
     private void handleExistingUserPayment(PaymentConfirmedEvent event) {
