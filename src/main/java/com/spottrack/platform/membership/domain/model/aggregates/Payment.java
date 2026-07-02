@@ -1,6 +1,7 @@
 package com.spottrack.platform.membership.domain.model.aggregates;
 
 import com.spottrack.platform.membership.domain.model.commands.InitiateBusinessPaymentCommand;
+import com.spottrack.platform.membership.domain.model.commands.InitiateDebtPaymentCommand;
 import com.spottrack.platform.membership.domain.model.commands.PayMembershipCommand;
 import com.spottrack.platform.membership.domain.model.events.MembershipPayedEvent;
 import com.spottrack.platform.membership.domain.model.events.PaymentConfirmedEvent;
@@ -31,6 +32,9 @@ public class Payment extends AbstractDomainAggregateRoot<Payment> {
     private UUID pendingRegistrationId;
 
     @Getter
+    private UUID membershipId;
+
+    @Getter
     private MembershipTier membershipTier;
 
     @Getter
@@ -43,12 +47,13 @@ public class Payment extends AbstractDomainAggregateRoot<Payment> {
     private String gatewayTransactionId;
 
     public Payment(Long id, PaymentId paymentId, Long userId, UUID pendingRegistrationId,
-                   MembershipTier membershipTier, Money amount, PaymentStatus status,
-                   String gatewayTransactionId) {
+                   UUID membershipId, MembershipTier membershipTier, Money amount,
+                   PaymentStatus status, String gatewayTransactionId) {
         this.id = id;
         this.paymentId = paymentId;
         this.userId = userId;
         this.pendingRegistrationId = pendingRegistrationId;
+        this.membershipId = membershipId;
         this.membershipTier = membershipTier;
         this.amount = amount;
         this.status = status;
@@ -56,13 +61,18 @@ public class Payment extends AbstractDomainAggregateRoot<Payment> {
     }
 
     public Payment(PayMembershipCommand command) {
-        this(null, new PaymentId(), command.userId(), null, command.membershipTier(),
-                command.amount(), PaymentStatus.PENDING, null);
+        this(null, new PaymentId(), command.userId(), null, null,
+                command.membershipTier(), command.amount(), PaymentStatus.PENDING, null);
     }
 
     public Payment(InitiateBusinessPaymentCommand command) {
-        this(null, new PaymentId(), null, command.pendingRegistrationId(), command.membershipTier(),
-                command.amount(), PaymentStatus.PENDING, null);
+        this(null, new PaymentId(), null, command.pendingRegistrationId(), null,
+                command.membershipTier(), command.amount(), PaymentStatus.PENDING, null);
+    }
+
+    public Payment(InitiateDebtPaymentCommand command) {
+        this(null, new PaymentId(), null, null, command.membershipId(),
+                command.membershipTier(), command.amount(), PaymentStatus.PENDING, null);
     }
 
     public void confirm(String gatewayTransactionId) {
