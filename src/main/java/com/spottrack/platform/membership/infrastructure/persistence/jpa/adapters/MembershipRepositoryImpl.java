@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 public class MembershipRepositoryImpl implements MembershipRepository {
@@ -69,7 +70,8 @@ public class MembershipRepositoryImpl implements MembershipRepository {
 
     @Override
     public List<Membership> findActiveExpiredBefore(LocalDate date) {
-        return membershipPersistenceRepository.findByStatusAndEndDateBefore(MembershipStatus.ACTIVE, date)
+        var expirableStatuses = Set.of(MembershipStatus.ACTIVE, MembershipStatus.SUSPENDED);
+        return membershipPersistenceRepository.findByStatusInAndEndDateBefore(expirableStatuses, date)
                 .stream()
                 .filter(e -> !e.isCancelAtPeriodEnd())
                 .map(MembershipPersistenceAssembler::toDomainFromPersistence)
