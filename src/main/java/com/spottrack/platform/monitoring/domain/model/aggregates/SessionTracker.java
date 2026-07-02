@@ -89,9 +89,17 @@ public class SessionTracker extends AbstractDomainAggregateRoot {
 
 
     /**
-     * This is a simple calculation substracting the inactivity time to the actual continouous activity
+     * This is a simple calculation substracting the inactivity time to the actual continouous activity.
+     * A session that never captured any sensor motion has no lastActivityAt to measure
+     * inactivity from, so it's reported as zero true activity rather than crashing.
      */
     public LocalTime calculateSessionTime() {
+        if (lastActivityAt == null) {
+            var trueActivity = LocalTime.MIDNIGHT;
+            registerDomainEvent(new SessionTimeCalculatedEvent(this.sessionTrackerId, trueActivity));
+            return trueActivity;
+        }
+
         var activity = this.usageActivity.continuousActivity();
         var inactivity = Duration.between(lastActivityAt, LocalDateTime.now());
 
