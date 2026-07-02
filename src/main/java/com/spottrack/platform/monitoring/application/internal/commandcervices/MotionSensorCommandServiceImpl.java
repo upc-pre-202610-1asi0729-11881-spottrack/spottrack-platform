@@ -5,6 +5,7 @@ import com.spottrack.platform.monitoring.domain.model.aggregates.MotionSensor;
 import com.spottrack.platform.monitoring.domain.model.commands.RegisterMotionSensorCommand;
 import com.spottrack.platform.monitoring.domain.model.valueobjects.EquipmentId;
 import com.spottrack.platform.monitoring.domain.repositories.MotionSensorRepository;
+import com.spottrack.platform.gym.interfaces.acl.GymContextFacade;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
 import org.springframework.stereotype.Service;
@@ -12,14 +13,19 @@ import org.springframework.stereotype.Service;
 @Service
 public class MotionSensorCommandServiceImpl implements MotionSensorCommandService {
     private final MotionSensorRepository motionSensorRepository;
+    private final GymContextFacade gymContextFacade;
 
-    public MotionSensorCommandServiceImpl(MotionSensorRepository motionSensorRepository) {
+    public MotionSensorCommandServiceImpl(MotionSensorRepository motionSensorRepository, GymContextFacade gymContextFacade) {
         this.motionSensorRepository = motionSensorRepository;
+        this.gymContextFacade = gymContextFacade;
     }
 
     @Override
     public Result<MotionSensor, ApplicationError> handle(RegisterMotionSensorCommand command) {
         try {
+            if (gymContextFacade.findEquipmentById(command.equipmentId()).isEmpty()) {
+                return Result.failure(ApplicationError.notFound("Equipment", command.equipmentId()));
+            }
             if (motionSensorRepository.existsByEquipmentId(new EquipmentId(command.equipmentId()))) {
                 return Result.failure(ApplicationError.conflict(
                         "MotionSensor",
