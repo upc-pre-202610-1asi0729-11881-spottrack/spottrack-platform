@@ -11,8 +11,6 @@ import com.spottrack.platform.iam.domain.model.queries.GetUserByUsernameQuery;
 import com.spottrack.platform.iam.domain.model.valueobjects.Roles;
 import com.spottrack.platform.iam.domain.repositories.PendingRegistrationRepository;
 import com.spottrack.platform.iam.interfaces.acl.IamContextFacade;
-import com.spottrack.platform.iam.interfaces.acl.dto.PendingRegistrationDto;
-import com.spottrack.platform.iam.interfaces.acl.dto.ProvisionedAccountDto;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
 import lombok.extern.slf4j.Slf4j;
@@ -60,56 +58,44 @@ public class IamContextFacadeImpl implements IamContextFacade {
     }
 
     @Override
-    public Optional<PendingRegistrationDto> findPendingRegistrationById(UUID registrationId) {
-        return pendingRegistrationRepository.findById(registrationId)
-                .map(p -> new PendingRegistrationDto(
-                        p.getRegistrationId(),
-                        p.getEmail(),
-                        p.getMembershipTier(),
-                        p.isExpired()
-                ));
-    }
-
-    @Override
     public boolean existsPendingRegistrationByEmail(String email) {
         return pendingRegistrationRepository.existsActivePendingByEmail(email);
     }
 
     @Override
     @Transactional
-    public Optional<ProvisionedAccountDto> consumePendingRegistration(UUID registrationId) {
+    public Long consumePendingRegistration(UUID registrationId) {
         var pendingOpt = pendingRegistrationRepository.findById(registrationId);
         if (pendingOpt.isEmpty()) {
             log.warn("consumePendingRegistration: no pending registration found for id {}", registrationId);
-            return Optional.empty();
+            return 0L;
         }
 
         var pending = pendingOpt.get();
 
         if (pending.getStatus().name().equals("CONSUMED")) {
-            // Idempotent path: webhook already processed this registration.
-            // Return the existing user data so downstream can verify their own idempotency.
             log.info("consumePendingRegistration: registration {} already consumed, returning existing user", registrationId);
             var existingUser = userQueryService.handle(new GetUserByUsernameQuery(pending.getEmail()));
             if (existingUser.isEmpty()) {
-                log.error("consumePendingRegistration: registration {} is CONSUMED but no IAM user found for email {}", registrationId, pending.getEmail());
-                return Optional.empty();
+                log.error("consumePendingRegistration: registration {} is CONSUMED but no IAM user found for email {}",
+                        registrationId, pending.getEmail());
+                return 0L;
             }
-            return Optional.of(toProvisionedAccountDto(existingUser.get().getId(), pending));
+            return existingUser.get().getId();
         }
 
         if (pending.isExpired()) {
             log.warn("consumePendingRegistration: registration {} has expired", registrationId);
-            return Optional.empty();
+            return 0L;
         }
 
-        // Safety net: if user already exists despite PENDING status (extreme race), mark consumed and return.
         var existingUser = userQueryService.handle(new GetUserByUsernameQuery(pending.getEmail()));
         if (existingUser.isPresent()) {
-            log.warn("consumePendingRegistration: IAM user already exists for {} — marking pending {} as consumed", pending.getEmail(), registrationId);
+            log.warn("consumePendingRegistration: IAM user already exists for {} — marking pending {} as consumed",
+                    pending.getEmail(), registrationId);
             pending.consume();
             pendingRegistrationRepository.save(pending);
-            return Optional.of(toProvisionedAccountDto(existingUser.get().getId(), pending));
+            return existingUser.get().getId();
         }
 
         var provisionCommand = new ProvisionIamAccountCommand(
@@ -120,8 +106,9 @@ public class IamContextFacadeImpl implements IamContextFacade {
 
         var result = userCommandService.handle(provisionCommand);
         if (result instanceof Result.Failure<?, ?> failure) {
-            log.error("consumePendingRegistration: failed to provision IAM account for registration {}: {}", registrationId, failure.error());
-            return Optional.empty();
+            log.error("consumePendingRegistration: failed to provision IAM account for registration {}: {}",
+                    registrationId, failure.error());
+            return 0L;
         }
 
         var newUser = ((Result.Success<com.spottrack.platform.iam.domain.model.aggregates.User, ?>) result).value();
@@ -129,26 +116,69 @@ public class IamContextFacadeImpl implements IamContextFacade {
         pendingRegistrationRepository.save(pending);
 
         log.info("consumePendingRegistration: provisioned IAM user {} for registration {}", newUser.getId(), registrationId);
-        return Optional.of(toProvisionedAccountDto(newUser.getId(), pending));
+        return newUser.getId();
     }
 
-    private ProvisionedAccountDto toProvisionedAccountDto(Long userId, PendingRegistration pending) {
-        return new ProvisionedAccountDto(
-                userId,
-                pending.getEmail(),
-                pending.getFirstName(),
-                pending.getLastName(),
-                pending.getPhoneNumber(),
-                pending.getDni(),
-                pending.getCompanyName(),
-                pending.getRuc(),
-                pending.getLegalStructure(),
-                pending.getCompanyPhone(),
-                pending.getCompanyEmail(),
-                pending.getStreetAddress(),
-                pending.getCity(),
-                pending.getDistrict(),
-                pending.getMembershipTier()
-        );
+    @Override
+    public String fetchPendingRegistrationEmail(UUID registrationId) {
+        return pendingRegistrationRepository.findById(registrationId)
+                .map(PendingRegistration::getEmail)
+                .orElse("");
+    }
+
+    @Override
+    public String fetchPendingRegistrationCompanyName(UUID registrationId) {
+        return pendingRegistrationRepository.findById(registrationId)
+                .map(PendingRegistration::getCompanyName)
+                .orElse("");
+    }
+
+    @Override
+    public String fetchPendingRegistrationRuc(UUID registrationId) {
+        return pendingRegistrationRepository.findById(registrationId)
+                .map(PendingRegistration::getRuc)
+                .orElse("");
+    }
+
+    @Override
+    public String fetchPendingRegistrationLegalStructure(UUID registrationId) {
+        return pendingRegistrationRepository.findById(registrationId)
+                .map(PendingRegistration::getLegalStructure)
+                .orElse("");
+    }
+
+    @Override
+    public String fetchPendingRegistrationCompanyPhone(UUID registrationId) {
+        return pendingRegistrationRepository.findById(registrationId)
+                .map(PendingRegistration::getCompanyPhone)
+                .orElse("");
+    }
+
+    @Override
+    public String fetchPendingRegistrationCompanyEmail(UUID registrationId) {
+        return pendingRegistrationRepository.findById(registrationId)
+                .map(PendingRegistration::getCompanyEmail)
+                .orElse("");
+    }
+
+    @Override
+    public String fetchPendingRegistrationStreetAddress(UUID registrationId) {
+        return pendingRegistrationRepository.findById(registrationId)
+                .map(PendingRegistration::getStreetAddress)
+                .orElse("");
+    }
+
+    @Override
+    public String fetchPendingRegistrationCity(UUID registrationId) {
+        return pendingRegistrationRepository.findById(registrationId)
+                .map(PendingRegistration::getCity)
+                .orElse("");
+    }
+
+    @Override
+    public String fetchPendingRegistrationDistrict(UUID registrationId) {
+        return pendingRegistrationRepository.findById(registrationId)
+                .map(PendingRegistration::getDistrict)
+                .orElse("");
     }
 }
