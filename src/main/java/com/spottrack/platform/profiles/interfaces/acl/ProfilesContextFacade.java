@@ -9,4 +9,10 @@ public interface ProfilesContextFacade {
     void provisionBusinessProfile(Long userId, String companyName, String ruc,
                                   String legalStructure, String companyPhone, String companyEmail,
                                   String streetAddress, String city, String district);
+
+    /**
+     * Returns the gymId of the active gym for the given client.
+     * Returns "" if the client has no active gym or if the active gym's whitelist entry was removed.
+     */
+    String fetchActiveGymIdByClientId(Long clientId);
 }

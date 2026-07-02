@@ -1,5 +1,6 @@
 package com.spottrack.platform.profiles.application.acl;
 
+import com.spottrack.platform.gym.interfaces.acl.GymContextFacade;
 import com.spottrack.platform.profiles.application.commandservices.AdminCommandService;
 import com.spottrack.platform.profiles.application.commandservices.BusinessProfileCommandService;
 import com.spottrack.platform.profiles.application.queryservices.AdminQueryService;
@@ -10,8 +11,10 @@ import com.spottrack.platform.profiles.domain.model.queries.GetAdminByEmailQuery
 import com.spottrack.platform.profiles.domain.model.queries.GetAdminByUserIdQuery;
 import com.spottrack.platform.profiles.domain.model.queries.GetClientByEmailQuery;
 import com.spottrack.platform.profiles.domain.model.valueobjects.BusinessInfo;
+import com.spottrack.platform.profiles.domain.model.valueobjects.ClientId;
 import com.spottrack.platform.profiles.domain.model.valueobjects.EmailAddress;
 import com.spottrack.platform.profiles.domain.model.valueobjects.PhoneNumber;
+import com.spottrack.platform.profiles.infrastructure.persistence.jpa.repositories.ClientGymAssociationPersistenceRepository;
 import com.spottrack.platform.profiles.interfaces.acl.ProfilesContextFacade;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
@@ -26,15 +29,21 @@ public class ProfilesContextFacadeImpl implements ProfilesContextFacade {
     private final AdminQueryService adminQueryService;
     private final AdminCommandService adminCommandService;
     private final BusinessProfileCommandService businessProfileCommandService;
+    private final ClientGymAssociationPersistenceRepository associationRepository;
+    private final GymContextFacade gymContextFacade;
 
     public ProfilesContextFacadeImpl(ClientQueryService clientQueryService,
                                      AdminQueryService adminQueryService,
                                      AdminCommandService adminCommandService,
-                                     BusinessProfileCommandService businessProfileCommandService) {
+                                     BusinessProfileCommandService businessProfileCommandService,
+                                     ClientGymAssociationPersistenceRepository associationRepository,
+                                     GymContextFacade gymContextFacade) {
         this.clientQueryService = clientQueryService;
         this.adminQueryService = adminQueryService;
         this.adminCommandService = adminCommandService;
         this.businessProfileCommandService = businessProfileCommandService;
+        this.associationRepository = associationRepository;
+        this.gymContextFacade = gymContextFacade;
     }
 
     @Override
@@ -92,5 +101,17 @@ public class ProfilesContextFacadeImpl implements ProfilesContextFacade {
                 throw new RuntimeException("BusinessProfile provisioning failed: " + f.error().message());
             }
         }
+    }
+
+    @Override
+    public String fetchActiveGymIdByClientId(Long clientId) {
+        var activeOpt = associationRepository.findByClientIdAndActiveTrue(clientId);
+        if (activeOpt.isEmpty()) return "";
+        var active = activeOpt.get();
+        var clientOpt = clientQueryService.handle(
+                new com.spottrack.platform.profiles.domain.model.queries.GetClientByIdQuery(new ClientId(clientId)));
+        if (clientOpt.isEmpty() || !clientOpt.get().isProfileComplete()) return "";
+        var dni = clientOpt.get().getPersonInfo().dni().getDNI();
+        return gymContextFacade.isDniWhitelistedForGym(active.getGymId(), dni) ? active.getGymId() : "";
     }
 }
