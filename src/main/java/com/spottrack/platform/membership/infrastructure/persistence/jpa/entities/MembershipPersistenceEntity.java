@@ -42,6 +42,10 @@ public class MembershipPersistenceEntity extends AuditableAbstractPersistenceEnt
     @Column(name = "cancel_at_period_end", nullable = false)
     private boolean cancelAtPeriodEnd;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "pending_downgrade_tier")
+    private MembershipTier pendingDowngradeTier;
+
     public MembershipPersistenceEntity() {}
 
     public String getMembershipId() { return membershipId; }
@@ -67,4 +71,7 @@ public class MembershipPersistenceEntity extends AuditableAbstractPersistenceEnt
 
     public boolean isCancelAtPeriodEnd() { return cancelAtPeriodEnd; }
     public void setCancelAtPeriodEnd(boolean cancelAtPeriodEnd) { this.cancelAtPeriodEnd = cancelAtPeriodEnd; }
+
+    public MembershipTier getPendingDowngradeTier() { return pendingDowngradeTier; }
+    public void setPendingDowngradeTier(MembershipTier pendingDowngradeTier) { this.pendingDowngradeTier = pendingDowngradeTier; }
 }
