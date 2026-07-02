@@ -1,8 +1,6 @@
 package com.spottrack.platform.iam.interfaces.acl;
 
 import com.spottrack.platform.iam.domain.model.commands.SavePendingRegistrationCommand;
-import com.spottrack.platform.iam.interfaces.acl.dto.PendingRegistrationDto;
-import com.spottrack.platform.iam.interfaces.acl.dto.ProvisionedAccountDto;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
 
@@ -14,13 +12,16 @@ public interface IamContextFacade {
     boolean existsUserByUsername(String username);
 
     Result<UUID, ApplicationError> savePendingRegistration(SavePendingRegistrationCommand command);
-    Optional<PendingRegistrationDto> findPendingRegistrationById(UUID registrationId);
     boolean existsPendingRegistrationByEmail(String email);
 
-    /**
-     * Atomically consumes a pending registration: creates the IAM User account and
-     * marks the registration as CONSUMED. Idempotent — if already CONSUMED, returns
-     * the existing User data without creating duplicates.
-     */
-    Optional<ProvisionedAccountDto> consumePendingRegistration(UUID registrationId);
+    Long consumePendingRegistration(UUID registrationId);
+    String fetchPendingRegistrationEmail(UUID registrationId);
+    String fetchPendingRegistrationCompanyName(UUID registrationId);
+    String fetchPendingRegistrationRuc(UUID registrationId);
+    String fetchPendingRegistrationLegalStructure(UUID registrationId);
+    String fetchPendingRegistrationCompanyPhone(UUID registrationId);
+    String fetchPendingRegistrationCompanyEmail(UUID registrationId);
+    String fetchPendingRegistrationStreetAddress(UUID registrationId);
+    String fetchPendingRegistrationCity(UUID registrationId);
+    String fetchPendingRegistrationDistrict(UUID registrationId);
 }
