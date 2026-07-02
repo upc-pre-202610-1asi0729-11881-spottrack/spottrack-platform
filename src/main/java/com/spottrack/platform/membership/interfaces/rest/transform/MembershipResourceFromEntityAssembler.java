@@ -6,6 +6,9 @@ import com.spottrack.platform.membership.interfaces.rest.resources.MembershipRes
 public class MembershipResourceFromEntityAssembler {
 
     public static MembershipResource toResourceFromEntity(Membership membership) {
+        var pendingDowngrade = membership.getPendingDowngradeTier() != null
+                ? membership.getPendingDowngradeTier().name()
+                : null;
         return new MembershipResource(
                 membership.getId(),
                 membership.getMembershipId().uuid(),
@@ -16,7 +19,8 @@ public class MembershipResourceFromEntityAssembler {
                 membership.getMembershipPeriod().startDate(),
                 membership.getMembershipPeriod().endDate(),
                 membership.getStatus().name(),
-                membership.isCancelAtPeriodEnd()
+                membership.isCancelAtPeriodEnd(),
+                pendingDowngrade
         );
     }
 }
