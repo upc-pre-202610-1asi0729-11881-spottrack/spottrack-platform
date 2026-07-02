@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,4 +17,5 @@ public interface MembershipPersistenceRepository extends JpaRepository<Membershi
     boolean existsByMembershipId(String membershipId);
     List<MembershipPersistenceEntity> findByStatusAndEndDateBefore(MembershipStatus status, LocalDate date);
     List<MembershipPersistenceEntity> findByStatusAndCancelAtPeriodEndTrueAndEndDateBefore(MembershipStatus status, LocalDate date);
+    List<MembershipPersistenceEntity> findByStatusInAndEndDateBefore(Collection<MembershipStatus> statuses, LocalDate date);
 }

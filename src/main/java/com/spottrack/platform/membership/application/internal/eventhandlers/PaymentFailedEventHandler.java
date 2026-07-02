@@ -1,0 +1,58 @@
+package com.spottrack.platform.membership.application.internal.eventhandlers;
+
+import com.spottrack.platform.membership.domain.model.events.PaymentFailedEvent;
+import com.spottrack.platform.membership.domain.model.valueobjects.MembershipStatus;
+import com.spottrack.platform.membership.domain.repositories.MembershipRepository;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Service;
+
+@Slf4j
+@Service
+public class PaymentFailedEventHandler {
+
+    private final MembershipRepository membershipRepository;
+
+    PaymentFailedEventHandler(MembershipRepository membershipRepository) {
+        this.membershipRepository = membershipRepository;
+    }
+
+    @EventListener
+    public void on(PaymentFailedEvent event) {
+        log.info("Processing PaymentFailedEvent: paymentId={}, userId={}, pendingRegistrationId={}",
+                event.paymentId(), event.userId(), event.pendingRegistrationId());
+        try {
+            if (event.userId() != null) {
+                handleExistingUserPaymentFailure(event);
+            } else if (event.pendingRegistrationId() != null) {
+                log.info("Business registration payment failed for pendingRegistrationId={} — no membership to suspend",
+                        event.pendingRegistrationId());
+            } else {
+                log.error("PaymentFailedEvent for payment {} has neither userId nor pendingRegistrationId — skipping",
+                        event.paymentId());
+            }
+        } catch (Exception e) {
+            log.error("Error in PaymentFailedEventHandler for payment {}: {}",
+                    event.paymentId(), e.getMessage(), e);
+        }
+    }
+
+    private void handleExistingUserPaymentFailure(PaymentFailedEvent event) {
+        var memberships = membershipRepository.findByClientId(event.userId());
+        var activeMembership = memberships.stream()
+                .filter(m -> m.getStatus() == MembershipStatus.ACTIVE)
+                .findFirst();
+
+        if (activeMembership.isEmpty()) {
+            log.info("No active membership found for userId {} (payment {}) — nothing to suspend",
+                    event.userId(), event.paymentId());
+            return;
+        }
+
+        var membership = activeMembership.get();
+        membership.suspend();
+        membershipRepository.save(membership);
+        log.info("Membership {} suspended due to payment failure (userId={}, payment={})",
+                membership.getMembershipId().uuid(), event.userId(), event.paymentId());
+    }
+}

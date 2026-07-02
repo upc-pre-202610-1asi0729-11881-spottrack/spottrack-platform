@@ -116,8 +116,8 @@ public class Membership extends AbstractDomainAggregateRoot<Membership> {
     }
 
     public void expire() {
-        if (this.status != MembershipStatus.ACTIVE) {
-            throw new IllegalStateException("membership.error.expire.notActive");
+        if (this.status != MembershipStatus.ACTIVE && this.status != MembershipStatus.SUSPENDED) {
+            throw new IllegalStateException("membership.error.expire.invalidStatus");
         }
         this.status = MembershipStatus.EXPIRED;
         registerDomainEvent(MembershipExpiredEvent.from(this));
