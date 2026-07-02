@@ -1,6 +1,7 @@
 package com.spottrack.platform.reservation.interfaces.rest.controllers;
 
 import com.spottrack.platform.iam.interfaces.acl.IamContextFacade;
+import com.spottrack.platform.membership.interfaces.acl.MembershipContextFacade;
 import com.spottrack.platform.profiles.interfaces.acl.ProfilesContextFacade;
 import com.spottrack.platform.reservation.application.commandServices.ReservationCommandService;
 import com.spottrack.platform.reservation.application.queryservices.ReservationQueryService;
@@ -37,16 +38,19 @@ public class ReservationsController {
     private final ReservationQueryService reservationQueryService;
     private final IamContextFacade iamContextFacade;
     private final ProfilesContextFacade profilesContextFacade;
+    private final MembershipContextFacade membershipContextFacade;
 
     public ReservationsController(
             ReservationCommandService commandService,
             ReservationQueryService reservationQueryService,
             IamContextFacade iamContextFacade,
-            ProfilesContextFacade profilesContextFacade) {
+            ProfilesContextFacade profilesContextFacade,
+            MembershipContextFacade membershipContextFacade) {
         this.commandService = commandService;
         this.reservationQueryService = reservationQueryService;
         this.iamContextFacade = iamContextFacade;
         this.profilesContextFacade = profilesContextFacade;
+        this.membershipContextFacade = membershipContextFacade;
     }
 
     @PostMapping("/reserve")
@@ -58,6 +62,8 @@ public class ReservationsController {
             return ErrorResponseAssembler.toErrorResponseFromApplicationError(
                     ApplicationError.notFound("Client", authentication.getName()));
         }
+        var membershipError = checkMembershipAccess(clientId);
+        if (membershipError.isPresent()) return membershipError.get();
         var command = InitiateExpressReservationCommandFromResourceAssembler.toCommandFromResource(resource, clientId);
         var result = commandService.handle(command);
         return switch (result) {
@@ -79,6 +85,8 @@ public class ReservationsController {
             return ErrorResponseAssembler.toErrorResponseFromApplicationError(
                     ApplicationError.notFound("Client", authentication.getName()));
         }
+        var membershipError = checkMembershipAccess(clientId);
+        if (membershipError.isPresent()) return membershipError.get();
         var reservation = reservationQueryService.handle(new GetReservationByUuidQuery(id));
         if (reservation.isEmpty()) {
             return ErrorResponseAssembler.toErrorResponseFromApplicationError(
@@ -165,6 +173,16 @@ public class ReservationsController {
 
     private Long resolveClientId(Authentication authentication) {
         return profilesContextFacade.fetchClientIdByEmail(authentication.getName());
+    }
+
+    private Optional<ResponseEntity<?>> checkMembershipAccess(Long clientId) {
+        var accessStatus = membershipContextFacade.fetchMembershipAccessStatus(clientId);
+        if ("ACTIVE".equals(accessStatus)) return Optional.empty();
+        var errorCode = "SUSPENDED".equals(accessStatus)
+                ? "membership.error.access.suspended"
+                : "membership.error.access.inactive";
+        return Optional.of(ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                ApplicationError.forbidden("Membership", errorCode)));
     }
 
     private Optional<ResponseEntity<?>> checkOwnership(Long reservationClientId, Long callerClientId, String reservationUuid) {
