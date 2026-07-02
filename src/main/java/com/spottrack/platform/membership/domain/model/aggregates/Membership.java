@@ -7,6 +7,7 @@ import com.spottrack.platform.membership.domain.model.events.GymMembershipActiva
 import com.spottrack.platform.membership.domain.model.events.GymMembershipRenewedEvent;
 import com.spottrack.platform.membership.domain.model.events.MembershipCancelledEvent;
 import com.spottrack.platform.membership.domain.model.events.MembershipCreatedEvent;
+import com.spottrack.platform.membership.domain.model.events.MembershipExpiredEvent;
 import com.spottrack.platform.membership.domain.model.events.MembershipSuspendedEvent;
 import com.spottrack.platform.membership.domain.model.events.PlanUpgradedEvent;
 import com.spottrack.platform.membership.domain.model.valueobjects.*;
@@ -93,6 +94,14 @@ public class Membership extends AbstractDomainAggregateRoot<Membership> {
         this.membershipPeriod = new MembershipPeriod(command.startDate(), command.endDate());
         this.status = MembershipStatus.ACTIVE;
         registerDomainEvent(GymMembershipRenewedEvent.from(this));
+    }
+
+    public void expire() {
+        if (this.status != MembershipStatus.ACTIVE) {
+            throw new IllegalStateException("membership.error.expire.notActive");
+        }
+        this.status = MembershipStatus.EXPIRED;
+        registerDomainEvent(MembershipExpiredEvent.from(this));
     }
 
     public void onCreated() {
