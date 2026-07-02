@@ -7,6 +7,8 @@ import com.spottrack.platform.maintenance.infrastructure.persistence.jpa.reposit
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public class MaintenanceLogRepositoryImpl implements MaintenanceLogRepository {
 
@@ -27,5 +29,12 @@ public class MaintenanceLogRepositoryImpl implements MaintenanceLogRepository {
         log.domainEvents().forEach(eventPublisher::publishEvent);
         log.clearDomainEvents();
         return domain;
+    }
+
+    @Override
+    public List<MaintenanceLog> findByTicketId(String ticketId) {
+        return jpaRepository.findByTicketIdOrderByCompletedAtDesc(ticketId).stream()
+                .map(MaintenanceLogPersistenceAssembler::toDomainFromPersistence)
+                .toList();
     }
 }
