@@ -128,6 +128,44 @@ public class RoutinesController {
         return ResponseEntity.ok(RoutineResourceFromEntityAssembler.toResourceFromEntity(routine.get()));
     }
 
+    @GetMapping("/{routineId}/exercise-blocks")
+    @Operation(
+            summary = "Get exercise blocks for a routine",
+            description = "Retrieves the exercise blocks belonging to a routine. Returns 403 if the routine does not belong to the authenticated client."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Exercise blocks retrieved successfully",
+                    content = @Content(schema = @Schema(implementation = ExerciseBlockResource.class))
+            ),
+            @ApiResponse(responseCode = "403", description = "Access denied"),
+            @ApiResponse(responseCode = "404", description = "Routine not found")
+    })
+    public ResponseEntity<?> getExerciseBlocksByRoutine(
+            Authentication authentication,
+            @PathVariable
+            @Parameter(description = "Routine unique identifier", example = "1", required = true)
+            Long routineId
+    ) {
+        var clientId = resolveClientId(authentication);
+        if (clientId == 0L) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.notFound("Client", authentication.getName()));
+        }
+        var routine = routineQueryService.handle(new GetRoutineByIdQuery(routineId));
+        if (routine.isEmpty()) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.notFound("Routine", routineId.toString()));
+        }
+        var ownershipError = checkOwnership(routine.get().getClientId().clientId(), clientId, routineId.toString());
+        if (ownershipError.isPresent()) return ownershipError.get();
+        var resources = routine.get().getExerciseBlocks().stream()
+                .map(ExerciseBlockResourceFromEntityAssembler::toResourceFromEntity)
+                .toList();
+        return ResponseEntity.ok(resources);
+    }
+
     @GetMapping
     @Operation(
             summary = "Get all routines",
