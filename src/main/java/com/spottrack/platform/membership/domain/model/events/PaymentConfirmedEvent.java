@@ -2,6 +2,7 @@ package com.spottrack.platform.membership.domain.model.events;
 
 import com.spottrack.platform.membership.domain.model.aggregates.Payment;
 import com.spottrack.platform.membership.domain.model.valueobjects.MembershipTier;
+import com.spottrack.platform.membership.domain.model.valueobjects.PaymentPurpose;
 import com.spottrack.platform.shared.domain.model.valueobjects.Money;
 
 import java.util.UUID;
@@ -14,7 +15,8 @@ public record PaymentConfirmedEvent(
         UUID membershipId,
         MembershipTier membershipTier,
         Money amount,
-        String gatewayTransactionId
+        String gatewayTransactionId,
+        PaymentPurpose paymentPurpose
 ) {
     public static PaymentConfirmedEvent from(Payment payment) {
         return new PaymentConfirmedEvent(
@@ -25,7 +27,8 @@ public record PaymentConfirmedEvent(
                 payment.getMembershipId(),
                 payment.getMembershipTier(),
                 payment.getAmount(),
-                payment.getGatewayTransactionId()
+                payment.getGatewayTransactionId(),
+                payment.getPaymentPurpose()
         );
     }
 }

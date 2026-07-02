@@ -3,6 +3,7 @@ package com.spottrack.platform.membership.domain.model.aggregates;
 import com.spottrack.platform.membership.domain.model.commands.CreateMembershipCommand;
 import com.spottrack.platform.membership.domain.model.commands.RenewMembershipCommand;
 import com.spottrack.platform.membership.domain.model.commands.UpgradeMembershipPlanCommand;
+import java.time.LocalDate;
 import com.spottrack.platform.membership.domain.model.events.GymMembershipActivatedEvent;
 import com.spottrack.platform.membership.domain.model.events.GymMembershipRenewedEvent;
 import com.spottrack.platform.membership.domain.model.events.MembershipCancellationRequestedEvent;
@@ -105,7 +106,18 @@ public class Membership extends AbstractDomainAggregateRoot<Membership> {
     }
 
     public void upgradePlan(UpgradeMembershipPlanCommand command) {
+        if (this.status != MembershipStatus.ACTIVE) {
+            throw new IllegalStateException("membership.error.upgrade.notActive");
+        }
+        if (command.newMembershipTier().toMoney().amount()
+                .compareTo(this.membershipTier.toMoney().amount()) <= 0) {
+            throw new IllegalStateException("membership.error.upgrade.notHigherTier");
+        }
         this.membershipTier = command.newMembershipTier();
+        this.price = command.newMembershipTier().toMoney();
+        var today = LocalDate.now();
+        this.membershipPeriod = new MembershipPeriod(today, today.plusDays(30));
+        this.cancelAtPeriodEnd = false;
         registerDomainEvent(PlanUpgradedEvent.from(this));
     }
 

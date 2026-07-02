@@ -1,6 +1,7 @@
 package com.spottrack.platform.membership.infrastructure.persistence.jpa.entities;
 
 import com.spottrack.platform.membership.domain.model.valueobjects.MembershipTier;
+import com.spottrack.platform.membership.domain.model.valueobjects.PaymentPurpose;
 import com.spottrack.platform.membership.domain.model.valueobjects.PaymentStatus;
 import com.spottrack.platform.shared.domain.model.valueobjects.Money;
 import com.spottrack.platform.shared.infrastructure.persistence.jpa.entities.AuditableAbstractPersistenceEntity;
@@ -40,6 +41,10 @@ public class PaymentPersistenceEntity extends AuditableAbstractPersistenceEntity
     @Column(name = "gateway_transaction_id")
     private String gatewayTransactionId;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_purpose")
+    private PaymentPurpose paymentPurpose;
+
     public PaymentPersistenceEntity() {}
 
     public String getPaymentId() { return paymentId; }
@@ -65,4 +70,7 @@ public class PaymentPersistenceEntity extends AuditableAbstractPersistenceEntity
 
     public String getGatewayTransactionId() { return gatewayTransactionId; }
     public void setGatewayTransactionId(String gatewayTransactionId) { this.gatewayTransactionId = gatewayTransactionId; }
+
+    public PaymentPurpose getPaymentPurpose() { return paymentPurpose; }
+    public void setPaymentPurpose(PaymentPurpose paymentPurpose) { this.paymentPurpose = paymentPurpose; }
 }

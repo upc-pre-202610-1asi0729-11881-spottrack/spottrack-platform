@@ -5,10 +5,13 @@ import com.spottrack.platform.membership.application.commandservices.PaymentComm
 import com.spottrack.platform.membership.application.queryservices.MembershipQueryService;
 import com.spottrack.platform.membership.domain.model.commands.CancelMembershipCommand;
 import com.spottrack.platform.membership.domain.model.commands.InitiateDebtPaymentCommand;
+import com.spottrack.platform.membership.domain.model.commands.InitiateUpgradePaymentCommand;
 import com.spottrack.platform.membership.domain.model.queries.GetMembershipByIdQuery;
 import com.spottrack.platform.membership.domain.model.valueobjects.MembershipId;
 import com.spottrack.platform.membership.domain.model.valueobjects.MembershipStatus;
+import com.spottrack.platform.membership.domain.model.valueobjects.MembershipTier;
 import com.spottrack.platform.membership.interfaces.rest.resources.CreateMembershipResource;
+import com.spottrack.platform.membership.interfaces.rest.resources.UpgradeMembershipPlanResource;
 import com.spottrack.platform.membership.interfaces.rest.transform.CreateMembershipCommandFromResourceAssembler;
 import com.spottrack.platform.membership.interfaces.rest.transform.MembershipResourceFromEntityAssembler;
 import com.spottrack.platform.profiles.interfaces.acl.ProfilesContextFacade;
@@ -108,6 +111,51 @@ public class MembershipController {
         }
         var tier = membership.get().getMembershipTier();
         var command = new InitiateDebtPaymentCommand(membershipId, tier, tier.toMoney());
+        var result = paymentCommandService.handle(command);
+        return switch (result) {
+            case com.spottrack.platform.shared.application.result.Result.Success<String, ?> s ->
+                    ResponseEntity.ok(Map.of("checkoutUrl", s.value()));
+            case com.spottrack.platform.shared.application.result.Result.Failure<?, ApplicationError> f ->
+                    ErrorResponseAssembler.toErrorResponseFromApplicationError(f.error());
+        };
+    }
+
+    @PostMapping("/{membershipId}/upgrade-plan")
+    @Schema(description = "Initiate a plan upgrade payment for an active membership")
+    public ResponseEntity<?> upgradePlan(
+            Authentication authentication,
+            @PathVariable UUID membershipId,
+            @RequestBody @Valid UpgradeMembershipPlanResource resource) {
+        var clientId = resolveClientId(authentication);
+        if (clientId == 0L) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.notFound("Client", authentication.getName()));
+        }
+        var membership = membershipQueryService.handle(new GetMembershipByIdQuery(new MembershipId(membershipId)));
+        if (membership.isEmpty()) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.notFound("Membership", membershipId.toString()));
+        }
+        var ownershipError = checkOwnership(membership.get().getClientId(), clientId, membershipId.toString());
+        if (ownershipError.isPresent()) return ownershipError.get();
+        if (membership.get().getStatus() != MembershipStatus.ACTIVE) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.businessRuleViolation("Membership.upgradePlan",
+                            "membership.error.upgrade.notActive"));
+        }
+        MembershipTier newTier;
+        try {
+            newTier = MembershipTier.valueOf(resource.newMembershipTier());
+        } catch (IllegalArgumentException e) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.validationError("MembershipTier", "membership.error.upgrade.invalidTier"));
+        }
+        if (newTier.toMoney().amount().compareTo(membership.get().getMembershipTier().toMoney().amount()) <= 0) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.businessRuleViolation("Membership.upgradePlan",
+                            "membership.error.upgrade.notHigherTier"));
+        }
+        var command = new InitiateUpgradePaymentCommand(membershipId, newTier, newTier.toMoney());
         var result = paymentCommandService.handle(command);
         return switch (result) {
             case com.spottrack.platform.shared.application.result.Result.Success<String, ?> s ->
