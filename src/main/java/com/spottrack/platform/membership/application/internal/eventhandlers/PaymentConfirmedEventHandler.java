@@ -42,6 +42,7 @@ public class PaymentConfirmedEventHandler {
                 case DEBT_RENEWAL -> handleDebtPayment(event);
                 case NEW_MEMBERSHIP -> handleExistingUserPayment(event);
                 case BUSINESS_REGISTRATION -> handleBusinessRegistrationPayment(event);
+                case RESUBSCRIPTION -> handleResubscriptionPayment(event);
             }
         } catch (Exception e) {
             log.error("Error in PaymentConfirmedEventHandler for payment {} : {}",
@@ -101,6 +102,10 @@ public class PaymentConfirmedEventHandler {
     }
 
     private void handleExistingUserPayment(PaymentConfirmedEvent event) {
+        createAndActivateMembership(event.userId(), event);
+    }
+
+    private void handleResubscriptionPayment(PaymentConfirmedEvent event) {
         createAndActivateMembership(event.userId(), event);
     }
 
