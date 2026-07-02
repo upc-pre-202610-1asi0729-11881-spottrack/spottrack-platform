@@ -1,9 +1,9 @@
 package com.spottrack.platform.monitoring.interfaces.rest;
 
 import com.spottrack.platform.monitoring.application.commandServices.CameraSensorCommandService;
+import com.spottrack.platform.monitoring.application.commandServices.SessionTrackerCommandService;
 import com.spottrack.platform.monitoring.application.queryServices.CameraSensorQueryService;
 import com.spottrack.platform.monitoring.domain.model.queries.GetAllCameraSensorsQuery;
-import com.spottrack.platform.monitoring.application.commandServices.SessionTrackerCommandService;
 import com.spottrack.platform.monitoring.interfaces.rest.resources.CameraSensorResource;
 import com.spottrack.platform.monitoring.interfaces.rest.resources.CaptureCameraMotionResource;
 import com.spottrack.platform.monitoring.interfaces.rest.resources.RegisterCameraSensorResource;
@@ -36,10 +36,12 @@ import java.util.List;
 public class CameraSensorController {
     private final CameraSensorCommandService cameraSensorCommandService;
     private final CameraSensorQueryService cameraSensorQueryService;
+    private final SessionTrackerCommandService sessionTrackerCommandService;
 
-    public CameraSensorController(CameraSensorCommandService cameraSensorCommandService, CameraSensorQueryService cameraSensorQueryService) {
+    public CameraSensorController(CameraSensorCommandService cameraSensorCommandService, CameraSensorQueryService cameraSensorQueryService, SessionTrackerCommandService sessionTrackerCommandService) {
         this.cameraSensorCommandService = cameraSensorCommandService;
         this.cameraSensorQueryService = cameraSensorQueryService;
+        this.sessionTrackerCommandService = sessionTrackerCommandService;
     }
 
     @GetMapping
@@ -47,11 +49,6 @@ public class CameraSensorController {
         return cameraSensorQueryService.handle(new GetAllCameraSensorsQuery()).stream()
                 .map(CameraSensorResourceFromEntity::toResourceFromEntity)
                 .toList();
-    private final SessionTrackerCommandService sessionTrackerCommandService;
-
-    public CameraSensorController(CameraSensorCommandService cameraSensorCommandService, SessionTrackerCommandService sessionTrackerCommandService) {
-        this.cameraSensorCommandService = cameraSensorCommandService;
-        this.sessionTrackerCommandService = sessionTrackerCommandService;
     }
 
     @PostMapping
