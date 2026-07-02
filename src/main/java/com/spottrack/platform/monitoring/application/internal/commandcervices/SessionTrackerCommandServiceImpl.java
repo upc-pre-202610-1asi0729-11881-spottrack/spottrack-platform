@@ -8,6 +8,7 @@ import com.spottrack.platform.monitoring.domain.repositories.SessionTrackerRepos
 import com.spottrack.platform.monitoring.infrastructure.persistence.jpa.assemblers.SessionTrackerPersistenceAssembler;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -17,6 +18,7 @@ public class SessionTrackerCommandServiceImpl implements SessionTrackerCommandSe
     public SessionTrackerCommandServiceImpl(SessionTrackerRepository sessionTrackerRepository){
         this.sessionTrackerRepository = sessionTrackerRepository;
     }
+    @Transactional
     @Override
     public Result<SessionTracker, ApplicationError> handle(VerifyUsageSessionCommand command) {
         try {
@@ -61,6 +63,13 @@ public class SessionTrackerCommandServiceImpl implements SessionTrackerCommandSe
         return null;
     }
 
+    /**
+     * REQUIRES_NEW: this handler is invoked from an AFTER_COMMIT transactional event
+     * listener, where the original transaction's resources are already tearing down.
+     * Joining it (default propagation) silently no-ops the write, so a fresh
+     * transaction is required here.
+     */
+    @Transactional(Transactional.TxType.REQUIRES_NEW)
     @Override
     public Result<SessionTracker, ApplicationError> handle(EndUsageSessionCommand command) {
         /**
@@ -77,6 +86,7 @@ public class SessionTrackerCommandServiceImpl implements SessionTrackerCommandSe
         }
     }
 
+    @Transactional(Transactional.TxType.REQUIRES_NEW)
     @Override
     public Result<SessionTracker, ApplicationError> handle(CalculateSessionTimeCommand command) {
         try {
