@@ -14,4 +14,5 @@ public interface MembershipRepository {
     Membership save(Membership membership);
     boolean existsByMembershipId(MembershipId membershipId);
     List<Membership> findActiveExpiredBefore(LocalDate date);
+    List<Membership> findPendingCancellationExpiredBefore(LocalDate date);
 }
