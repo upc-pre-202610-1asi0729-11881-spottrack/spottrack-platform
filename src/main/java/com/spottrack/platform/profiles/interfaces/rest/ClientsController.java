@@ -3,9 +3,16 @@ package com.spottrack.platform.profiles.interfaces.rest;
 import com.spottrack.platform.iam.interfaces.acl.IamContextFacade;
 import com.spottrack.platform.profiles.application.commandservices.ClientCommandService;
 import com.spottrack.platform.profiles.application.queryservices.ClientQueryService;
+import com.spottrack.platform.profiles.domain.model.commands.AssociateClientWithGymCommand;
+import com.spottrack.platform.profiles.domain.model.commands.ChangeActiveGymCommand;
+import com.spottrack.platform.profiles.domain.model.entities.ClientGymAssociation;
 import com.spottrack.platform.profiles.domain.model.queries.GetClientByIdQuery;
 import com.spottrack.platform.profiles.domain.model.queries.GetClientByUserIdQuery;
+import com.spottrack.platform.profiles.domain.model.queries.GetClientGymAssociationsQuery;
 import com.spottrack.platform.profiles.domain.model.valueobjects.ClientId;
+import com.spottrack.platform.profiles.interfaces.rest.resources.AssociateGymResource;
+import com.spottrack.platform.profiles.interfaces.rest.resources.ChangeActiveGymResource;
+import com.spottrack.platform.profiles.interfaces.rest.resources.ClientGymAssociationResource;
 import com.spottrack.platform.profiles.interfaces.rest.resources.ClientResource;
 import com.spottrack.platform.profiles.interfaces.rest.resources.CreateClientResource;
 import com.spottrack.platform.profiles.interfaces.rest.resources.UpdateClientProfileResource;
@@ -163,6 +170,72 @@ public class ClientsController {
                 ClientResourceFromEntityAssembler::toResourceFromEntity,
                 HttpStatus.OK
         );
+    }
+
+    @PostMapping("/me/gym-associations")
+    public ResponseEntity<?> associateGym(Authentication authentication,
+                                          @Valid @RequestBody AssociateGymResource resource) {
+        var optionalUserId = iamContextFacade.fetchUserIdByUsername(authentication.getName());
+        if (optionalUserId.isEmpty()) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.notFound("User", authentication.getName()));
+        }
+        var clientOpt = clientQueryService.handle(new GetClientByUserIdQuery(optionalUserId.get()));
+        if (clientOpt.isEmpty()) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.notFound("Client", "userId:" + optionalUserId.get()));
+        }
+        var command = new AssociateClientWithGymCommand(clientOpt.get().getId(), resource.gymId());
+        var result = clientCommandService.handle(command);
+        return switch (result) {
+            case com.spottrack.platform.shared.application.result.Result.Success<ClientGymAssociation, ApplicationError> s ->
+                    ResponseEntity.status(HttpStatus.CREATED)
+                            .body(new ClientGymAssociationResource(s.value().getClientId(), s.value().getGymId(), s.value().isActive()));
+            case com.spottrack.platform.shared.application.result.Result.Failure<ClientGymAssociation, ApplicationError> f ->
+                    ErrorResponseAssembler.toErrorResponseFromApplicationError(f.error());
+        };
+    }
+
+    @GetMapping("/me/gym-associations")
+    public ResponseEntity<?> getMyGymAssociations(Authentication authentication) {
+        var optionalUserId = iamContextFacade.fetchUserIdByUsername(authentication.getName());
+        if (optionalUserId.isEmpty()) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.notFound("User", authentication.getName()));
+        }
+        var clientOpt = clientQueryService.handle(new GetClientByUserIdQuery(optionalUserId.get()));
+        if (clientOpt.isEmpty()) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.notFound("Client", "userId:" + optionalUserId.get()));
+        }
+        var associations = clientQueryService.handle(new GetClientGymAssociationsQuery(clientOpt.get().getId()));
+        var resources = associations.stream()
+                .map(a -> new ClientGymAssociationResource(a.getClientId(), a.getGymId(), a.isActive()))
+                .toList();
+        return ResponseEntity.ok(resources);
+    }
+
+    @PatchMapping("/me/active-gym")
+    public ResponseEntity<?> changeActiveGym(Authentication authentication,
+                                             @Valid @RequestBody ChangeActiveGymResource resource) {
+        var optionalUserId = iamContextFacade.fetchUserIdByUsername(authentication.getName());
+        if (optionalUserId.isEmpty()) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.notFound("User", authentication.getName()));
+        }
+        var clientOpt = clientQueryService.handle(new GetClientByUserIdQuery(optionalUserId.get()));
+        if (clientOpt.isEmpty()) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.notFound("Client", "userId:" + optionalUserId.get()));
+        }
+        var command = new ChangeActiveGymCommand(clientOpt.get().getId(), resource.gymId());
+        var result = clientCommandService.handle(command);
+        return switch (result) {
+            case com.spottrack.platform.shared.application.result.Result.Success<ClientGymAssociation, ApplicationError> s ->
+                    ResponseEntity.ok(new ClientGymAssociationResource(s.value().getClientId(), s.value().getGymId(), s.value().isActive()));
+            case com.spottrack.platform.shared.application.result.Result.Failure<ClientGymAssociation, ApplicationError> f ->
+                    ErrorResponseAssembler.toErrorResponseFromApplicationError(f.error());
+        };
     }
 
     @GetMapping("/{clientId}")
