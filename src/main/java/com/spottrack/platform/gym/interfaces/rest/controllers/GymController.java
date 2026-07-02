@@ -3,14 +3,21 @@ package com.spottrack.platform.gym.interfaces.rest.controllers;
 import com.spottrack.platform.gym.application.commandServices.GymCommandService;
 import com.spottrack.platform.gym.application.queryservices.GymQueryService;
 import com.spottrack.platform.gym.domain.model.aggregates.Gym;
+import com.spottrack.platform.gym.domain.model.commands.AddDniToWhitelistCommand;
+import com.spottrack.platform.gym.domain.model.commands.RemoveDniFromWhitelistCommand;
 import com.spottrack.platform.gym.domain.model.entities.Branch;
+import com.spottrack.platform.gym.domain.model.entities.GymWhitelistEntry;
 import com.spottrack.platform.gym.domain.model.entities.Zone;
 import com.spottrack.platform.gym.domain.model.queries.GetGymById;
 import com.spottrack.platform.gym.domain.model.queries.GetGymsByAdminUserId;
+import com.spottrack.platform.gym.domain.model.queries.GetWhitelistByGymIdQuery;
+import com.spottrack.platform.gym.domain.model.valueobjects.Dni;
 import com.spottrack.platform.gym.domain.model.valueobjects.GymId;
 import com.spottrack.platform.gym.interfaces.rest.resources.AddBranchResource;
+import com.spottrack.platform.gym.interfaces.rest.resources.AddDniToWhitelistResource;
 import com.spottrack.platform.gym.interfaces.rest.resources.AddZoneResource;
 import com.spottrack.platform.gym.interfaces.rest.resources.CreateGymResource;
+import com.spottrack.platform.gym.interfaces.rest.resources.WhitelistEntryResource;
 import com.spottrack.platform.gym.interfaces.rest.transform.*;
 import com.spottrack.platform.iam.interfaces.acl.IamContextFacade;
 import com.spottrack.platform.shared.application.result.ApplicationError;
@@ -117,6 +124,70 @@ public class GymController {
             case Result.Failure<Zone, ApplicationError> f ->
                     ResponseEntity.badRequest().body(f.error());
         };
+    }
+
+    @PostMapping("/{gymId}/whitelist")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> addDniToWhitelist(Authentication authentication,
+                                               @PathVariable String gymId,
+                                               @RequestBody AddDniToWhitelistResource resource) {
+        var adminUserId = resolveAdminUserId(authentication);
+        if (adminUserId == 0L) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.notFound("Admin", authentication.getName()));
+        }
+        var ownershipError = checkOwnership(gymId, adminUserId);
+        if (ownershipError.isPresent()) return ownershipError.get();
+        Dni dni;
+        try {
+            dni = new Dni(resource.dni());
+        } catch (IllegalArgumentException e) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.validationError("Dni", "gym.error.dni.invalidFormat"));
+        }
+        var command = new AddDniToWhitelistCommand(gymId, dni);
+        var result = commandService.handle(command);
+        return switch (result) {
+            case Result.Success<GymWhitelistEntry, ApplicationError> s ->
+                    ResponseEntity.status(HttpStatus.CREATED)
+                            .body(new WhitelistEntryResource(s.value().getGymId(), s.value().getDni().value()));
+            case Result.Failure<GymWhitelistEntry, ApplicationError> f ->
+                    ResponseEntity.status(HttpStatus.CONFLICT).body(f.error());
+        };
+    }
+
+    @DeleteMapping("/{gymId}/whitelist/{dni}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> removeDniFromWhitelist(Authentication authentication,
+                                                    @PathVariable String gymId,
+                                                    @PathVariable String dni) {
+        var adminUserId = resolveAdminUserId(authentication);
+        if (adminUserId == 0L) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.notFound("Admin", authentication.getName()));
+        }
+        var ownershipError = checkOwnership(gymId, adminUserId);
+        if (ownershipError.isPresent()) return ownershipError.get();
+        commandService.handle(new RemoveDniFromWhitelistCommand(gymId, dni));
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{gymId}/whitelist")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getWhitelist(Authentication authentication,
+                                          @PathVariable String gymId) {
+        var adminUserId = resolveAdminUserId(authentication);
+        if (adminUserId == 0L) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.notFound("Admin", authentication.getName()));
+        }
+        var ownershipError = checkOwnership(gymId, adminUserId);
+        if (ownershipError.isPresent()) return ownershipError.get();
+        var entries = gymQueryService.handle(new GetWhitelistByGymIdQuery(gymId));
+        var resources = entries.stream()
+                .map(e -> new WhitelistEntryResource(e.getGymId(), e.getDni().value()))
+                .toList();
+        return ResponseEntity.ok(resources);
     }
 
     private Long resolveAdminUserId(Authentication authentication) {

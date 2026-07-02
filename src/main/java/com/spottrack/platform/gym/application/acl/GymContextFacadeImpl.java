@@ -10,6 +10,7 @@ import com.spottrack.platform.gym.domain.model.queries.GetGymById;
 import com.spottrack.platform.gym.domain.model.valueobjects.EquipmentId;
 import com.spottrack.platform.gym.domain.model.valueobjects.EquipmentStatus;
 import com.spottrack.platform.gym.domain.model.valueobjects.GymId;
+import com.spottrack.platform.gym.infrastructure.persistence.jpa.repositories.GymWhitelistPersistenceRepository;
 import com.spottrack.platform.gym.interfaces.acl.GymContextFacade;
 import org.springframework.stereotype.Service;
 
@@ -21,13 +22,16 @@ public class GymContextFacadeImpl implements GymContextFacade {
     private final EquipmentCommandService equipmentCommandService;
     private final EquipmentQueryService equipmentQueryService;
     private final GymQueryService gymQueryService;
+    private final GymWhitelistPersistenceRepository gymWhitelistPersistenceRepository;
 
     public GymContextFacadeImpl(EquipmentCommandService equipmentCommandService,
                                 EquipmentQueryService equipmentQueryService,
-                                GymQueryService gymQueryService) {
+                                GymQueryService gymQueryService,
+                                GymWhitelistPersistenceRepository gymWhitelistPersistenceRepository) {
         this.equipmentCommandService = equipmentCommandService;
         this.equipmentQueryService = equipmentQueryService;
         this.gymQueryService = gymQueryService;
+        this.gymWhitelistPersistenceRepository = gymWhitelistPersistenceRepository;
     }
 
     @Override
@@ -45,5 +49,10 @@ public class GymContextFacadeImpl implements GymContextFacade {
         return gymQueryService.handle(new GetGymById(new GymId(gymId)))
                 .map(gym -> gym.getAdminUserId() != null ? gym.getAdminUserId() : 0L)
                 .orElse(0L);
+    }
+
+    @Override
+    public boolean isDniWhitelistedForGym(String gymId, String dni) {
+        return gymWhitelistPersistenceRepository.existsByGymIdAndDni(gymId, dni);
     }
 }

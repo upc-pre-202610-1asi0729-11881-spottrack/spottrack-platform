@@ -2,10 +2,14 @@ package com.spottrack.platform.gym.application.internal.queryservices;
 
 import com.spottrack.platform.gym.application.queryservices.GymQueryService;
 import com.spottrack.platform.gym.domain.model.aggregates.Gym;
+import com.spottrack.platform.gym.domain.model.entities.GymWhitelistEntry;
 import com.spottrack.platform.gym.domain.model.queries.GetGymById;
 import com.spottrack.platform.gym.domain.model.queries.GetGymsByAdminUserId;
+import com.spottrack.platform.gym.domain.model.queries.GetWhitelistByGymIdQuery;
+import com.spottrack.platform.gym.domain.model.valueobjects.Dni;
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.assemblers.GymPersistenceAssembler;
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.repositories.GymPersistenceRepository;
+import com.spottrack.platform.gym.infrastructure.persistence.jpa.repositories.GymWhitelistPersistenceRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,9 +18,12 @@ import java.util.Optional;
 @Service
 public class GymQueryServiceImpl implements GymQueryService {
     GymPersistenceRepository gymPersistenceRepository;
+    GymWhitelistPersistenceRepository gymWhitelistPersistenceRepository;
 
-    public GymQueryServiceImpl(GymPersistenceRepository gymPersistenceRepository) {
+    public GymQueryServiceImpl(GymPersistenceRepository gymPersistenceRepository,
+                               GymWhitelistPersistenceRepository gymWhitelistPersistenceRepository) {
         this.gymPersistenceRepository = gymPersistenceRepository;
+        this.gymWhitelistPersistenceRepository = gymWhitelistPersistenceRepository;
     }
 
     @Override
@@ -29,6 +36,13 @@ public class GymQueryServiceImpl implements GymQueryService {
     public List<Gym> handle(GetGymsByAdminUserId query) {
         return gymPersistenceRepository.findByAdminUserId(query.adminUserId()).stream()
                 .map(GymPersistenceAssembler::toDomainFromPersistence)
+                .toList();
+    }
+
+    @Override
+    public List<GymWhitelistEntry> handle(GetWhitelistByGymIdQuery query) {
+        return gymWhitelistPersistenceRepository.findByGymId(query.gymId()).stream()
+                .map(e -> new GymWhitelistEntry(e.getId(), e.getGymId(), new Dni(e.getDni())))
                 .toList();
     }
 }

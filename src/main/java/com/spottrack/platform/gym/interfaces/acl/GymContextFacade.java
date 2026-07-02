@@ -16,4 +16,6 @@ public interface GymContextFacade {
      * Returns 0L if the gym does not exist.
      */
     Long fetchAdminUserIdByGymId(String gymId);
+
+    boolean isDniWhitelistedForGym(String gymId, String dni);
 }
