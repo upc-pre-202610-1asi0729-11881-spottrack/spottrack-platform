@@ -3,6 +3,7 @@ package com.spottrack.platform.monitoring.application.internal.queryservices;
 import com.spottrack.platform.monitoring.application.queryServices.SessionTrackerQueryService;
 import com.spottrack.platform.monitoring.domain.model.aggregates.SessionTracker;
 import com.spottrack.platform.monitoring.domain.model.queries.GetSessionTrackerByIdQuery;
+import com.spottrack.platform.monitoring.domain.model.queries.GetSessionTrackerByReservationIdQuery;
 import com.spottrack.platform.monitoring.domain.repositories.SessionTrackerRepository;
 import org.springframework.stereotype.Service;
 
@@ -18,5 +19,10 @@ public class SessionTrackerQueryServiceImpl implements SessionTrackerQueryServic
     @Override
     public Optional<SessionTracker> handle(GetSessionTrackerByIdQuery query) {
         return sessionTrackerRepository.findSessionByUuid(query.sessionTrackerId());
+    }
+
+    @Override
+    public Optional<SessionTracker> handle(GetSessionTrackerByReservationIdQuery query) {
+        return sessionTrackerRepository.findByReservationId(query.reservationId());
     }
 }
