@@ -2,16 +2,19 @@ package com.spottrack.platform.membership.domain.model.aggregates;
 
 import com.spottrack.platform.membership.domain.model.commands.CreateMembershipCommand;
 import com.spottrack.platform.membership.domain.model.commands.RenewMembershipCommand;
+import com.spottrack.platform.membership.domain.model.commands.RequestDowngradePlanCommand;
 import com.spottrack.platform.membership.domain.model.commands.UpgradeMembershipPlanCommand;
-import java.time.LocalDate;
 import com.spottrack.platform.membership.domain.model.events.GymMembershipActivatedEvent;
 import com.spottrack.platform.membership.domain.model.events.GymMembershipRenewedEvent;
 import com.spottrack.platform.membership.domain.model.events.MembershipCancellationRequestedEvent;
 import com.spottrack.platform.membership.domain.model.events.MembershipCancelledEvent;
 import com.spottrack.platform.membership.domain.model.events.MembershipCreatedEvent;
+import com.spottrack.platform.membership.domain.model.events.MembershipDowngradeRequestedEvent;
 import com.spottrack.platform.membership.domain.model.events.MembershipExpiredEvent;
 import com.spottrack.platform.membership.domain.model.events.MembershipSuspendedEvent;
+import com.spottrack.platform.membership.domain.model.events.PlanDowngradedEvent;
 import com.spottrack.platform.membership.domain.model.events.PlanUpgradedEvent;
+import java.time.LocalDate;
 import com.spottrack.platform.membership.domain.model.valueobjects.*;
 import com.spottrack.platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
 import com.spottrack.platform.shared.domain.model.valueobjects.Money;
@@ -45,9 +48,12 @@ public class Membership extends AbstractDomainAggregateRoot<Membership> {
     @Getter
     private boolean cancelAtPeriodEnd;
 
+    @Getter
+    private MembershipTier pendingDowngradeTier;
+
     public Membership(Long id, MembershipId membershipId, Long clientId, MembershipTier membershipTier,
                       Money price, MembershipPeriod membershipPeriod, MembershipStatus status,
-                      boolean cancelAtPeriodEnd) {
+                      boolean cancelAtPeriodEnd, MembershipTier pendingDowngradeTier) {
         this.id = id;
         this.membershipId = membershipId;
         this.clientId = clientId;
@@ -56,6 +62,7 @@ public class Membership extends AbstractDomainAggregateRoot<Membership> {
         this.membershipPeriod = membershipPeriod;
         this.status = status;
         this.cancelAtPeriodEnd = cancelAtPeriodEnd;
+        this.pendingDowngradeTier = pendingDowngradeTier;
     }
 
     public Membership(CreateMembershipCommand command) {
@@ -66,7 +73,8 @@ public class Membership extends AbstractDomainAggregateRoot<Membership> {
                 command.price(),
                 new MembershipPeriod(command.startDate(), command.endDate()),
                 MembershipStatus.PENDING_ACTIVATION,
-                false);
+                false,
+                null);
     }
 
     public void activate() {
@@ -85,6 +93,7 @@ public class Membership extends AbstractDomainAggregateRoot<Membership> {
             throw new IllegalStateException("membership.error.cancel.alreadyScheduled");
         }
         this.cancelAtPeriodEnd = true;
+        this.pendingDowngradeTier = null;
         registerDomainEvent(MembershipCancellationRequestedEvent.from(this));
     }
 
@@ -103,6 +112,34 @@ public class Membership extends AbstractDomainAggregateRoot<Membership> {
         }
         this.status = MembershipStatus.SUSPENDED;
         registerDomainEvent(MembershipSuspendedEvent.from(this));
+    }
+
+    public void requestDowngrade(RequestDowngradePlanCommand command) {
+        if (this.status != MembershipStatus.ACTIVE) {
+            throw new IllegalStateException("membership.error.downgrade.notActive");
+        }
+        if (command.newTier().toMoney().amount()
+                .compareTo(this.membershipTier.toMoney().amount()) >= 0) {
+            throw new IllegalStateException("membership.error.downgrade.notLowerTier");
+        }
+        this.pendingDowngradeTier = command.newTier();
+        this.cancelAtPeriodEnd = false;
+        registerDomainEvent(MembershipDowngradeRequestedEvent.from(this));
+    }
+
+    public void applyDowngrade() {
+        if (this.pendingDowngradeTier == null) {
+            throw new IllegalStateException("membership.error.downgrade.noPending");
+        }
+        if (this.status != MembershipStatus.ACTIVE) {
+            throw new IllegalStateException("membership.error.downgrade.notActive");
+        }
+        this.membershipTier = this.pendingDowngradeTier;
+        this.price = this.pendingDowngradeTier.toMoney();
+        this.pendingDowngradeTier = null;
+        var today = LocalDate.now();
+        this.membershipPeriod = new MembershipPeriod(today, today.plusDays(30));
+        registerDomainEvent(PlanDowngradedEvent.from(this));
     }
 
     public void upgradePlan(UpgradeMembershipPlanCommand command) {

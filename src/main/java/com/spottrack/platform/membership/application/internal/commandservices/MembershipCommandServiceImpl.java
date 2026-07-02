@@ -6,6 +6,7 @@ import com.spottrack.platform.membership.domain.model.commands.ActivateMembershi
 import com.spottrack.platform.membership.domain.model.commands.CancelMembershipCommand;
 import com.spottrack.platform.membership.domain.model.commands.CreateMembershipCommand;
 import com.spottrack.platform.membership.domain.model.commands.RenewMembershipCommand;
+import com.spottrack.platform.membership.domain.model.commands.RequestDowngradePlanCommand;
 import com.spottrack.platform.membership.domain.model.commands.SuspendMembershipCommand;
 import com.spottrack.platform.membership.domain.model.commands.UpgradeMembershipPlanCommand;
 import com.spottrack.platform.membership.domain.repositories.MembershipRepository;
@@ -54,6 +55,23 @@ public class MembershipCommandServiceImpl implements MembershipCommandService {
             return Result.failure(ApplicationError.businessRuleViolation("Membership.cancel", e.getMessage()));
         } catch (Exception e) {
             return Result.failure(ApplicationError.unexpected("Membership cancellation", e.getMessage()));
+        }
+    }
+
+    @Override
+    public Result<Membership, ApplicationError> handle(RequestDowngradePlanCommand command) {
+        try {
+            var membership = membershipRepository.findByMembershipId(command.membershipId());
+            if (membership.isEmpty()) {
+                return Result.failure(ApplicationError.notFound("Membership", command.membershipId().uuid().toString()));
+            }
+            membership.get().requestDowngrade(command);
+            var saved = membershipRepository.save(membership.get());
+            return Result.success(saved);
+        } catch (IllegalStateException | IllegalArgumentException e) {
+            return Result.failure(ApplicationError.businessRuleViolation("Membership.requestDowngrade", e.getMessage()));
+        } catch (Exception e) {
+            return Result.failure(ApplicationError.unexpected("Membership downgrade request", e.getMessage()));
         }
     }
 
