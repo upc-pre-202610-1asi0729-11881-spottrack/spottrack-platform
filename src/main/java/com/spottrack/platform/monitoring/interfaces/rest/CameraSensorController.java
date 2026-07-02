@@ -1,0 +1,75 @@
+package com.spottrack.platform.monitoring.interfaces.rest;
+
+import com.spottrack.platform.monitoring.application.commandServices.CameraSensorCommandService;
+import com.spottrack.platform.monitoring.application.commandServices.SessionTrackerCommandService;
+import com.spottrack.platform.monitoring.interfaces.rest.resources.CameraSensorResource;
+import com.spottrack.platform.monitoring.interfaces.rest.resources.CaptureCameraMotionResource;
+import com.spottrack.platform.monitoring.interfaces.rest.resources.RegisterCameraSensorResource;
+import com.spottrack.platform.monitoring.interfaces.rest.resources.SessionTrackerResource;
+import com.spottrack.platform.monitoring.interfaces.rest.transform.CameraSensorResourceFromEntity;
+import com.spottrack.platform.monitoring.interfaces.rest.transform.CaptureCameraMotionCommandFromResource;
+import com.spottrack.platform.monitoring.interfaces.rest.transform.RegisterCameraSensorCommandFromResource;
+import com.spottrack.platform.monitoring.interfaces.rest.transform.SessionTrackerResourceFromEntity;
+import com.spottrack.platform.shared.interfaces.rest.transform.ResponseEntityAssembler;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping(value = "/api/v1/monitoring/camera-sensors", produces = MediaType.APPLICATION_JSON_VALUE)
+@Tag(name = "CameraSensors", description = "Camera sensor registration endpoints")
+public class CameraSensorController {
+    private final CameraSensorCommandService cameraSensorCommandService;
+    private final SessionTrackerCommandService sessionTrackerCommandService;
+
+    public CameraSensorController(CameraSensorCommandService cameraSensorCommandService, SessionTrackerCommandService sessionTrackerCommandService) {
+        this.cameraSensorCommandService = cameraSensorCommandService;
+        this.sessionTrackerCommandService = sessionTrackerCommandService;
+    }
+
+    @PostMapping
+    @Operation(summary = "Register a camera sensor", description = "Registers a new camera sensor watching a specific zone.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Camera sensor registered successfully",
+                    content = @Content(schema = @Schema(implementation = CameraSensorResource.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid input data"),
+            @ApiResponse(responseCode = "409", description = "Conflict - a camera sensor is already registered for this zone")
+    })
+    public ResponseEntity<?> registerCameraSensor(@RequestBody RegisterCameraSensorResource resource) {
+        var command = RegisterCameraSensorCommandFromResource.toCommandFromResource(resource);
+        var result = cameraSensorCommandService.handle(command);
+        return ResponseEntityAssembler.toResponseEntityFromResult(
+                result,
+                CameraSensorResourceFromEntity::toResourceFromEntity,
+                HttpStatus.CREATED
+        );
+    }
+
+    @PostMapping("/capture-motion")
+    @Operation(summary = "Capture a camera motion reading", description = "Records a camera motion reading against a session tracker, refreshing its activity clock when movement is detected.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Reading captured successfully",
+                    content = @Content(schema = @Schema(implementation = SessionTrackerResource.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid input data"),
+            @ApiResponse(responseCode = "404", description = "Session tracker not found")
+    })
+    public ResponseEntity<?> captureMotion(@RequestBody CaptureCameraMotionResource resource) {
+        var command = CaptureCameraMotionCommandFromResource.toCommandFromResource(resource);
+        var result = sessionTrackerCommandService.handle(command);
+        return ResponseEntityAssembler.toResponseEntityFromResult(
+                result,
+                SessionTrackerResourceFromEntity::toResourceFromEntity,
+                HttpStatus.OK
+        );
+    }
+}

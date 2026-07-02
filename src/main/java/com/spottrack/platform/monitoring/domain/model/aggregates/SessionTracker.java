@@ -1,6 +1,8 @@
 package com.spottrack.platform.monitoring.domain.model.aggregates;
 
 import com.spottrack.platform.monitoring.domain.model.commands.CreateSessionTrackerCommand;
+import com.spottrack.platform.monitoring.domain.model.events.CameraMotionCapturedEvent;
+import com.spottrack.platform.monitoring.domain.model.events.MotionCapturedEvent;
 import com.spottrack.platform.monitoring.domain.model.events.SessionTimeCalculatedEvent;
 import com.spottrack.platform.monitoring.domain.model.events.UsageSessionVerifiedEvent;
 import com.spottrack.platform.monitoring.domain.model.valueobjects.ReservationId;
@@ -52,6 +54,24 @@ public class SessionTracker extends AbstractDomainAggregateRoot {
 
     public void recordActivity() {
         this.lastActivityAt = LocalDateTime.now();
+    }
+
+    /**
+     * Captured motion keeps the session's activity clock fresh, which is what
+     * prevents the inactivity policy from ending the session prematurely.
+     */
+    public void captureCameraMotion(boolean detected) {
+        if (detected) {
+            recordActivity();
+        }
+        registerDomainEvent(new CameraMotionCapturedEvent(this.sessionTrackerId, detected));
+    }
+
+    public void captureMotionSensorReading(boolean detected) {
+        if (detected) {
+            recordActivity();
+        }
+        registerDomainEvent(new MotionCapturedEvent(this.sessionTrackerId, detected));
     }
 
     public boolean verifyUsageSession() {

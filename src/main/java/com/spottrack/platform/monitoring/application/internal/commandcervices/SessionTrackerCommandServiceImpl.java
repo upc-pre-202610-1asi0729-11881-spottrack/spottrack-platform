@@ -53,12 +53,38 @@ public class SessionTrackerCommandServiceImpl implements SessionTrackerCommandSe
 
     @Override
     public Result<SessionTracker, ApplicationError> handle(MotionSensorCaptureCommand command) {
-        return null;
+        try {
+            var session = sessionTrackerRepository.findSessionByUuid(command.sessionTrackerId());
+            if (session.isEmpty()) {
+                return Result.failure(ApplicationError.notFound("sessionTracker", command.sessionTrackerId().uuid()));
+            }
+            var tracker = session.get();
+            tracker.captureMotionSensorReading(command.movementDetectedViaSensor());
+            var saved = sessionTrackerRepository.save(tracker);
+            return Result.success(saved);
+        } catch (IllegalArgumentException e) {
+            return Result.failure(ApplicationError.validationError("sessionTracker", e.getMessage()));
+        } catch (Exception e) {
+            return Result.failure(ApplicationError.unexpected("sessionTracker", e.getMessage()));
+        }
     }
 
     @Override
     public Result<SessionTracker, ApplicationError> handle(CameraCaptureMotionCommand command) {
-        return null;
+        try {
+            var session = sessionTrackerRepository.findSessionByUuid(command.sessionTrackerId());
+            if (session.isEmpty()) {
+                return Result.failure(ApplicationError.notFound("sessionTracker", command.sessionTrackerId().uuid()));
+            }
+            var tracker = session.get();
+            tracker.captureCameraMotion(command.movementDetectedViaVideo());
+            var saved = sessionTrackerRepository.save(tracker);
+            return Result.success(saved);
+        } catch (IllegalArgumentException e) {
+            return Result.failure(ApplicationError.validationError("sessionTracker", e.getMessage()));
+        } catch (Exception e) {
+            return Result.failure(ApplicationError.unexpected("sessionTracker", e.getMessage()));
+        }
     }
 
     @Override
