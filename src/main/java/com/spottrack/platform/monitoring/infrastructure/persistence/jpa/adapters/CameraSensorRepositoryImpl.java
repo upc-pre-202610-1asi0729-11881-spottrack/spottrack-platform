@@ -8,6 +8,8 @@ import com.spottrack.platform.monitoring.infrastructure.persistence.jpa.reposito
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public class CameraSensorRepositoryImpl implements CameraSensorRepository {
     private final CameraSensorPersistenceRepository cameraSensorPersistenceRepository;
@@ -21,6 +23,13 @@ public class CameraSensorRepositoryImpl implements CameraSensorRepository {
     @Override
     public boolean existsByZoneId(ZoneId zoneId) {
         return cameraSensorPersistenceRepository.existsByZoneId(zoneId);
+    }
+
+    @Override
+    public List<CameraSensor> findAll() {
+        return cameraSensorPersistenceRepository.findAll().stream()
+                .map(CameraSensorPersistenceAssembler::toDomainFromPersistence)
+                .toList();
     }
 
     @Override

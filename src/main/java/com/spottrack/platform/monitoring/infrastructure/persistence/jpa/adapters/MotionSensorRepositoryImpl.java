@@ -8,6 +8,8 @@ import com.spottrack.platform.monitoring.infrastructure.persistence.jpa.reposito
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public class MotionSensorRepositoryImpl implements MotionSensorRepository {
     private final MotionSensorPersistenceRepository motionSensorPersistenceRepository;
@@ -21,6 +23,13 @@ public class MotionSensorRepositoryImpl implements MotionSensorRepository {
     @Override
     public boolean existsByEquipmentId(EquipmentId equipmentId) {
         return motionSensorPersistenceRepository.existsByEquipmentId(equipmentId);
+    }
+
+    @Override
+    public List<MotionSensor> findAll() {
+        return motionSensorPersistenceRepository.findAll().stream()
+                .map(MotionSensorPersistenceAssembler::toDomainFromPersistence)
+                .toList();
     }
 
     @Override
