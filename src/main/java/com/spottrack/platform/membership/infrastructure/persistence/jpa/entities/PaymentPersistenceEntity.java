@@ -19,6 +19,9 @@ public class PaymentPersistenceEntity extends AuditableAbstractPersistenceEntity
     @Column(name = "pending_registration_id", length = 36)
     private String pendingRegistrationId;
 
+    @Column(name = "membership_id", length = 36)
+    private String membershipId;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "membership_tier", nullable = false)
     private MembershipTier membershipTier;
@@ -47,6 +50,9 @@ public class PaymentPersistenceEntity extends AuditableAbstractPersistenceEntity
 
     public String getPendingRegistrationId() { return pendingRegistrationId; }
     public void setPendingRegistrationId(String pendingRegistrationId) { this.pendingRegistrationId = pendingRegistrationId; }
+
+    public String getMembershipId() { return membershipId; }
+    public void setMembershipId(String membershipId) { this.membershipId = membershipId; }
 
     public MembershipTier getMembershipTier() { return membershipTier; }
     public void setMembershipTier(MembershipTier membershipTier) { this.membershipTier = membershipTier; }

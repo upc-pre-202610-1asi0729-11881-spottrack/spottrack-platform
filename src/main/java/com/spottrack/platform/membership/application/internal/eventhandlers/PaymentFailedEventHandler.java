@@ -19,16 +19,19 @@ public class PaymentFailedEventHandler {
 
     @EventListener
     public void on(PaymentFailedEvent event) {
-        log.info("Processing PaymentFailedEvent: paymentId={}, userId={}, pendingRegistrationId={}",
-                event.paymentId(), event.userId(), event.pendingRegistrationId());
+        log.info("Processing PaymentFailedEvent: paymentId={}, userId={}, pendingRegistrationId={}, membershipId={}",
+                event.paymentId(), event.userId(), event.pendingRegistrationId(), event.membershipId());
         try {
-            if (event.userId() != null) {
+            if (event.membershipId() != null) {
+                log.info("Debt payment failed for membershipId={} (payment={}) — membership remains SUSPENDED",
+                        event.membershipId(), event.paymentId());
+            } else if (event.userId() != null) {
                 handleExistingUserPaymentFailure(event);
             } else if (event.pendingRegistrationId() != null) {
                 log.info("Business registration payment failed for pendingRegistrationId={} — no membership to suspend",
                         event.pendingRegistrationId());
             } else {
-                log.error("PaymentFailedEvent for payment {} has neither userId nor pendingRegistrationId — skipping",
+                log.error("PaymentFailedEvent for payment {} has no routing key — skipping",
                         event.paymentId());
             }
         } catch (Exception e) {

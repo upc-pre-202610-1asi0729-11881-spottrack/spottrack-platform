@@ -15,11 +15,15 @@ public final class PaymentPersistenceAssembler {
         var pendingRegistrationId = Optional.ofNullable(entity.getPendingRegistrationId())
                 .map(UUID::fromString)
                 .orElse(null);
+        var membershipId = Optional.ofNullable(entity.getMembershipId())
+                .map(UUID::fromString)
+                .orElse(null);
         return new Payment(
                 entity.getId(),
                 new PaymentId(UUID.fromString(entity.getPaymentId())),
                 entity.getUserId(),
                 pendingRegistrationId,
+                membershipId,
                 entity.getMembershipTier(),
                 entity.getAmount(),
                 entity.getStatus(),
@@ -35,6 +39,10 @@ public final class PaymentPersistenceAssembler {
         entity.setPendingRegistrationId(
                 payment.getPendingRegistrationId() != null
                         ? payment.getPendingRegistrationId().toString()
+                        : null);
+        entity.setMembershipId(
+                payment.getMembershipId() != null
+                        ? payment.getMembershipId().toString()
                         : null);
         entity.setMembershipTier(payment.getMembershipTier());
         entity.setAmount(payment.getAmount());

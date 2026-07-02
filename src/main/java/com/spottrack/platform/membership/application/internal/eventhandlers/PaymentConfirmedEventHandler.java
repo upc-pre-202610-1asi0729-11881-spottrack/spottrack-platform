@@ -3,7 +3,9 @@ package com.spottrack.platform.membership.application.internal.eventhandlers;
 import com.spottrack.platform.iam.interfaces.acl.IamContextFacade;
 import com.spottrack.platform.membership.domain.model.aggregates.Membership;
 import com.spottrack.platform.membership.domain.model.commands.CreateMembershipCommand;
+import com.spottrack.platform.membership.domain.model.commands.RenewMembershipCommand;
 import com.spottrack.platform.membership.domain.model.events.PaymentConfirmedEvent;
+import com.spottrack.platform.membership.domain.model.valueobjects.MembershipId;
 import com.spottrack.platform.membership.domain.model.valueobjects.MembershipStatus;
 import com.spottrack.platform.membership.domain.repositories.MembershipRepository;
 import com.spottrack.platform.profiles.interfaces.acl.ProfilesContextFacade;
@@ -35,18 +37,46 @@ public class PaymentConfirmedEventHandler {
                 event.paymentId(), event.userId(), event.pendingRegistrationId(),
                 event.membershipTier(), event.amount());
         try {
-            if (event.userId() != null) {
+            if (event.membershipId() != null) {
+                handleDebtPayment(event);
+            } else if (event.userId() != null) {
                 handleExistingUserPayment(event);
             } else if (event.pendingRegistrationId() != null) {
                 handleBusinessRegistrationPayment(event);
             } else {
-                log.error("PaymentConfirmedEvent for payment {} has neither userId nor pendingRegistrationId — skipping",
+                log.error("PaymentConfirmedEvent for payment {} has no routing key — skipping",
                         event.paymentId());
             }
         } catch (Exception e) {
             log.error("Error in PaymentConfirmedEventHandler for payment {} : {}",
                     event.paymentId(), e.getMessage(), e);
         }
+    }
+
+    private void handleDebtPayment(PaymentConfirmedEvent event) {
+        var membership = membershipRepository.findByMembershipId(new MembershipId(event.membershipId()));
+        if (membership.isEmpty()) {
+            log.error("Debt payment confirmed for unknown membershipId={} (payment {}) — skipping",
+                    event.membershipId(), event.paymentId());
+            return;
+        }
+        var m = membership.get();
+        if (m.getStatus() == MembershipStatus.ACTIVE) {
+            log.info("Membership {} already ACTIVE — skipping debt renewal (idempotent, payment {})",
+                    event.membershipId(), event.paymentId());
+            return;
+        }
+        if (m.getStatus() != MembershipStatus.SUSPENDED) {
+            log.warn("Membership {} is in status {} — cannot renew via debt payment (payment {}). Manual review required.",
+                    event.membershipId(), m.getStatus(), event.paymentId());
+            return;
+        }
+        var today = LocalDate.now();
+        var command = new RenewMembershipCommand(new MembershipId(event.membershipId()), today, today.plusDays(30));
+        m.renew(command);
+        membershipRepository.save(m);
+        log.info("Membership {} renewed after debt payment (clientId={}, payment {})",
+                event.membershipId(), m.getClientId(), event.paymentId());
     }
 
     private void handleExistingUserPayment(PaymentConfirmedEvent event) {
