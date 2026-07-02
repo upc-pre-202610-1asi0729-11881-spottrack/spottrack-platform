@@ -1,7 +1,6 @@
 package com.spottrack.platform.maintenance.domain.model.aggregates;
 
 import com.spottrack.platform.maintenance.domain.model.commands.AssignTechnicalTicket;
-import com.spottrack.platform.maintenance.domain.model.commands.CreateTechnicalTicket;
 import com.spottrack.platform.maintenance.domain.model.commands.ModifyTicketStatus;
 import com.spottrack.platform.maintenance.domain.model.commands.RequestUpdateMaintenanceStatus;
 import com.spottrack.platform.maintenance.domain.model.commands.UpdateMaintenanceStatus;
@@ -13,7 +12,9 @@ import com.spottrack.platform.maintenance.domain.model.events.TicketStatusMarked
 import com.spottrack.platform.maintenance.domain.model.events.TicketStatusModifiedEvent;
 import com.spottrack.platform.maintenance.domain.model.valueobjects.MaintenanceStatus;
 import com.spottrack.platform.maintenance.domain.model.valueobjects.TechnicalTicketId;
+import com.spottrack.platform.maintenance.domain.model.valueobjects.TicketPriority;
 import com.spottrack.platform.maintenance.domain.model.valueobjects.TicketStatus;
+import com.spottrack.platform.maintenance.domain.model.valueobjects.TicketType;
 import com.spottrack.platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
 import lombok.Getter;
 
@@ -27,28 +28,36 @@ public class TechnicalTicket extends AbstractDomainAggregateRoot<TechnicalTicket
     private String equipmentId;
     private String technicianId;
     private String description;
+    private TicketPriority priority;
+    private TicketType type;
     private TicketStatus ticketStatus;
     private MaintenanceStatus maintenanceStatus;
 
     protected TechnicalTicket() {}
 
-    public TechnicalTicket(CreateTechnicalTicket command) {
+    public TechnicalTicket(String maintenanceId, String equipmentId, String description,
+                           TicketPriority priority, TicketType type) {
         this.ticketId = new TechnicalTicketId(UUID.randomUUID().toString());
-        this.maintenanceId = command.maintenanceId().uuid();
-        this.equipmentId = command.equipmentId();
-        this.description = command.description();
+        this.maintenanceId = maintenanceId;
+        this.equipmentId = equipmentId;
+        this.description = description;
+        this.priority = priority;
+        this.type = type;
         this.ticketStatus = TicketStatus.OPEN;
         this.maintenanceStatus = MaintenanceStatus.REQUESTED;
         registerDomainEvent(new TechnicalTicketCreatedEvent(this.ticketId.uuid(), this.maintenanceId, this.equipmentId));
     }
 
     public TechnicalTicket(String ticketId, String maintenanceId, String equipmentId,
-                           String technicianId, String description, String ticketStatus, String maintenanceStatus) {
+                           String technicianId, String description, TicketPriority priority, TicketType type,
+                           String ticketStatus, String maintenanceStatus) {
         this.ticketId = new TechnicalTicketId(ticketId);
         this.maintenanceId = maintenanceId;
         this.equipmentId = equipmentId;
         this.technicianId = technicianId;
         this.description = description;
+        this.priority = priority;
+        this.type = type;
         this.ticketStatus = TicketStatus.valueOf(ticketStatus);
         this.maintenanceStatus = MaintenanceStatus.valueOf(maintenanceStatus);
     }

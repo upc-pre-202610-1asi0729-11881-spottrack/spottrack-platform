@@ -12,6 +12,8 @@ public class TechnicalTicketPersistenceAssembler {
                 entity.getEquipmentId(),
                 entity.getTechnicianId(),
                 entity.getDescription(),
+                entity.getPriority(),
+                entity.getType(),
                 entity.getTicketStatus(),
                 entity.getMaintenanceStatus()
         );
@@ -24,6 +26,8 @@ public class TechnicalTicketPersistenceAssembler {
         entity.setEquipmentId(ticket.getEquipmentId());
         entity.setTechnicianId(ticket.getTechnicianId());
         entity.setDescription(ticket.getDescription());
+        entity.setPriority(ticket.getPriority());
+        entity.setType(ticket.getType());
         entity.setTicketStatus(ticket.getTicketStatus().name());
         entity.setMaintenanceStatus(ticket.getMaintenanceStatus().name());
         return entity;
