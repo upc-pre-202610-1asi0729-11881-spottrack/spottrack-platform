@@ -2,6 +2,7 @@ package com.spottrack.platform.membership.infrastructure.persistence.jpa.assembl
 
 import com.spottrack.platform.membership.domain.model.aggregates.Payment;
 import com.spottrack.platform.membership.domain.model.valueobjects.PaymentId;
+import com.spottrack.platform.membership.domain.model.valueobjects.PaymentPurpose;
 import com.spottrack.platform.membership.infrastructure.persistence.jpa.entities.PaymentPersistenceEntity;
 
 import java.util.UUID;
@@ -18,6 +19,9 @@ public final class PaymentPersistenceAssembler {
         var membershipId = Optional.ofNullable(entity.getMembershipId())
                 .map(UUID::fromString)
                 .orElse(null);
+        var purpose = entity.getPaymentPurpose() != null
+                ? entity.getPaymentPurpose()
+                : PaymentPurpose.NEW_MEMBERSHIP;
         return new Payment(
                 entity.getId(),
                 new PaymentId(UUID.fromString(entity.getPaymentId())),
@@ -27,7 +31,8 @@ public final class PaymentPersistenceAssembler {
                 entity.getMembershipTier(),
                 entity.getAmount(),
                 entity.getStatus(),
-                entity.getGatewayTransactionId()
+                entity.getGatewayTransactionId(),
+                purpose
         );
     }
 
@@ -48,6 +53,7 @@ public final class PaymentPersistenceAssembler {
         entity.setAmount(payment.getAmount());
         entity.setStatus(payment.getStatus());
         entity.setGatewayTransactionId(payment.getGatewayTransactionId());
+        entity.setPaymentPurpose(payment.getPaymentPurpose());
         return entity;
     }
 }
