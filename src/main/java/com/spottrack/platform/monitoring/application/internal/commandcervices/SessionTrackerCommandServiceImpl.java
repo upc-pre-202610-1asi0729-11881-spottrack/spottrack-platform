@@ -81,8 +81,10 @@ public class SessionTrackerCommandServiceImpl implements SessionTrackerCommandSe
     public Result<SessionTracker, ApplicationError> handle(CalculateSessionTimeCommand command) {
         try {
             var session = sessionTrackerRepository.findSessionByUuid(command.sessionTrackerId());
-            session.get().calculateSessionTime();
-            return Result.success(session.get());
+            var tracker = session.get();
+            tracker.calculateSessionTime();
+            var saved = sessionTrackerRepository.save(tracker);
+            return Result.success(saved);
         }
         catch (IllegalArgumentException e){
             return Result.failure(ApplicationError.validationError("sessionTracker", e.getMessage()));
