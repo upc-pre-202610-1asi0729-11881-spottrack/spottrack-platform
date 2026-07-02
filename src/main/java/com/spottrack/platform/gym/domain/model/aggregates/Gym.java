@@ -24,14 +24,22 @@ public class Gym extends AbstractDomainAggregateRoot<Gym> {
     private List<Branch> branchList;
     private GymId id;
     private String name;
-
+    private Long adminUserId;
 
     protected Gym() {}
 
-    public Gym(String name) {
+    public Gym(String name, Long adminUserId) {
         this.id = new GymId(UUID.randomUUID().toString());
         this.name = name;
+        this.adminUserId = adminUserId;
         this.branchList = new ArrayList<Branch>();
+    }
+
+    public Gym(GymId id, String name, Long adminUserId) {
+        this.id = id;
+        this.name = name;
+        this.adminUserId = adminUserId;
+        this.branchList = new ArrayList<>();
     }
 
     public Branch addBranch(AddBranchCommand command) {
