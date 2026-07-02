@@ -17,12 +17,10 @@ import java.time.LocalDateTime;
 @Setter
 public class MotionSensorPersistenceEntity extends AuditableAbstractPersistenceEntity {
 
-    @Embedded
     @Convert(converter = MotionSensorIdPersistenceConverter.class)
     @Column(nullable = false, unique = true)
     private MotionSensorId motionSensorId;
 
-    @Embedded
     @Convert(converter = EquipmentIdPersistenceConverter.class)
     @Column(nullable = false, unique = true)
     private EquipmentId equipmentId;
