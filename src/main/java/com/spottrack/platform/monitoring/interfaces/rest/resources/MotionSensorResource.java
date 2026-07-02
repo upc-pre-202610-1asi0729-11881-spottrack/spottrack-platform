@@ -8,6 +8,12 @@ public record MotionSensorResource(
         @Schema Long id,
         @Schema String motionSensorId,
         @Schema String equipmentId,
+        @Schema(description = "Name of the equipment this motion sensor is attached to")
+        String equipmentName,
+        @Schema(description = "Model of the equipment this motion sensor is attached to")
+        String equipmentModel,
+        @Schema(description = "Status of the equipment this motion sensor is attached to")
+        String equipmentStatus,
         @Schema LocalDateTime registeredAt
 ) {
 }

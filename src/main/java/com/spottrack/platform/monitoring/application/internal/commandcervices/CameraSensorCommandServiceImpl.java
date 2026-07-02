@@ -5,6 +5,7 @@ import com.spottrack.platform.monitoring.domain.model.aggregates.CameraSensor;
 import com.spottrack.platform.monitoring.domain.model.commands.RegisterCameraSensorCommand;
 import com.spottrack.platform.monitoring.domain.model.valueobjects.EquipmentId;
 import com.spottrack.platform.monitoring.domain.repositories.CameraSensorRepository;
+import com.spottrack.platform.gym.interfaces.acl.GymContextFacade;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
 import org.springframework.stereotype.Service;
@@ -12,14 +13,19 @@ import org.springframework.stereotype.Service;
 @Service
 public class CameraSensorCommandServiceImpl implements CameraSensorCommandService {
     private final CameraSensorRepository cameraSensorRepository;
+    private final GymContextFacade gymContextFacade;
 
-    public CameraSensorCommandServiceImpl(CameraSensorRepository cameraSensorRepository) {
+    public CameraSensorCommandServiceImpl(CameraSensorRepository cameraSensorRepository, GymContextFacade gymContextFacade) {
         this.cameraSensorRepository = cameraSensorRepository;
+        this.gymContextFacade = gymContextFacade;
     }
 
     @Override
     public Result<CameraSensor, ApplicationError> handle(RegisterCameraSensorCommand command) {
         try {
+            if (gymContextFacade.findEquipmentById(command.equipmentId()).isEmpty()) {
+                return Result.failure(ApplicationError.notFound("Equipment", command.equipmentId()));
+            }
             if (cameraSensorRepository.existsByEquipmentId(new EquipmentId(command.equipmentId()))) {
                 return Result.failure(ApplicationError.conflict(
                         "CameraSensor",

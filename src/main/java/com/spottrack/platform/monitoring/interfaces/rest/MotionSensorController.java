@@ -1,5 +1,6 @@
 package com.spottrack.platform.monitoring.interfaces.rest;
 
+import com.spottrack.platform.gym.interfaces.acl.GymContextFacade;
 import com.spottrack.platform.monitoring.application.commandServices.MotionSensorCommandService;
 import com.spottrack.platform.monitoring.application.commandServices.SessionTrackerCommandService;
 import com.spottrack.platform.monitoring.application.queryServices.MotionSensorQueryService;
@@ -37,17 +38,22 @@ public class MotionSensorController {
     private final MotionSensorCommandService motionSensorCommandService;
     private final MotionSensorQueryService motionSensorQueryService;
     private final SessionTrackerCommandService sessionTrackerCommandService;
+    private final GymContextFacade gymContextFacade;
 
-    public MotionSensorController(MotionSensorCommandService motionSensorCommandService, MotionSensorQueryService motionSensorQueryService, SessionTrackerCommandService sessionTrackerCommandService) {
+    public MotionSensorController(MotionSensorCommandService motionSensorCommandService, MotionSensorQueryService motionSensorQueryService, SessionTrackerCommandService sessionTrackerCommandService, GymContextFacade gymContextFacade) {
         this.motionSensorCommandService = motionSensorCommandService;
         this.motionSensorQueryService = motionSensorQueryService;
         this.sessionTrackerCommandService = sessionTrackerCommandService;
+        this.gymContextFacade = gymContextFacade;
     }
 
     @GetMapping
     public List<MotionSensorResource> getAllMotionSensors() {
         return motionSensorQueryService.handle(new GetAllMotionSensorsQuery()).stream()
-                .map(MotionSensorResourceFromEntity::toResourceFromEntity)
+                .map(sensor -> MotionSensorResourceFromEntity.toResourceFromEntity(
+                        sensor,
+                        gymContextFacade.findEquipmentById(sensor.getEquipmentId().uuid()).orElse(null)
+                ))
                 .toList();
     }
 
@@ -64,7 +70,10 @@ public class MotionSensorController {
         var result = motionSensorCommandService.handle(command);
         return ResponseEntityAssembler.toResponseEntityFromResult(
                 result,
-                MotionSensorResourceFromEntity::toResourceFromEntity,
+                sensor -> MotionSensorResourceFromEntity.toResourceFromEntity(
+                        sensor,
+                        gymContextFacade.findEquipmentById(sensor.getEquipmentId().uuid()).orElse(null)
+                ),
                 HttpStatus.CREATED
         );
     }
