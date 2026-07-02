@@ -105,27 +105,37 @@ public class PaymentConfirmedEventHandler {
     }
 
     private void handleBusinessRegistrationPayment(PaymentConfirmedEvent event) {
-        var provisioned = iamContextFacade.consumePendingRegistration(event.pendingRegistrationId());
-        if (provisioned.isEmpty()) {
-            log.error("PendingRegistration {} not found or expired — cannot provision account for payment {}",
-                    event.pendingRegistrationId(), event.paymentId());
+        var pendingId = event.pendingRegistrationId();
+
+        var userId = iamContextFacade.consumePendingRegistration(pendingId);
+        if (userId == 0L) {
+            log.error("PendingRegistration {} not found, expired, or failed to provision — cannot process payment {}",
+                    pendingId, event.paymentId());
             return;
         }
 
-        var dto = provisioned.get();
-        log.info("Provisioning account for pendingRegistrationId={}, resolved userId={}",
-                event.pendingRegistrationId(), dto.userId());
+        log.info("Provisioning account for pendingRegistrationId={}, resolved userId={}", pendingId, userId);
 
-        profilesContextFacade.provisionAdminProfile(dto.userId(), dto.email());
+        var email          = iamContextFacade.fetchPendingRegistrationEmail(pendingId);
+        var companyName    = iamContextFacade.fetchPendingRegistrationCompanyName(pendingId);
+        var ruc            = iamContextFacade.fetchPendingRegistrationRuc(pendingId);
+        var legalStructure = iamContextFacade.fetchPendingRegistrationLegalStructure(pendingId);
+        var companyPhone   = iamContextFacade.fetchPendingRegistrationCompanyPhone(pendingId);
+        var companyEmail   = iamContextFacade.fetchPendingRegistrationCompanyEmail(pendingId);
+        var streetAddress  = iamContextFacade.fetchPendingRegistrationStreetAddress(pendingId);
+        var city           = iamContextFacade.fetchPendingRegistrationCity(pendingId);
+        var district       = iamContextFacade.fetchPendingRegistrationDistrict(pendingId);
+
+        profilesContextFacade.provisionAdminProfile(userId, email);
 
         profilesContextFacade.provisionBusinessProfile(
-                dto.userId(),
-                dto.companyName(), dto.ruc(), dto.legalStructure(),
-                dto.companyPhone(), dto.companyEmail(),
-                dto.streetAddress(), dto.city(), dto.district()
+                userId,
+                companyName, ruc, legalStructure,
+                companyPhone, companyEmail,
+                streetAddress, city, district
         );
 
-        createAndActivateMembership(dto.userId(), event);
+        createAndActivateMembership(userId, event);
     }
 
     private void createAndActivateMembership(Long userId, PaymentConfirmedEvent event) {
