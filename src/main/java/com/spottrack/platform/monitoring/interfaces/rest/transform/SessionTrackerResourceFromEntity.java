@@ -5,7 +5,13 @@ import com.spottrack.platform.monitoring.interfaces.rest.resources.SessionTracke
 
 public class SessionTrackerResourceFromEntity {
     public static SessionTrackerResource toResourceFromEntity(SessionTracker sessionTracker){
-        return new SessionTrackerResource(sessionTracker.getSessionTrackerId().uuid(), sessionTracker.getReservationId().uuid(), sessionTracker.getUsageActivity().continuousActivity(),
-                sessionTracker.getUsageActivity().seconds(), sessionTracker.isSessionIsActive(), sessionTracker.isSessionIsInactive());
+        return new SessionTrackerResource(
+                sessionTracker.getSessionTrackerId().uuid(),
+                sessionTracker.getEquipmentId().uuid(),
+                sessionTracker.getReservationId() != null ? sessionTracker.getReservationId().uuid() : null,
+                sessionTracker.getUsageActivity().continuousActivity(),
+                sessionTracker.getUsageActivity().seconds(),
+                sessionTracker.isSessionIsActive(),
+                sessionTracker.isSessionIsInactive());
     }
 }

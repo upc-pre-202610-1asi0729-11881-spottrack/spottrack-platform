@@ -1,6 +1,7 @@
 package com.spottrack.platform.monitoring.infrastructure.persistence.jpa.adapters;
 
 import com.spottrack.platform.monitoring.domain.model.aggregates.SessionTracker;
+import com.spottrack.platform.monitoring.domain.model.valueobjects.EquipmentId;
 import com.spottrack.platform.monitoring.domain.model.valueobjects.ReservationId;
 import com.spottrack.platform.monitoring.domain.model.valueobjects.SessionTrackerId;
 import com.spottrack.platform.monitoring.domain.repositories.SessionTrackerRepository;
@@ -36,8 +37,21 @@ public class SessionTrackerRepositoryImpl implements SessionTrackerRepository {
     }
 
     @Override
+    public Optional<SessionTracker> findActiveByEquipmentId(EquipmentId equipmentId) {
+        return sessionTrackerPersistenceRepository.findFirstByEquipmentIdAndSessionIsActiveTrue(equipmentId.uuid())
+                .map(SessionTrackerPersistenceAssembler::toDomainFromPersistence);
+    }
+
+    @Override
     public List<SessionTracker> findAllBySessionIsActive(SessionTrackerId uuid, boolean active) {
         return sessionTrackerPersistenceRepository.findAllBySessionIsActiveTrue().stream().map(SessionTrackerPersistenceAssembler::toDomainFromPersistence).toList();
+    }
+
+    @Override
+    public List<SessionTracker> findAll() {
+        return sessionTrackerPersistenceRepository.findAll().stream()
+                .map(SessionTrackerPersistenceAssembler::toDomainFromPersistence)
+                .toList();
     }
 
     @Override

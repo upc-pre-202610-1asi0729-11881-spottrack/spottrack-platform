@@ -3,7 +3,9 @@ package com.spottrack.platform.monitoring.application.internal.commandcervices;
 import com.spottrack.platform.monitoring.application.commandServices.SessionTrackerCommandService;
 import com.spottrack.platform.monitoring.domain.model.aggregates.SessionTracker;
 import com.spottrack.platform.monitoring.domain.model.commands.*;
+import com.spottrack.platform.monitoring.domain.model.valueobjects.EquipmentId;
 import com.spottrack.platform.monitoring.domain.model.valueobjects.SessionTrackerId;
+import com.spottrack.platform.monitoring.domain.model.valueobjects.UsageActivity;
 import com.spottrack.platform.monitoring.domain.repositories.SessionTrackerRepository;
 import com.spottrack.platform.monitoring.infrastructure.persistence.jpa.assemblers.SessionTrackerPersistenceAssembler;
 import com.spottrack.platform.shared.application.result.ApplicationError;
@@ -11,12 +13,33 @@ import com.spottrack.platform.shared.application.result.Result;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalTime;
+import java.util.UUID;
+
 @Service
 public class SessionTrackerCommandServiceImpl implements SessionTrackerCommandService {
     private final SessionTrackerRepository sessionTrackerRepository;
 
     public SessionTrackerCommandServiceImpl(SessionTrackerRepository sessionTrackerRepository){
         this.sessionTrackerRepository = sessionTrackerRepository;
+    }
+
+    /**
+     * A sensor only knows what equipment it's mounted on — not a reservation.
+     * Motion on equipment already being tracked feeds the existing tracker;
+     * motion on equipment with no active tracker starts a walk-up session
+     * (equipment used without a booked reservation) — real usage worth tracking.
+     */
+    private SessionTracker findOrCreateActiveTrackerForEquipment(EquipmentId equipmentId) {
+        return sessionTrackerRepository.findActiveByEquipmentId(equipmentId)
+                .orElseGet(() -> new SessionTracker(new CreateSessionTrackerCommand(
+                        new SessionTrackerId(UUID.randomUUID().toString()),
+                        equipmentId,
+                        null,
+                        true,
+                        false,
+                        new UsageActivity(LocalTime.MIDNIGHT, LocalTime.MIDNIGHT)
+                )));
     }
     @Transactional
     @Override
@@ -56,11 +79,7 @@ public class SessionTrackerCommandServiceImpl implements SessionTrackerCommandSe
     @Override
     public Result<SessionTracker, ApplicationError> handle(MotionSensorCaptureCommand command) {
         try {
-            var session = sessionTrackerRepository.findSessionByUuid(command.sessionTrackerId());
-            if (session.isEmpty()) {
-                return Result.failure(ApplicationError.notFound("sessionTracker", command.sessionTrackerId().uuid()));
-            }
-            var tracker = session.get();
+            var tracker = findOrCreateActiveTrackerForEquipment(command.equipmentId());
             tracker.captureMotionSensorReading(command.movementDetectedViaSensor());
             var saved = sessionTrackerRepository.save(tracker);
             return Result.success(saved);
@@ -74,11 +93,7 @@ public class SessionTrackerCommandServiceImpl implements SessionTrackerCommandSe
     @Override
     public Result<SessionTracker, ApplicationError> handle(CameraCaptureMotionCommand command) {
         try {
-            var session = sessionTrackerRepository.findSessionByUuid(command.sessionTrackerId());
-            if (session.isEmpty()) {
-                return Result.failure(ApplicationError.notFound("sessionTracker", command.sessionTrackerId().uuid()));
-            }
-            var tracker = session.get();
+            var tracker = findOrCreateActiveTrackerForEquipment(command.equipmentId());
             tracker.captureCameraMotion(command.movementDetectedViaVideo());
             var saved = sessionTrackerRepository.save(tracker);
             return Result.success(saved);

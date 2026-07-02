@@ -12,6 +12,7 @@ import java.util.Optional;
 public interface SessionTrackerPersistenceRepository extends JpaRepository<SessionTrackerPersistenceEntity, Long> {
     Optional<SessionTrackerPersistenceEntity> findBySessionTrackerId(String sessionTrackerId);
     Optional<SessionTrackerPersistenceEntity> findByReservationId(String reservationId);
+    Optional<SessionTrackerPersistenceEntity> findFirstByEquipmentIdAndSessionIsActiveTrue(String equipmentId);
     List<SessionTrackerPersistenceEntity> findAllBySessionIsActiveTrue();
     void deleteBySessionTrackerId(String sessionTrackerId);
 }
