@@ -13,6 +13,7 @@ import com.spottrack.platform.iam.domain.repositories.PendingRegistrationReposit
 import com.spottrack.platform.iam.interfaces.acl.IamContextFacade;
 import com.spottrack.platform.iam.interfaces.acl.dto.PendingRegistrationDto;
 import com.spottrack.platform.iam.interfaces.acl.dto.ProvisionedAccountDto;
+import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -54,12 +55,8 @@ public class IamContextFacadeImpl implements IamContextFacade {
     }
 
     @Override
-    public UUID savePendingRegistration(SavePendingRegistrationCommand command) {
-        var result = pendingRegistrationCommandService.handle(command);
-        if (result instanceof Result.Failure<?, ?> failure) {
-            throw new IllegalStateException("Failed to save pending registration: " + failure.error());
-        }
-        return ((Result.Success<UUID, ?>) result).value();
+    public Result<UUID, ApplicationError> savePendingRegistration(SavePendingRegistrationCommand command) {
+        return pendingRegistrationCommandService.handle(command);
     }
 
     @Override

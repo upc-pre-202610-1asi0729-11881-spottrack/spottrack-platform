@@ -3,10 +3,15 @@ package com.spottrack.platform.monitoring.interfaces.rest;
 import com.spottrack.platform.monitoring.application.commandServices.CameraSensorCommandService;
 import com.spottrack.platform.monitoring.application.queryServices.CameraSensorQueryService;
 import com.spottrack.platform.monitoring.domain.model.queries.GetAllCameraSensorsQuery;
+import com.spottrack.platform.monitoring.application.commandServices.SessionTrackerCommandService;
 import com.spottrack.platform.monitoring.interfaces.rest.resources.CameraSensorResource;
+import com.spottrack.platform.monitoring.interfaces.rest.resources.CaptureCameraMotionResource;
 import com.spottrack.platform.monitoring.interfaces.rest.resources.RegisterCameraSensorResource;
+import com.spottrack.platform.monitoring.interfaces.rest.resources.SessionTrackerResource;
 import com.spottrack.platform.monitoring.interfaces.rest.transform.CameraSensorResourceFromEntity;
+import com.spottrack.platform.monitoring.interfaces.rest.transform.CaptureCameraMotionCommandFromResource;
 import com.spottrack.platform.monitoring.interfaces.rest.transform.RegisterCameraSensorCommandFromResource;
+import com.spottrack.platform.monitoring.interfaces.rest.transform.SessionTrackerResourceFromEntity;
 import com.spottrack.platform.shared.interfaces.rest.transform.ResponseEntityAssembler;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -42,6 +47,11 @@ public class CameraSensorController {
         return cameraSensorQueryService.handle(new GetAllCameraSensorsQuery()).stream()
                 .map(CameraSensorResourceFromEntity::toResourceFromEntity)
                 .toList();
+    private final SessionTrackerCommandService sessionTrackerCommandService;
+
+    public CameraSensorController(CameraSensorCommandService cameraSensorCommandService, SessionTrackerCommandService sessionTrackerCommandService) {
+        this.cameraSensorCommandService = cameraSensorCommandService;
+        this.sessionTrackerCommandService = sessionTrackerCommandService;
     }
 
     @PostMapping
@@ -59,6 +69,24 @@ public class CameraSensorController {
                 result,
                 CameraSensorResourceFromEntity::toResourceFromEntity,
                 HttpStatus.CREATED
+        );
+    }
+
+    @PostMapping("/capture-motion")
+    @Operation(summary = "Capture a camera motion reading", description = "Records a camera motion reading against a session tracker, refreshing its activity clock when movement is detected.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Reading captured successfully",
+                    content = @Content(schema = @Schema(implementation = SessionTrackerResource.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid input data"),
+            @ApiResponse(responseCode = "404", description = "Session tracker not found")
+    })
+    public ResponseEntity<?> captureMotion(@RequestBody CaptureCameraMotionResource resource) {
+        var command = CaptureCameraMotionCommandFromResource.toCommandFromResource(resource);
+        var result = sessionTrackerCommandService.handle(command);
+        return ResponseEntityAssembler.toResponseEntityFromResult(
+                result,
+                SessionTrackerResourceFromEntity::toResourceFromEntity,
+                HttpStatus.OK
         );
     }
 }

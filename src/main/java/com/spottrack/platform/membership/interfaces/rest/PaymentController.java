@@ -8,6 +8,7 @@ import com.spottrack.platform.shared.interfaces.rest.transform.ResponseEntityAss
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,7 +26,7 @@ public class PaymentController {
     }
 
     @PostMapping
-    public ResponseEntity<?> payMembership(@RequestBody PayMembershipResource resource){
+    public ResponseEntity<?> payMembership(@Valid @RequestBody PayMembershipResource resource){
         var command = PayMembershipCommandFromResourceAssembler.toCommandFromResource(resource);
         var result = paymentCommandService.handle(command);
         return ResponseEntityAssembler.toResponseEntityFromResult(

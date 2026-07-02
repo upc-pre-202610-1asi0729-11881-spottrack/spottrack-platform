@@ -8,6 +8,7 @@ import com.spottrack.platform.monitoring.domain.repositories.SessionTrackerRepos
 import com.spottrack.platform.monitoring.infrastructure.persistence.jpa.assemblers.SessionTrackerPersistenceAssembler;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -17,6 +18,7 @@ public class SessionTrackerCommandServiceImpl implements SessionTrackerCommandSe
     public SessionTrackerCommandServiceImpl(SessionTrackerRepository sessionTrackerRepository){
         this.sessionTrackerRepository = sessionTrackerRepository;
     }
+    @Transactional
     @Override
     public Result<SessionTracker, ApplicationError> handle(VerifyUsageSessionCommand command) {
         try {
@@ -53,14 +55,47 @@ public class SessionTrackerCommandServiceImpl implements SessionTrackerCommandSe
 
     @Override
     public Result<SessionTracker, ApplicationError> handle(MotionSensorCaptureCommand command) {
-        return null;
+        try {
+            var session = sessionTrackerRepository.findSessionByUuid(command.sessionTrackerId());
+            if (session.isEmpty()) {
+                return Result.failure(ApplicationError.notFound("sessionTracker", command.sessionTrackerId().uuid()));
+            }
+            var tracker = session.get();
+            tracker.captureMotionSensorReading(command.movementDetectedViaSensor());
+            var saved = sessionTrackerRepository.save(tracker);
+            return Result.success(saved);
+        } catch (IllegalArgumentException e) {
+            return Result.failure(ApplicationError.validationError("sessionTracker", e.getMessage()));
+        } catch (Exception e) {
+            return Result.failure(ApplicationError.unexpected("sessionTracker", e.getMessage()));
+        }
     }
 
     @Override
     public Result<SessionTracker, ApplicationError> handle(CameraCaptureMotionCommand command) {
-        return null;
+        try {
+            var session = sessionTrackerRepository.findSessionByUuid(command.sessionTrackerId());
+            if (session.isEmpty()) {
+                return Result.failure(ApplicationError.notFound("sessionTracker", command.sessionTrackerId().uuid()));
+            }
+            var tracker = session.get();
+            tracker.captureCameraMotion(command.movementDetectedViaVideo());
+            var saved = sessionTrackerRepository.save(tracker);
+            return Result.success(saved);
+        } catch (IllegalArgumentException e) {
+            return Result.failure(ApplicationError.validationError("sessionTracker", e.getMessage()));
+        } catch (Exception e) {
+            return Result.failure(ApplicationError.unexpected("sessionTracker", e.getMessage()));
+        }
     }
 
+    /**
+     * REQUIRES_NEW: this handler is invoked from an AFTER_COMMIT transactional event
+     * listener, where the original transaction's resources are already tearing down.
+     * Joining it (default propagation) silently no-ops the write, so a fresh
+     * transaction is required here.
+     */
+    @Transactional(Transactional.TxType.REQUIRES_NEW)
     @Override
     public Result<SessionTracker, ApplicationError> handle(EndUsageSessionCommand command) {
         /**
@@ -77,12 +112,15 @@ public class SessionTrackerCommandServiceImpl implements SessionTrackerCommandSe
         }
     }
 
+    @Transactional(Transactional.TxType.REQUIRES_NEW)
     @Override
     public Result<SessionTracker, ApplicationError> handle(CalculateSessionTimeCommand command) {
         try {
             var session = sessionTrackerRepository.findSessionByUuid(command.sessionTrackerId());
-            session.get().calculateSessionTime();
-            return Result.success(session.get());
+            var tracker = session.get();
+            tracker.calculateSessionTime();
+            var saved = sessionTrackerRepository.save(tracker);
+            return Result.success(saved);
         }
         catch (IllegalArgumentException e){
             return Result.failure(ApplicationError.validationError("sessionTracker", e.getMessage()));

@@ -9,6 +9,7 @@ public record MembershipPayedEvent(
         Long id,
         UUID paymentId,
         Long userId,
+        UUID pendingRegistrationId,
         MembershipTier membershipTier
 ) {
     public static MembershipPayedEvent from(Payment payment) {
@@ -16,6 +17,7 @@ public record MembershipPayedEvent(
                 payment.getId(),
                 payment.getPaymentId().uuid(),
                 payment.getUserId(),
+                payment.getPendingRegistrationId(),
                 payment.getMembershipTier()
         );
     }

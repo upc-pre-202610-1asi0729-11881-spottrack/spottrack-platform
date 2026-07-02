@@ -3,10 +3,15 @@ package com.spottrack.platform.monitoring.interfaces.rest;
 import com.spottrack.platform.monitoring.application.commandServices.MotionSensorCommandService;
 import com.spottrack.platform.monitoring.application.queryServices.MotionSensorQueryService;
 import com.spottrack.platform.monitoring.domain.model.queries.GetAllMotionSensorsQuery;
+import com.spottrack.platform.monitoring.application.commandServices.SessionTrackerCommandService;
+import com.spottrack.platform.monitoring.interfaces.rest.resources.CaptureMotionSensorReadingResource;
 import com.spottrack.platform.monitoring.interfaces.rest.resources.MotionSensorResource;
 import com.spottrack.platform.monitoring.interfaces.rest.resources.RegisterMotionSensorResource;
+import com.spottrack.platform.monitoring.interfaces.rest.resources.SessionTrackerResource;
+import com.spottrack.platform.monitoring.interfaces.rest.transform.CaptureMotionSensorReadingCommandFromResource;
 import com.spottrack.platform.monitoring.interfaces.rest.transform.MotionSensorResourceFromEntity;
 import com.spottrack.platform.monitoring.interfaces.rest.transform.RegisterMotionSensorCommandFromResource;
+import com.spottrack.platform.monitoring.interfaces.rest.transform.SessionTrackerResourceFromEntity;
 import com.spottrack.platform.shared.interfaces.rest.transform.ResponseEntityAssembler;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -42,6 +47,11 @@ public class MotionSensorController {
         return motionSensorQueryService.handle(new GetAllMotionSensorsQuery()).stream()
                 .map(MotionSensorResourceFromEntity::toResourceFromEntity)
                 .toList();
+    private final SessionTrackerCommandService sessionTrackerCommandService;
+
+    public MotionSensorController(MotionSensorCommandService motionSensorCommandService, SessionTrackerCommandService sessionTrackerCommandService) {
+        this.motionSensorCommandService = motionSensorCommandService;
+        this.sessionTrackerCommandService = sessionTrackerCommandService;
     }
 
     @PostMapping
@@ -59,6 +69,24 @@ public class MotionSensorController {
                 result,
                 MotionSensorResourceFromEntity::toResourceFromEntity,
                 HttpStatus.CREATED
+        );
+    }
+
+    @PostMapping("/capture-motion")
+    @Operation(summary = "Capture a motion sensor reading", description = "Records a motion sensor reading against a session tracker, refreshing its activity clock when movement is detected.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Reading captured successfully",
+                    content = @Content(schema = @Schema(implementation = SessionTrackerResource.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid input data"),
+            @ApiResponse(responseCode = "404", description = "Session tracker not found")
+    })
+    public ResponseEntity<?> captureMotion(@RequestBody CaptureMotionSensorReadingResource resource) {
+        var command = CaptureMotionSensorReadingCommandFromResource.toCommandFromResource(resource);
+        var result = sessionTrackerCommandService.handle(command);
+        return ResponseEntityAssembler.toResponseEntityFromResult(
+                result,
+                SessionTrackerResourceFromEntity::toResourceFromEntity,
+                HttpStatus.OK
         );
     }
 }

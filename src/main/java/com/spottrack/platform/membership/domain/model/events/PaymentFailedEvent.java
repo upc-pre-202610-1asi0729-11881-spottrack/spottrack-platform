@@ -7,13 +7,15 @@ import java.util.UUID;
 public record PaymentFailedEvent(
         Long id,
         UUID paymentId,
-        Long userId
+        Long userId,
+        UUID pendingRegistrationId
 ) {
     public static PaymentFailedEvent from(Payment payment) {
         return new PaymentFailedEvent(
                 payment.getId(),
                 payment.getPaymentId().uuid(),
-                payment.getUserId()
+                payment.getUserId(),
+                payment.getPendingRegistrationId()
         );
     }
 }
