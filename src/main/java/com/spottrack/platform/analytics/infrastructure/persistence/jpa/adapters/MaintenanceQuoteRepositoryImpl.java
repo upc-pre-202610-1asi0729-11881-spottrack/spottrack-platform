@@ -24,10 +24,10 @@ public class MaintenanceQuoteRepositoryImpl implements MaintenanceQuoteRepositor
     public MaintenanceQuote save(MaintenanceQuote maintenanceQuote) {
         var entity = MaintenanceQuotePersistenceAssembler.toPersistenceFromDomain(maintenanceQuote);
         var savedEntity = jpaMaintenanceQuoteRepository.save(entity);
-        var savedMaintenanceQuote = MaintenanceQuotePersistenceAssembler.toDomainFromPersistence(savedEntity);
+        maintenanceQuote.setId(savedEntity.getId());
         maintenanceQuote.domainEvents().forEach(eventPublisher::publishEvent);
         maintenanceQuote.clearDomainEvents();
-        return savedMaintenanceQuote;
+        return maintenanceQuote;
     }
 
     @Override

@@ -24,10 +24,10 @@ public class ROIProjectionRepositoryImpl implements ROIProjectionRepository {
     public ROIProjection save(ROIProjection roiProjection) {
         var entity = ROIProjectionPersistenceAssembler.toPersistenceFromDomain(roiProjection);
         var savedEntity = jpaROIProjectionRepository.save(entity);
-        var savedRoiProjection = ROIProjectionPersistenceAssembler.toDomainFromPersistence(savedEntity);
+        roiProjection.setId(savedEntity.getId());
         roiProjection.domainEvents().forEach(eventPublisher::publishEvent);
         roiProjection.clearDomainEvents();
-        return savedRoiProjection;
+        return roiProjection;
     }
 
     @Override

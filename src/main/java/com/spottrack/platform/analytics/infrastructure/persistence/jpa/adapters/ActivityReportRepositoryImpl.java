@@ -24,10 +24,10 @@ public class ActivityReportRepositoryImpl implements ActivityReportRepository {
     public ActivityReport save(ActivityReport activityReport) {
         var entity = ActivityReportPersistenceAssembler.toPersistenceFromDomain(activityReport);
         var savedEntity = jpaActivityReportRepository.save(entity);
-        var savedActivityReport = ActivityReportPersistenceAssembler.toDomainFromPersistence(savedEntity);
+        activityReport.setId(savedEntity.getId());
         activityReport.domainEvents().forEach(eventPublisher::publishEvent);
         activityReport.clearDomainEvents();
-        return savedActivityReport;
+        return activityReport;
     }
 
     @Override
