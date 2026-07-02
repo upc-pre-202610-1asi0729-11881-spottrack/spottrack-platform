@@ -5,14 +5,17 @@ import com.spottrack.platform.membership.application.commandservices.PaymentComm
 import com.spottrack.platform.membership.application.queryservices.MembershipQueryService;
 import com.spottrack.platform.membership.domain.model.commands.CancelMembershipCommand;
 import com.spottrack.platform.membership.domain.model.commands.InitiateDebtPaymentCommand;
+import com.spottrack.platform.membership.domain.model.commands.InitiateResubscriptionPaymentCommand;
 import com.spottrack.platform.membership.domain.model.commands.InitiateUpgradePaymentCommand;
 import com.spottrack.platform.membership.domain.model.commands.RequestDowngradePlanCommand;
 import com.spottrack.platform.membership.domain.model.queries.GetMembershipByIdQuery;
+import com.spottrack.platform.membership.domain.model.queries.GetMembershipsByClientIdQuery;
 import com.spottrack.platform.membership.domain.model.valueobjects.MembershipId;
 import com.spottrack.platform.membership.domain.model.valueobjects.MembershipStatus;
 import com.spottrack.platform.membership.domain.model.valueobjects.MembershipTier;
 import com.spottrack.platform.membership.interfaces.rest.resources.CreateMembershipResource;
 import com.spottrack.platform.membership.interfaces.rest.resources.DowngradeMembershipPlanResource;
+import com.spottrack.platform.membership.interfaces.rest.resources.ResubscribeMembershipResource;
 import com.spottrack.platform.membership.interfaces.rest.resources.UpgradeMembershipPlanResource;
 import com.spottrack.platform.membership.interfaces.rest.transform.CreateMembershipCommandFromResourceAssembler;
 import com.spottrack.platform.membership.interfaces.rest.transform.MembershipResourceFromEntityAssembler;
@@ -202,6 +205,46 @@ public class MembershipController {
                             "membership.error.upgrade.notHigherTier"));
         }
         var command = new InitiateUpgradePaymentCommand(membershipId, newTier, newTier.toMoney());
+        var result = paymentCommandService.handle(command);
+        return switch (result) {
+            case com.spottrack.platform.shared.application.result.Result.Success<String, ?> s ->
+                    ResponseEntity.ok(Map.of("checkoutUrl", s.value()));
+            case com.spottrack.platform.shared.application.result.Result.Failure<?, ApplicationError> f ->
+                    ErrorResponseAssembler.toErrorResponseFromApplicationError(f.error());
+        };
+    }
+
+    @PostMapping("/resubscribe")
+    @Schema(description = "Initiate a resubscription payment for a client with a CANCELLED or EXPIRED membership")
+    public ResponseEntity<?> resubscribe(
+            Authentication authentication,
+            @RequestBody @Valid ResubscribeMembershipResource resource) {
+        var clientId = resolveClientId(authentication);
+        if (clientId == 0L) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.notFound("Client", authentication.getName()));
+        }
+        var memberships = membershipQueryService.handle(new GetMembershipsByClientIdQuery(clientId));
+        boolean hasActive = memberships.stream().anyMatch(m -> m.getStatus() == MembershipStatus.ACTIVE);
+        if (hasActive) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.businessRuleViolation("Membership.resubscribe",
+                            "membership.error.resubscribe.alreadyActive"));
+        }
+        boolean hasSuspended = memberships.stream().anyMatch(m -> m.getStatus() == MembershipStatus.SUSPENDED);
+        if (hasSuspended) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.businessRuleViolation("Membership.resubscribe",
+                            "membership.error.resubscribe.suspended"));
+        }
+        MembershipTier tier;
+        try {
+            tier = MembershipTier.valueOf(resource.membershipTier());
+        } catch (IllegalArgumentException e) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.validationError("MembershipTier", "membership.error.resubscribe.invalidTier"));
+        }
+        var command = new InitiateResubscriptionPaymentCommand(clientId, tier, tier.toMoney());
         var result = paymentCommandService.handle(command);
         return switch (result) {
             case com.spottrack.platform.shared.application.result.Result.Success<String, ?> s ->

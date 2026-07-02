@@ -2,6 +2,7 @@ package com.spottrack.platform.membership.domain.model.aggregates;
 
 import com.spottrack.platform.membership.domain.model.commands.InitiateBusinessPaymentCommand;
 import com.spottrack.platform.membership.domain.model.commands.InitiateDebtPaymentCommand;
+import com.spottrack.platform.membership.domain.model.commands.InitiateResubscriptionPaymentCommand;
 import com.spottrack.platform.membership.domain.model.commands.InitiateUpgradePaymentCommand;
 import com.spottrack.platform.membership.domain.model.commands.PayMembershipCommand;
 import com.spottrack.platform.membership.domain.model.events.MembershipPayedEvent;
@@ -84,6 +85,11 @@ public class Payment extends AbstractDomainAggregateRoot<Payment> {
     public Payment(InitiateUpgradePaymentCommand command) {
         this(null, new PaymentId(), null, null, command.membershipId(),
                 command.newMembershipTier(), command.amount(), PaymentStatus.PENDING, null, PaymentPurpose.PLAN_UPGRADE);
+    }
+
+    public Payment(InitiateResubscriptionPaymentCommand command) {
+        this(null, new PaymentId(), command.userId(), null, null,
+                command.membershipTier(), command.amount(), PaymentStatus.PENDING, null, PaymentPurpose.RESUBSCRIPTION);
     }
 
     public void confirm(String gatewayTransactionId) {
