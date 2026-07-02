@@ -1,8 +1,8 @@
-package com.spottrack.platform.monitoring.domain.model.commands;
+package com.spottrack.platform.monitoring.domain.model.events;
 
 import com.spottrack.platform.monitoring.domain.model.valueobjects.SessionTrackerId;
 
-public record MotionSensorCaptureCommand(
+public record MotionCapturedEvent(
         SessionTrackerId sessionTrackerId,
         boolean movementDetectedViaSensor
 ) {
