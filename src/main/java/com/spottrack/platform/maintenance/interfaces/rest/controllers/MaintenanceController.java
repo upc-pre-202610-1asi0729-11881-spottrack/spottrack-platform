@@ -1,6 +1,7 @@
 package com.spottrack.platform.maintenance.interfaces.rest.controllers;
 
 import com.spottrack.platform.maintenance.application.commandServices.MaintenanceCommandService;
+import com.spottrack.platform.maintenance.application.queryservices.TechnicalTicketQueryService;
 import com.spottrack.platform.maintenance.domain.model.aggregates.Maintenance;
 import com.spottrack.platform.maintenance.domain.model.aggregates.MaintenanceJob;
 import com.spottrack.platform.maintenance.domain.model.aggregates.MaintenanceLog;
@@ -13,6 +14,7 @@ import com.spottrack.platform.maintenance.domain.model.commands.RecommendEquipme
 import com.spottrack.platform.maintenance.domain.model.commands.RegisterMaintenanceCompletion;
 import com.spottrack.platform.maintenance.domain.model.commands.RequestUpdateMaintenanceStatus;
 import com.spottrack.platform.maintenance.domain.model.commands.UpdateMaintenanceStatus;
+import com.spottrack.platform.maintenance.domain.model.queries.GetAllTicketsQuery;
 import com.spottrack.platform.maintenance.domain.model.valueobjects.MaintenanceId;
 import com.spottrack.platform.maintenance.domain.model.valueobjects.MaintenanceJobId;
 import com.spottrack.platform.maintenance.domain.model.valueobjects.TechnicalTicketId;
@@ -42,9 +44,12 @@ import org.springframework.web.bind.annotation.*;
 public class MaintenanceController {
 
     private final MaintenanceCommandService commandService;
+    private final TechnicalTicketQueryService technicalTicketQueryService;
 
-    public MaintenanceController(MaintenanceCommandService commandService) {
+    public MaintenanceController(MaintenanceCommandService commandService,
+                                  TechnicalTicketQueryService technicalTicketQueryService) {
         this.commandService = commandService;
+        this.technicalTicketQueryService = technicalTicketQueryService;
     }
 
     @PostMapping("/requests")
@@ -73,6 +78,16 @@ public class MaintenanceController {
             case Result.Failure<TechnicalTicket, ApplicationError> f ->
                     ResponseEntity.badRequest().body(f.error());
         };
+    }
+
+    @GetMapping("/tickets")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getAllTickets() {
+        var tickets = technicalTicketQueryService.handle(new GetAllTicketsQuery());
+        var resources = tickets.stream()
+                .map(TechnicalTicketResourceFromEntityAssembler::toResourceFromEntity)
+                .toList();
+        return ResponseEntity.ok(resources);
     }
 
     @PatchMapping("/tickets/{ticketId}/assign/{technicianId}")
