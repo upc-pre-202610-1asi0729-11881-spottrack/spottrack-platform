@@ -54,6 +54,7 @@ public class WebSecurityConfiguration {
                                 "/api/v1/webhooks/**",
                                 "/api/v1/monitoring/camera-sensors/**",
                                 "/api/v1/monitoring/motion-sensors/**",
+                                "/api/v1/register-business",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**"

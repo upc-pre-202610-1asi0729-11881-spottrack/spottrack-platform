@@ -13,8 +13,11 @@ public class PaymentPersistenceEntity extends AuditableAbstractPersistenceEntity
     @Column(name = "payment_id", nullable = false, unique = true)
     private String paymentId;
 
-    @Column(name = "user_id", nullable = false)
+    @Column(name = "user_id")
     private Long userId;
+
+    @Column(name = "pending_registration_id", length = 36)
+    private String pendingRegistrationId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "membership_tier", nullable = false)
@@ -41,6 +44,9 @@ public class PaymentPersistenceEntity extends AuditableAbstractPersistenceEntity
 
     public Long getUserId() { return userId; }
     public void setUserId(Long userId) { this.userId = userId; }
+
+    public String getPendingRegistrationId() { return pendingRegistrationId; }
+    public void setPendingRegistrationId(String pendingRegistrationId) { this.pendingRegistrationId = pendingRegistrationId; }
 
     public MembershipTier getMembershipTier() { return membershipTier; }
     public void setMembershipTier(MembershipTier membershipTier) { this.membershipTier = membershipTier; }
