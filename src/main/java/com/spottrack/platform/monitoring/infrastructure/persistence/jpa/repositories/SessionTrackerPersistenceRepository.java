@@ -13,4 +13,5 @@ public interface SessionTrackerPersistenceRepository extends JpaRepository<Sessi
     Optional<SessionTrackerPersistenceEntity> findBySessionTrackerId(String sessionTrackerId);
     Optional<SessionTrackerPersistenceEntity> findByReservationId(String reservationId);
     List<SessionTrackerPersistenceEntity> findAllBySessionIsActiveTrue();
+    void deleteBySessionTrackerId(String sessionTrackerId);
 }

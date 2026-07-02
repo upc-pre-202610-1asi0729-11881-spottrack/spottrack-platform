@@ -1,6 +1,7 @@
 package com.spottrack.platform.monitoring.infrastructure.persistence.jpa.adapters;
 
 import com.spottrack.platform.monitoring.domain.model.aggregates.SessionTracker;
+import com.spottrack.platform.monitoring.domain.model.valueobjects.ReservationId;
 import com.spottrack.platform.monitoring.domain.model.valueobjects.SessionTrackerId;
 import com.spottrack.platform.monitoring.domain.repositories.SessionTrackerRepository;
 import com.spottrack.platform.monitoring.infrastructure.persistence.jpa.assemblers.SessionTrackerPersistenceAssembler;
@@ -29,6 +30,12 @@ public class SessionTrackerRepositoryImpl implements SessionTrackerRepository {
     }
 
     @Override
+    public Optional<SessionTracker> findByReservationId(ReservationId reservationId) {
+        return sessionTrackerPersistenceRepository.findByReservationId(reservationId.uuid())
+                .map(SessionTrackerPersistenceAssembler::toDomainFromPersistence);
+    }
+
+    @Override
     public List<SessionTracker> findAllBySessionIsActive(SessionTrackerId uuid, boolean active) {
         return sessionTrackerPersistenceRepository.findAllBySessionIsActiveTrue().stream().map(SessionTrackerPersistenceAssembler::toDomainFromPersistence).toList();
     }
@@ -41,5 +48,10 @@ public class SessionTrackerRepositoryImpl implements SessionTrackerRepository {
         sessionTracker.domainEvents().forEach(eventPublisher::publishEvent);
         sessionTracker.clearDomainEvents();
         return domain;
+    }
+
+    @Override
+    public void deleteBySessionTrackerId(SessionTrackerId sessionTrackerId) {
+        sessionTrackerPersistenceRepository.deleteBySessionTrackerId(sessionTrackerId.uuid());
     }
 }
