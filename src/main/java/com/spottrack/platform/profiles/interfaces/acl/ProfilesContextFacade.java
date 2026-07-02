@@ -15,4 +15,10 @@ public interface ProfilesContextFacade {
      * Returns "" if the client has no active gym or if the active gym's whitelist entry was removed.
      */
     String fetchActiveGymIdByClientId(Long clientId);
+
+    /**
+     * Returns the client's full name, or null if no client with that id exists
+     * or their profile is incomplete.
+     */
+    String fetchClientNameById(Long clientId);
 }

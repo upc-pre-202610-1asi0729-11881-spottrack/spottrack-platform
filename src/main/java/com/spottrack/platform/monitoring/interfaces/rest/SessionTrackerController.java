@@ -1,9 +1,9 @@
 package com.spottrack.platform.monitoring.interfaces.rest;
 
+import com.spottrack.platform.gym.interfaces.acl.GymContextFacade;
 import com.spottrack.platform.monitoring.application.commandServices.SessionTrackerCommandService;
 import com.spottrack.platform.monitoring.application.queryServices.SessionTrackerQueryService;
 import com.spottrack.platform.monitoring.domain.model.aggregates.SessionTracker;
-import com.spottrack.platform.monitoring.domain.model.commands.CalculateSessionTimeCommand;
 import com.spottrack.platform.monitoring.domain.model.commands.EndUsageSessionCommand;
 import com.spottrack.platform.monitoring.domain.model.commands.VerifyUsageSessionCommand;
 import com.spottrack.platform.monitoring.domain.model.queries.GetAllSessionTrackersQuery;
@@ -14,11 +14,12 @@ import com.spottrack.platform.monitoring.interfaces.rest.resources.CreateSession
 import com.spottrack.platform.monitoring.interfaces.rest.resources.SessionTrackerResource;
 import com.spottrack.platform.monitoring.interfaces.rest.transform.CreateSessionTrackerCommandFromResource;
 import com.spottrack.platform.monitoring.interfaces.rest.transform.SessionTrackerResourceFromEntity;
+import com.spottrack.platform.profiles.interfaces.acl.ProfilesContextFacade;
+import com.spottrack.platform.reservation.interfaces.acl.ReservationContextFacade;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
 import com.spottrack.platform.shared.interfaces.rest.transform.ErrorResponseAssembler;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.hibernate.validator.internal.metadata.aggregated.rule.ReturnValueMayOnlyBeMarkedOnceAsCascadedPerHierarchyLine;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -31,15 +32,26 @@ import java.util.List;
 public class SessionTrackerController {
     private final SessionTrackerCommandService sessionTrackerCommandService;
     private final SessionTrackerQueryService sessionTrackerQueryService;
-    public SessionTrackerController(SessionTrackerCommandService sessionTrackerCommandService, SessionTrackerQueryService sessionTrackerQueryService){
+    private final GymContextFacade gymContextFacade;
+    private final ReservationContextFacade reservationContextFacade;
+    private final ProfilesContextFacade profilesContextFacade;
+
+    public SessionTrackerController(SessionTrackerCommandService sessionTrackerCommandService,
+                                     SessionTrackerQueryService sessionTrackerQueryService,
+                                     GymContextFacade gymContextFacade,
+                                     ReservationContextFacade reservationContextFacade,
+                                     ProfilesContextFacade profilesContextFacade){
         this.sessionTrackerCommandService = sessionTrackerCommandService;
         this.sessionTrackerQueryService = sessionTrackerQueryService;
+        this.gymContextFacade = gymContextFacade;
+        this.reservationContextFacade = reservationContextFacade;
+        this.profilesContextFacade = profilesContextFacade;
     }
 
     @GetMapping
     public List<SessionTrackerResource> getAllSessionTrackers() {
         return sessionTrackerQueryService.handle(new GetAllSessionTrackersQuery()).stream()
-                .map(SessionTrackerResourceFromEntity::toResourceFromEntity)
+                .map(this::toEnrichedResource)
                 .toList();
     }
 
@@ -62,7 +74,7 @@ public class SessionTrackerController {
         var result = sessionTrackerCommandService.handle(command);
         return switch (result) {
             case Result.Success<SessionTracker, ApplicationError> s ->
-                ResponseEntity.ok(SessionTrackerResourceFromEntity.toResourceFromEntity(s.value()));
+                ResponseEntity.ok(toEnrichedResource(s.value()));
             case Result.Failure<SessionTracker, ApplicationError> f ->
                 ResponseEntity.badRequest().body(f.error());
         };
@@ -74,23 +86,52 @@ public class SessionTrackerController {
         var result = sessionTrackerCommandService.handle(command);
          return switch(result){
              case Result.Success<SessionTracker, ApplicationError> s ->
-                 ResponseEntity.ok(SessionTrackerResourceFromEntity.toResourceFromEntity(s.value()));
+                 ResponseEntity.ok(toEnrichedResource(s.value()));
              case Result.Failure<SessionTracker, ApplicationError> f ->
                  ResponseEntity.badRequest().body(f.error());
          };
     }
 
+    /**
+     * Read-only preview of the session's current true activity. Does NOT end or
+     * delete the tracker — that only happens once the session has actually ended
+     * (see UsageSessionEndedEventHandler), which computes and reports the final
+     * activity through the domain-event path instead of this endpoint.
+     */
     @GetMapping("/{sessionTrackerId}/time")
     public ResponseEntity calculateSessionTime(@PathVariable String sessionTrackerId){
-            var query = new GetSessionTrackerByIdQuery(new SessionTrackerId(sessionTrackerId));
-            var command = new CalculateSessionTimeCommand(query.sessionTrackerId());
-            var entity = sessionTrackerQueryService.handle(query);
-            var result = sessionTrackerCommandService.handle(command);
-            return switch(result) {
-                case Result.Success<SessionTracker, ApplicationError> s -> ResponseEntity.ok(SessionTrackerResourceFromEntity.toResourceFromEntity(s.value()));
-                case Result.Failure<SessionTracker, ApplicationError>  f -> ResponseEntity.badRequest().body(f.error());
-           };
+        var query = new GetSessionTrackerByIdQuery(new SessionTrackerId(sessionTrackerId));
+        var entityOpt = sessionTrackerQueryService.handle(query);
+        if (entityOpt.isEmpty()) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.notFound("SessionTracker", sessionTrackerId));
+        }
+        var entity = entityOpt.get();
+        var trueActivity = entity.peekTrueActivity();
+        return ResponseEntity.ok(toEnrichedResource(entity, trueActivity));
+    }
+
+    private SessionTrackerResource toEnrichedResource(SessionTracker tracker) {
+        return toEnrichedResource(tracker, null);
+    }
+
+    private SessionTrackerResource toEnrichedResource(SessionTracker tracker, java.time.LocalTime calculatedTrueActivity) {
+        var equipmentName = gymContextFacade.findEquipmentById(tracker.getEquipmentId().uuid())
+                .map(equipment -> equipment.getEquipmentName())
+                .orElse(null);
+
+        Long clientId = null;
+        String clientName = null;
+        if (tracker.getReservationId() != null) {
+            var clientIdOpt = reservationContextFacade.fetchClientIdByReservationId(tracker.getReservationId().uuid());
+            if (clientIdOpt.isPresent()) {
+                clientId = clientIdOpt.get();
+                clientName = profilesContextFacade.fetchClientNameById(clientId);
+            }
+        }
+
+        return SessionTrackerResourceFromEntity.toResourceFromEntity(
+                tracker, equipmentName, clientId, clientName, calculatedTrueActivity);
     }
 
 }
-

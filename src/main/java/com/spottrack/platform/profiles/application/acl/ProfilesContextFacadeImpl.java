@@ -114,4 +114,11 @@ public class ProfilesContextFacadeImpl implements ProfilesContextFacade {
         var dni = clientOpt.get().getPersonInfo().dni().getDNI();
         return gymContextFacade.isDniWhitelistedForGym(active.getGymId(), dni) ? active.getGymId() : "";
     }
+
+    @Override
+    public String fetchClientNameById(Long clientId) {
+        var clientOpt = clientQueryService.handle(
+                new com.spottrack.platform.profiles.domain.model.queries.GetClientByIdQuery(new ClientId(clientId)));
+        return clientOpt.filter(c -> c.isProfileComplete()).map(c -> c.getFullName()).orElse(null);
+    }
 }
