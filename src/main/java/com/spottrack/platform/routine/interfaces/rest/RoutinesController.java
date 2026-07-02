@@ -1,6 +1,7 @@
 package com.spottrack.platform.routine.interfaces.rest;
 
 import com.spottrack.platform.iam.interfaces.acl.IamContextFacade;
+import com.spottrack.platform.membership.interfaces.acl.MembershipContextFacade;
 import com.spottrack.platform.profiles.interfaces.acl.ProfilesContextFacade;
 import com.spottrack.platform.routine.application.commandservices.RoutineCommandService;
 import com.spottrack.platform.routine.application.queryservices.RoutineQueryService;
@@ -44,16 +45,19 @@ public class RoutinesController {
     private final RoutineQueryService routineQueryService;
     private final IamContextFacade iamContextFacade;
     private final ProfilesContextFacade profilesContextFacade;
+    private final MembershipContextFacade membershipContextFacade;
 
     public RoutinesController(
             RoutineCommandService routineCommandService,
             RoutineQueryService routineQueryService,
             IamContextFacade iamContextFacade,
-            ProfilesContextFacade profilesContextFacade) {
+            ProfilesContextFacade profilesContextFacade,
+            MembershipContextFacade membershipContextFacade) {
         this.routineCommandService = routineCommandService;
         this.routineQueryService = routineQueryService;
         this.iamContextFacade = iamContextFacade;
         this.profilesContextFacade = profilesContextFacade;
+        this.membershipContextFacade = membershipContextFacade;
     }
 
     @PostMapping
@@ -78,6 +82,8 @@ public class RoutinesController {
             return ErrorResponseAssembler.toErrorResponseFromApplicationError(
                     ApplicationError.notFound("Client", authentication.getName()));
         }
+        var membershipError = checkMembershipAccess(clientId);
+        if (membershipError.isPresent()) return membershipError.get();
         var command = CreateRoutineCommandFromResourceAssembler.toCommandFromResource(resource, clientId);
         var result = routineCommandService.handle(command);
         return ResponseEntityAssembler.toResponseEntityFromResult(
@@ -194,6 +200,16 @@ public class RoutinesController {
                 ExerciseBlockResourceFromEntityAssembler::toResourceFromEntity,
                 HttpStatus.CREATED
         );
+    }
+
+    private Optional<ResponseEntity<?>> checkMembershipAccess(Long clientId) {
+        var accessStatus = membershipContextFacade.fetchMembershipAccessStatus(clientId);
+        if ("ACTIVE".equals(accessStatus)) return Optional.empty();
+        var errorCode = "SUSPENDED".equals(accessStatus)
+                ? "membership.error.access.suspended"
+                : "membership.error.access.inactive";
+        return Optional.of(ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                ApplicationError.forbidden("Membership", errorCode)));
     }
 
     private Long resolveClientId(Authentication authentication) {
