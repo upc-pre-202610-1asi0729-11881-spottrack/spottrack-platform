@@ -6,11 +6,13 @@ import com.spottrack.platform.membership.application.queryservices.MembershipQue
 import com.spottrack.platform.membership.domain.model.commands.CancelMembershipCommand;
 import com.spottrack.platform.membership.domain.model.commands.InitiateDebtPaymentCommand;
 import com.spottrack.platform.membership.domain.model.commands.InitiateUpgradePaymentCommand;
+import com.spottrack.platform.membership.domain.model.commands.RequestDowngradePlanCommand;
 import com.spottrack.platform.membership.domain.model.queries.GetMembershipByIdQuery;
 import com.spottrack.platform.membership.domain.model.valueobjects.MembershipId;
 import com.spottrack.platform.membership.domain.model.valueobjects.MembershipStatus;
 import com.spottrack.platform.membership.domain.model.valueobjects.MembershipTier;
 import com.spottrack.platform.membership.interfaces.rest.resources.CreateMembershipResource;
+import com.spottrack.platform.membership.interfaces.rest.resources.DowngradeMembershipPlanResource;
 import com.spottrack.platform.membership.interfaces.rest.resources.UpgradeMembershipPlanResource;
 import com.spottrack.platform.membership.interfaces.rest.transform.CreateMembershipCommandFromResourceAssembler;
 import com.spottrack.platform.membership.interfaces.rest.transform.MembershipResourceFromEntityAssembler;
@@ -118,6 +120,50 @@ public class MembershipController {
             case com.spottrack.platform.shared.application.result.Result.Failure<?, ApplicationError> f ->
                     ErrorResponseAssembler.toErrorResponseFromApplicationError(f.error());
         };
+    }
+
+    @PostMapping("/{membershipId}/downgrade-plan")
+    @Schema(description = "Schedule a plan downgrade to take effect at the end of the current billing period")
+    public ResponseEntity<?> downgradePlan(
+            Authentication authentication,
+            @PathVariable UUID membershipId,
+            @RequestBody @Valid DowngradeMembershipPlanResource resource) {
+        var clientId = resolveClientId(authentication);
+        if (clientId == 0L) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.notFound("Client", authentication.getName()));
+        }
+        var membership = membershipQueryService.handle(new GetMembershipByIdQuery(new MembershipId(membershipId)));
+        if (membership.isEmpty()) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.notFound("Membership", membershipId.toString()));
+        }
+        var ownershipError = checkOwnership(membership.get().getClientId(), clientId, membershipId.toString());
+        if (ownershipError.isPresent()) return ownershipError.get();
+        if (membership.get().getStatus() != MembershipStatus.ACTIVE) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.businessRuleViolation("Membership.downgradePlan",
+                            "membership.error.downgrade.notActive"));
+        }
+        MembershipTier newTier;
+        try {
+            newTier = MembershipTier.valueOf(resource.newMembershipTier());
+        } catch (IllegalArgumentException e) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.validationError("MembershipTier", "membership.error.downgrade.invalidTier"));
+        }
+        if (newTier.toMoney().amount().compareTo(membership.get().getMembershipTier().toMoney().amount()) >= 0) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.businessRuleViolation("Membership.downgradePlan",
+                            "membership.error.downgrade.notLowerTier"));
+        }
+        var command = new RequestDowngradePlanCommand(new MembershipId(membershipId), newTier);
+        var result = membershipCommandService.handle(command);
+        return ResponseEntityAssembler.toResponseEntityFromResult(
+                result,
+                MembershipResourceFromEntityAssembler::toResourceFromEntity,
+                HttpStatus.OK
+        );
     }
 
     @PostMapping("/{membershipId}/upgrade-plan")
