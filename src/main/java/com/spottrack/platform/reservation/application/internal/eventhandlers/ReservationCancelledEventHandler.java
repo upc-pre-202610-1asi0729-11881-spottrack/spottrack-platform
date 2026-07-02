@@ -1,6 +1,7 @@
 package com.spottrack.platform.reservation.application.internal.eventhandlers;
 
 import com.spottrack.platform.reservation.domain.model.events.ReservationCancelledEvent;
+import com.spottrack.platform.reservation.interfaces.events.EquipmentStatusChangeToAvailableRequestedIntegrationEvent;
 import com.spottrack.platform.reservation.interfaces.events.ReservationCancelledIntegrationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
@@ -25,5 +26,8 @@ public class ReservationCancelledEventHandler {
     public void on(ReservationCancelledEvent event) {
         eventPublisher.publishEvent(new ReservationCancelledIntegrationEvent(
                 event.reservationId(), event.equipmentId(), event.clientId()));
+
+        eventPublisher.publishEvent(new EquipmentStatusChangeToAvailableRequestedIntegrationEvent(
+                event.reservationId(), event.equipmentId(), "AVAILABLE"));
     }
 }

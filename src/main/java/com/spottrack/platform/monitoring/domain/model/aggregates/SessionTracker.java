@@ -93,7 +93,9 @@ public class SessionTracker extends AbstractDomainAggregateRoot {
     public void endSession(){
         this.sessionIsActive= false;
         this.sessionIsInactive = true;
-        registerDomainEvent(new UsageSessionEndedEvent(this.sessionTrackerId));
+        registerDomainEvent(new UsageSessionEndedEvent(
+                this.sessionTrackerId,
+                this.reservationId != null ? this.reservationId.uuid() : null));
     }
 
 
@@ -102,17 +104,33 @@ public class SessionTracker extends AbstractDomainAggregateRoot {
      * A session that never captured any sensor motion has no lastActivityAt to measure
      * inactivity from, so it's reported as zero true activity rather than crashing.
      */
-    public LocalTime calculateSessionTime() {
+    private LocalTime computeTrueActivity() {
         if (lastActivityAt == null) {
-            var trueActivity = LocalTime.MIDNIGHT;
-            registerDomainEvent(new SessionTimeCalculatedEvent(this.sessionTrackerId, trueActivity));
-            return trueActivity;
+            return LocalTime.MIDNIGHT;
         }
-
         var activity = this.usageActivity.continuousActivity();
         var inactivity = Duration.between(lastActivityAt, LocalDateTime.now());
+        return activity.minus(inactivity);
+    }
 
-        var trueActivity = activity.minus(inactivity);
+    /**
+     * Read-only preview of the current true activity — safe to call on a still-active
+     * session, doesn't mutate state or fire any event. This is what an admin "peek"
+     * action should use.
+     */
+    public LocalTime peekTrueActivity() {
+        return computeTrueActivity();
+    }
+
+    /**
+     * Finalizes the session's activity for reporting: computes the true activity and
+     * fires SessionTimeCalculatedEvent, which (via SessionTimeCalculatedEventHandler)
+     * reports it to Analytics and deletes this tracker. Only meant to be called once a
+     * session has actually ended (see UsageSessionEndedEventHandler) — calling this on
+     * a still-active session will delete it prematurely.
+     */
+    public LocalTime calculateSessionTime() {
+        var trueActivity = computeTrueActivity();
         registerDomainEvent(new SessionTimeCalculatedEvent(this.sessionTrackerId, trueActivity));
         return trueActivity;
     }
