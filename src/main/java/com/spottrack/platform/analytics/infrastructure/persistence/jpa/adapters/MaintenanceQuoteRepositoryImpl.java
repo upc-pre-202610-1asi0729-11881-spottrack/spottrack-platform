@@ -3,7 +3,9 @@ package com.spottrack.platform.analytics.infrastructure.persistence.jpa.adapters
 import com.spottrack.platform.analytics.domain.model.aggregates.MaintenanceQuote;
 import com.spottrack.platform.analytics.domain.model.valueobjects.MaintenanceQuoteId;
 import com.spottrack.platform.analytics.domain.repositories.MaintenanceQuoteRepository;
+import com.spottrack.platform.analytics.infrastructure.persistence.jpa.assemblers.MaintenanceQuotePersistenceAssembler;
 import com.spottrack.platform.analytics.infrastructure.persistence.jpa.repositories.JpaMaintenanceQuoteRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
@@ -11,18 +13,26 @@ import java.util.Optional;
 public class MaintenanceQuoteRepositoryImpl implements MaintenanceQuoteRepository {
 
     private final JpaMaintenanceQuoteRepository jpaMaintenanceQuoteRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
-    public MaintenanceQuoteRepositoryImpl(JpaMaintenanceQuoteRepository jpaMaintenanceQuoteRepository) {
+    public MaintenanceQuoteRepositoryImpl(JpaMaintenanceQuoteRepository jpaMaintenanceQuoteRepository, ApplicationEventPublisher eventPublisher) {
         this.jpaMaintenanceQuoteRepository = jpaMaintenanceQuoteRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
     public MaintenanceQuote save(MaintenanceQuote maintenanceQuote) {
-        return this.jpaMaintenanceQuoteRepository.save(maintenanceQuote);
+        var entity = MaintenanceQuotePersistenceAssembler.toPersistenceFromDomain(maintenanceQuote);
+        var savedEntity = jpaMaintenanceQuoteRepository.save(entity);
+        var savedMaintenanceQuote = MaintenanceQuotePersistenceAssembler.toDomainFromPersistence(savedEntity);
+        maintenanceQuote.domainEvents().forEach(eventPublisher::publishEvent);
+        maintenanceQuote.clearDomainEvents();
+        return savedMaintenanceQuote;
     }
 
     @Override
     public Optional<MaintenanceQuote> findByMaintenanceQuoteId(MaintenanceQuoteId maintenanceQuoteId) {
-        return this.jpaMaintenanceQuoteRepository.findByMaintenanceQuoteId(maintenanceQuoteId);
+        return this.jpaMaintenanceQuoteRepository.findByMaintenanceQuoteId(maintenanceQuoteId)
+                .map(MaintenanceQuotePersistenceAssembler::toDomainFromPersistence);
     }
 }
