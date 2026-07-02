@@ -6,10 +6,12 @@ import com.spottrack.platform.monitoring.domain.model.aggregates.SessionTracker;
 import com.spottrack.platform.monitoring.domain.model.commands.CalculateSessionTimeCommand;
 import com.spottrack.platform.monitoring.domain.model.commands.EndUsageSessionCommand;
 import com.spottrack.platform.monitoring.domain.model.commands.VerifyUsageSessionCommand;
+import com.spottrack.platform.monitoring.domain.model.queries.GetAllSessionTrackersQuery;
 import com.spottrack.platform.monitoring.domain.model.queries.GetSessionTrackerByIdQuery;
 import com.spottrack.platform.monitoring.domain.model.valueobjects.SessionTrackerId;
 import com.spottrack.platform.monitoring.infrastructure.persistence.jpa.assemblers.SessionTrackerPersistenceAssembler;
 import com.spottrack.platform.monitoring.interfaces.rest.resources.CreateSessionTrackerResource;
+import com.spottrack.platform.monitoring.interfaces.rest.resources.SessionTrackerResource;
 import com.spottrack.platform.monitoring.interfaces.rest.transform.CreateSessionTrackerCommandFromResource;
 import com.spottrack.platform.monitoring.interfaces.rest.transform.SessionTrackerResourceFromEntity;
 import com.spottrack.platform.shared.application.result.ApplicationError;
@@ -21,6 +23,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping
 @Tag(name="SessionTracker")
@@ -30,6 +34,13 @@ public class SessionTrackerController {
     public SessionTrackerController(SessionTrackerCommandService sessionTrackerCommandService, SessionTrackerQueryService sessionTrackerQueryService){
         this.sessionTrackerCommandService = sessionTrackerCommandService;
         this.sessionTrackerQueryService = sessionTrackerQueryService;
+    }
+
+    @GetMapping("/sessionTracker")
+    public List<SessionTrackerResource> getAllSessionTrackers() {
+        return sessionTrackerQueryService.handle(new GetAllSessionTrackersQuery()).stream()
+                .map(SessionTrackerResourceFromEntity::toResourceFromEntity)
+                .toList();
     }
 
     @PostMapping("/sessionTracker/create")
