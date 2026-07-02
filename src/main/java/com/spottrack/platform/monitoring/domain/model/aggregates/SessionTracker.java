@@ -70,8 +70,8 @@ public class SessionTracker extends AbstractDomainAggregateRoot {
      * This is a simple calculation substracting the inactivity time to the actual continouous activity
      */
     public LocalTime calculateSessionTime() {
-        var activity = this.usageActivity.seconds();
-        var inactivity = Duration.between(lastActivityAt, this.usageActivity.seconds());
+        var activity = this.usageActivity.continuousActivity();
+        var inactivity = Duration.between(lastActivityAt, LocalDateTime.now());
 
         var trueActivity = activity.minus(inactivity);
         registerDomainEvent(new SessionTimeCalculatedEvent(this.sessionTrackerId, trueActivity));
