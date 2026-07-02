@@ -4,6 +4,7 @@ import com.spottrack.platform.gym.interfaces.acl.GymContextFacade;
 import com.spottrack.platform.monitoring.application.commandServices.MotionSensorCommandService;
 import com.spottrack.platform.monitoring.application.commandServices.SessionTrackerCommandService;
 import com.spottrack.platform.monitoring.application.queryServices.MotionSensorQueryService;
+import com.spottrack.platform.monitoring.domain.model.aggregates.SessionTracker;
 import com.spottrack.platform.monitoring.domain.model.queries.GetAllMotionSensorsQuery;
 import com.spottrack.platform.monitoring.interfaces.rest.resources.CaptureMotionSensorReadingResource;
 import com.spottrack.platform.monitoring.interfaces.rest.resources.MotionSensorResource;
@@ -13,6 +14,8 @@ import com.spottrack.platform.monitoring.interfaces.rest.transform.CaptureMotion
 import com.spottrack.platform.monitoring.interfaces.rest.transform.MotionSensorResourceFromEntity;
 import com.spottrack.platform.monitoring.interfaces.rest.transform.RegisterMotionSensorCommandFromResource;
 import com.spottrack.platform.monitoring.interfaces.rest.transform.SessionTrackerResourceFromEntity;
+import com.spottrack.platform.profiles.interfaces.acl.ProfilesContextFacade;
+import com.spottrack.platform.reservation.interfaces.acl.ReservationContextFacade;
 import com.spottrack.platform.shared.interfaces.rest.transform.ResponseEntityAssembler;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -39,12 +42,36 @@ public class MotionSensorController {
     private final MotionSensorQueryService motionSensorQueryService;
     private final SessionTrackerCommandService sessionTrackerCommandService;
     private final GymContextFacade gymContextFacade;
+    private final ReservationContextFacade reservationContextFacade;
+    private final ProfilesContextFacade profilesContextFacade;
 
-    public MotionSensorController(MotionSensorCommandService motionSensorCommandService, MotionSensorQueryService motionSensorQueryService, SessionTrackerCommandService sessionTrackerCommandService, GymContextFacade gymContextFacade) {
+    public MotionSensorController(MotionSensorCommandService motionSensorCommandService, MotionSensorQueryService motionSensorQueryService,
+                                   SessionTrackerCommandService sessionTrackerCommandService, GymContextFacade gymContextFacade,
+                                   ReservationContextFacade reservationContextFacade, ProfilesContextFacade profilesContextFacade) {
         this.motionSensorCommandService = motionSensorCommandService;
         this.motionSensorQueryService = motionSensorQueryService;
         this.sessionTrackerCommandService = sessionTrackerCommandService;
         this.gymContextFacade = gymContextFacade;
+        this.reservationContextFacade = reservationContextFacade;
+        this.profilesContextFacade = profilesContextFacade;
+    }
+
+    private SessionTrackerResource toEnrichedResource(SessionTracker tracker) {
+        var equipmentName = gymContextFacade.findEquipmentById(tracker.getEquipmentId().uuid())
+                .map(equipment -> equipment.getEquipmentName())
+                .orElse(null);
+
+        Long clientId = null;
+        String clientName = null;
+        if (tracker.getReservationId() != null) {
+            var clientIdOpt = reservationContextFacade.fetchClientIdByReservationId(tracker.getReservationId().uuid());
+            if (clientIdOpt.isPresent()) {
+                clientId = clientIdOpt.get();
+                clientName = profilesContextFacade.fetchClientNameById(clientId);
+            }
+        }
+
+        return SessionTrackerResourceFromEntity.toResourceFromEntity(tracker, equipmentName, clientId, clientName, null);
     }
 
     @GetMapping
@@ -91,7 +118,7 @@ public class MotionSensorController {
         var result = sessionTrackerCommandService.handle(command);
         return ResponseEntityAssembler.toResponseEntityFromResult(
                 result,
-                SessionTrackerResourceFromEntity::toResourceFromEntity,
+                this::toEnrichedResource,
                 HttpStatus.OK
         );
     }

@@ -3,9 +3,17 @@ package com.spottrack.platform.monitoring.infrastructure.persistence.jpa.assembl
 import com.spottrack.platform.monitoring.domain.model.aggregates.SessionTracker;
 import com.spottrack.platform.monitoring.infrastructure.persistence.jpa.entities.SessionTrackerPersistenceEntity;
 
+import java.time.ZoneId;
+
 public class SessionTrackerPersistenceAssembler {
     public static SessionTracker toDomainFromPersistence(SessionTrackerPersistenceEntity entity){
-        return new SessionTracker(entity.getId(), entity.getSessionTrackerId(), entity.getEquipmentId(), entity.getReservationId(), entity.getContinuousActivity(), entity.getSeconds(), entity.isSessionIsActive(), entity.isSessionIsInactive(), entity.getLastActivityAt());
+        return new SessionTracker(
+                entity.getId(), entity.getSessionTrackerId(), entity.getEquipmentId(), entity.getReservationId(),
+                entity.getContinuousActivity(), entity.getSeconds(), entity.isSessionIsActive(), entity.isSessionIsInactive(),
+                entity.getLastActivityAt(),
+                entity.getCreatedAt() != null
+                        ? entity.getCreatedAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()
+                        : null);
     }
 
     public static SessionTrackerPersistenceEntity toPersistenceFromDomain(SessionTracker entity){

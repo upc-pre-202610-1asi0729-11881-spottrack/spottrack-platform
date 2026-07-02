@@ -40,6 +40,7 @@ public class SessionTracker extends AbstractDomainAggregateRoot {
     boolean sessionIsInactive;
     boolean sessionIsActive;
     LocalDateTime lastActivityAt;
+    LocalDateTime createdAt;
 
     public SessionTracker(CreateSessionTrackerCommand command){
         this.sessionTrackerId = command.sessionTrackerId();
@@ -48,10 +49,11 @@ public class SessionTracker extends AbstractDomainAggregateRoot {
         this.usageActivity = command.usageActivity();
         this.sessionIsInactive = command.sessionIsInactive();
         this.sessionIsActive = command.sessionIsActive();
+        this.createdAt = LocalDateTime.now();
     }
 
 
-    public SessionTracker(Long id, String sessionTrackerId, String equipmentId, String reservationId, LocalTime continousActivity, LocalTime seconds, boolean sessionIsActive, boolean sessionIsInactive, LocalDateTime lastActivityAt){
+    public SessionTracker(Long id, String sessionTrackerId, String equipmentId, String reservationId, LocalTime continousActivity, LocalTime seconds, boolean sessionIsActive, boolean sessionIsInactive, LocalDateTime lastActivityAt, LocalDateTime createdAt){
         this.id = id;
         this.sessionTrackerId = new SessionTrackerId(sessionTrackerId);
         this.equipmentId = new EquipmentId(equipmentId);
@@ -60,10 +62,24 @@ public class SessionTracker extends AbstractDomainAggregateRoot {
         this.sessionIsActive = sessionIsActive;
         this.sessionIsInactive = sessionIsInactive;
         this.lastActivityAt = lastActivityAt;
+        this.createdAt = createdAt;
     }
 
+    /**
+     * Records a motion event and refreshes continuousActivity to the elapsed
+     * wall-clock time since the session began — that's what actually made it
+     * grow past zero. calculateSessionTime() then subtracts whatever gap has
+     * built up since the last recorded activity, so a session that goes idle
+     * doesn't keep counting time it wasn't really being used.
+     */
     public void recordActivity() {
         this.lastActivityAt = LocalDateTime.now();
+        if (this.createdAt != null) {
+            var elapsedSinceCreation = Duration.between(this.createdAt, this.lastActivityAt);
+            this.usageActivity = new UsageActivity(
+                    LocalTime.MIDNIGHT.plus(elapsedSinceCreation),
+                    this.usageActivity.seconds());
+        }
     }
 
     /**
