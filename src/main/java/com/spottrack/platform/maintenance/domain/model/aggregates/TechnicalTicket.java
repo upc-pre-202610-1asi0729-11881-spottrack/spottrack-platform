@@ -68,7 +68,7 @@ public class TechnicalTicket extends AbstractDomainAggregateRoot<TechnicalTicket
     public void assign(AssignTechnicalTicket command) {
         this.technicianId = command.technicianId();
         this.ticketStatus = TicketStatus.IN_PROGRESS;
-        registerDomainEvent(new TechnicalTicketAssignedEvent(this.ticketId.uuid(), this.technicianId));
+        registerDomainEvent(new TechnicalTicketAssignedEvent(this.ticketId.uuid(), this.technicianId, this.equipmentId));
     }
 
     public void markAsResolved() {
