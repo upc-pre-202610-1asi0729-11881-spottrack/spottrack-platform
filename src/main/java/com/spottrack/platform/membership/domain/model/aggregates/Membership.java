@@ -5,6 +5,7 @@ import com.spottrack.platform.membership.domain.model.commands.RenewMembershipCo
 import com.spottrack.platform.membership.domain.model.commands.UpgradeMembershipPlanCommand;
 import com.spottrack.platform.membership.domain.model.events.GymMembershipActivatedEvent;
 import com.spottrack.platform.membership.domain.model.events.GymMembershipRenewedEvent;
+import com.spottrack.platform.membership.domain.model.events.MembershipCancellationRequestedEvent;
 import com.spottrack.platform.membership.domain.model.events.MembershipCancelledEvent;
 import com.spottrack.platform.membership.domain.model.events.MembershipCreatedEvent;
 import com.spottrack.platform.membership.domain.model.events.MembershipExpiredEvent;
@@ -40,8 +41,12 @@ public class Membership extends AbstractDomainAggregateRoot<Membership> {
     @Getter
     private MembershipStatus status;
 
+    @Getter
+    private boolean cancelAtPeriodEnd;
+
     public Membership(Long id, MembershipId membershipId, Long clientId, MembershipTier membershipTier,
-                      Money price, MembershipPeriod membershipPeriod, MembershipStatus status) {
+                      Money price, MembershipPeriod membershipPeriod, MembershipStatus status,
+                      boolean cancelAtPeriodEnd) {
         this.id = id;
         this.membershipId = membershipId;
         this.clientId = clientId;
@@ -49,6 +54,7 @@ public class Membership extends AbstractDomainAggregateRoot<Membership> {
         this.price = price;
         this.membershipPeriod = membershipPeriod;
         this.status = status;
+        this.cancelAtPeriodEnd = cancelAtPeriodEnd;
     }
 
     public Membership(CreateMembershipCommand command) {
@@ -58,7 +64,8 @@ public class Membership extends AbstractDomainAggregateRoot<Membership> {
                 command.membershipTier(),
                 command.price(),
                 new MembershipPeriod(command.startDate(), command.endDate()),
-                MembershipStatus.PENDING_ACTIVATION);
+                MembershipStatus.PENDING_ACTIVATION,
+                false);
     }
 
     public void activate() {
@@ -70,10 +77,22 @@ public class Membership extends AbstractDomainAggregateRoot<Membership> {
     }
 
     public void cancel() {
-        if (this.status == MembershipStatus.CANCELLED) {
-            throw new IllegalStateException("membership.error.cancel.alreadyCancelled");
+        if (this.status != MembershipStatus.ACTIVE) {
+            throw new IllegalStateException("membership.error.cancel.notActive");
+        }
+        if (this.cancelAtPeriodEnd) {
+            throw new IllegalStateException("membership.error.cancel.alreadyScheduled");
+        }
+        this.cancelAtPeriodEnd = true;
+        registerDomainEvent(MembershipCancellationRequestedEvent.from(this));
+    }
+
+    public void completeCancellation() {
+        if (!this.cancelAtPeriodEnd) {
+            throw new IllegalStateException("membership.error.cancel.notScheduled");
         }
         this.status = MembershipStatus.CANCELLED;
+        this.cancelAtPeriodEnd = false;
         registerDomainEvent(MembershipCancelledEvent.from(this));
     }
 

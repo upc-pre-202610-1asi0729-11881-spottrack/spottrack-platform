@@ -13,5 +13,6 @@ public record MembershipResource(
         String priceCurrency,
         LocalDate startDate,
         LocalDate endDate,
-        String status
+        String status,
+        boolean cancelAtPeriodEnd
 ) {}

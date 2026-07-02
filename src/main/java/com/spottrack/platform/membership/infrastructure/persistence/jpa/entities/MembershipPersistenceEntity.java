@@ -39,6 +39,9 @@ public class MembershipPersistenceEntity extends AuditableAbstractPersistenceEnt
     @Column(name = "status", nullable = false)
     private MembershipStatus status;
 
+    @Column(name = "cancel_at_period_end", nullable = false)
+    private boolean cancelAtPeriodEnd;
+
     public MembershipPersistenceEntity() {}
 
     public String getMembershipId() { return membershipId; }
@@ -61,4 +64,7 @@ public class MembershipPersistenceEntity extends AuditableAbstractPersistenceEnt
 
     public MembershipStatus getStatus() { return status; }
     public void setStatus(MembershipStatus status) { this.status = status; }
+
+    public boolean isCancelAtPeriodEnd() { return cancelAtPeriodEnd; }
+    public void setCancelAtPeriodEnd(boolean cancelAtPeriodEnd) { this.cancelAtPeriodEnd = cancelAtPeriodEnd; }
 }

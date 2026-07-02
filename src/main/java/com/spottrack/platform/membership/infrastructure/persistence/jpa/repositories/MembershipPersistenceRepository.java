@@ -15,4 +15,5 @@ public interface MembershipPersistenceRepository extends JpaRepository<Membershi
     List<MembershipPersistenceEntity> findByClientId(Long clientId);
     boolean existsByMembershipId(String membershipId);
     List<MembershipPersistenceEntity> findByStatusAndEndDateBefore(MembershipStatus status, LocalDate date);
+    List<MembershipPersistenceEntity> findByStatusAndCancelAtPeriodEndTrueAndEndDateBefore(MembershipStatus status, LocalDate date);
 }

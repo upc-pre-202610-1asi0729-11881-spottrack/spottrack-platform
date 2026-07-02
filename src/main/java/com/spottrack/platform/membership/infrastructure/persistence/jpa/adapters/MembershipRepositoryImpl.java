@@ -71,6 +71,16 @@ public class MembershipRepositoryImpl implements MembershipRepository {
     public List<Membership> findActiveExpiredBefore(LocalDate date) {
         return membershipPersistenceRepository.findByStatusAndEndDateBefore(MembershipStatus.ACTIVE, date)
                 .stream()
+                .filter(e -> !e.isCancelAtPeriodEnd())
+                .map(MembershipPersistenceAssembler::toDomainFromPersistence)
+                .toList();
+    }
+
+    @Override
+    public List<Membership> findPendingCancellationExpiredBefore(LocalDate date) {
+        return membershipPersistenceRepository
+                .findByStatusAndCancelAtPeriodEndTrueAndEndDateBefore(MembershipStatus.ACTIVE, date)
+                .stream()
                 .map(MembershipPersistenceAssembler::toDomainFromPersistence)
                 .toList();
     }

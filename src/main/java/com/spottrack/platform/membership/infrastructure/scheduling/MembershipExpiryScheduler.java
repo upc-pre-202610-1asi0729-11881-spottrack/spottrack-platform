@@ -22,6 +22,15 @@ public class MembershipExpiryScheduler {
     @Scheduled(fixedRate = 3_600_000)
     public void expireActiveMemberships() {
         var today = LocalDate.now();
+
+        var pendingCancellation = membershipRepository.findPendingCancellationExpiredBefore(today);
+        log.debug("Membership expiry check: found {} membership(s) pending cancellation past endDate", pendingCancellation.size());
+        pendingCancellation.forEach(membership -> {
+            membership.completeCancellation();
+            membershipRepository.save(membership);
+            log.info("Membership {} cancelled at period end (clientId={})", membership.getMembershipId().uuid(), membership.getClientId());
+        });
+
         var expired = membershipRepository.findActiveExpiredBefore(today);
         log.debug("Membership expiry check: found {} active membership(s) past endDate", expired.size());
         expired.forEach(membership -> {
