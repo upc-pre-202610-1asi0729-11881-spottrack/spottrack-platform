@@ -1,6 +1,8 @@
 package com.spottrack.platform.monitoring.interfaces.rest;
 
 import com.spottrack.platform.monitoring.application.commandServices.CameraSensorCommandService;
+import com.spottrack.platform.monitoring.application.queryServices.CameraSensorQueryService;
+import com.spottrack.platform.monitoring.domain.model.queries.GetAllCameraSensorsQuery;
 import com.spottrack.platform.monitoring.interfaces.rest.resources.CameraSensorResource;
 import com.spottrack.platform.monitoring.interfaces.rest.resources.RegisterCameraSensorResource;
 import com.spottrack.platform.monitoring.interfaces.rest.transform.CameraSensorResourceFromEntity;
@@ -15,19 +17,31 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequestMapping(value = "/api/v1/monitoring/camera-sensors", produces = MediaType.APPLICATION_JSON_VALUE)
 @Tag(name = "CameraSensors", description = "Camera sensor registration endpoints")
 public class CameraSensorController {
     private final CameraSensorCommandService cameraSensorCommandService;
+    private final CameraSensorQueryService cameraSensorQueryService;
 
-    public CameraSensorController(CameraSensorCommandService cameraSensorCommandService) {
+    public CameraSensorController(CameraSensorCommandService cameraSensorCommandService, CameraSensorQueryService cameraSensorQueryService) {
         this.cameraSensorCommandService = cameraSensorCommandService;
+        this.cameraSensorQueryService = cameraSensorQueryService;
+    }
+
+    @GetMapping
+    public List<CameraSensorResource> getAllCameraSensors() {
+        return cameraSensorQueryService.handle(new GetAllCameraSensorsQuery()).stream()
+                .map(CameraSensorResourceFromEntity::toResourceFromEntity)
+                .toList();
     }
 
     @PostMapping
