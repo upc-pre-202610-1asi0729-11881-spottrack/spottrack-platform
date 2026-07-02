@@ -6,6 +6,7 @@ import com.spottrack.platform.monitoring.domain.model.events.MotionCapturedEvent
 import com.spottrack.platform.monitoring.domain.model.events.SessionTimeCalculatedEvent;
 import com.spottrack.platform.monitoring.domain.model.events.UsageSessionEndedEvent;
 import com.spottrack.platform.monitoring.domain.model.events.UsageSessionVerifiedEvent;
+import com.spottrack.platform.monitoring.domain.model.valueobjects.EquipmentId;
 import com.spottrack.platform.monitoring.domain.model.valueobjects.ReservationId;
 import com.spottrack.platform.monitoring.domain.model.valueobjects.SessionTrackerId;
 import com.spottrack.platform.monitoring.domain.model.valueobjects.UsageActivity;
@@ -27,7 +28,13 @@ public class SessionTracker extends AbstractDomainAggregateRoot {
     SessionTrackerId sessionTrackerId;
     UsageActivity usageActivity;
     /**
-     * id of the reservation that the session tracker is monitoring
+     * id of the equipment being used — always present, regardless of whether
+     * usage is tied to a reservation.
+     */
+    EquipmentId equipmentId;
+    /**
+     * id of the reservation that the session tracker is monitoring; null for
+     * walk-up usage (equipment used without a booked reservation).
      */
     ReservationId reservationId;
     boolean sessionIsInactive;
@@ -36,6 +43,7 @@ public class SessionTracker extends AbstractDomainAggregateRoot {
 
     public SessionTracker(CreateSessionTrackerCommand command){
         this.sessionTrackerId = command.sessionTrackerId();
+        this.equipmentId = command.equipmentId();
         this.reservationId = command.reservationId();
         this.usageActivity = command.usageActivity();
         this.sessionIsInactive = command.sessionIsInactive();
@@ -43,10 +51,11 @@ public class SessionTracker extends AbstractDomainAggregateRoot {
     }
 
 
-    public SessionTracker(Long id, String sessionTrackerId, String reservationId, LocalTime continousActivity, LocalTime seconds, boolean sessionIsActive, boolean sessionIsInactive, LocalDateTime lastActivityAt){
+    public SessionTracker(Long id, String sessionTrackerId, String equipmentId, String reservationId, LocalTime continousActivity, LocalTime seconds, boolean sessionIsActive, boolean sessionIsInactive, LocalDateTime lastActivityAt){
         this.id = id;
         this.sessionTrackerId = new SessionTrackerId(sessionTrackerId);
-        this.reservationId = new ReservationId(reservationId);
+        this.equipmentId = new EquipmentId(equipmentId);
+        this.reservationId = reservationId != null ? new ReservationId(reservationId) : null;
         this.usageActivity = new UsageActivity(continousActivity, seconds);
         this.sessionIsActive = sessionIsActive;
         this.sessionIsInactive = sessionIsInactive;

@@ -21,9 +21,16 @@ public class SessionTrackerPersistenceEntity extends AuditableAbstractPersistenc
     @Column(nullable = false, unique = true)
     String sessionTrackerId;
     /**
-     * id of the reservation that the session tracker is monitoring
+     * id of the equipment being used — always present, regardless of whether
+     * usage is tied to a reservation.
      */
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
+    String equipmentId;
+    /**
+     * id of the reservation that the session tracker is monitoring; null for
+     * walk-up usage (equipment used without a booked reservation).
+     */
+    @Column(unique = true)
     String  reservationId;
     @Column(nullable = false)
     boolean sessionIsInactive;

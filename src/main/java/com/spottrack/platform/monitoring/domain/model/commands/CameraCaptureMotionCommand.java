@@ -1,9 +1,9 @@
 package com.spottrack.platform.monitoring.domain.model.commands;
 
-import com.spottrack.platform.monitoring.domain.model.valueobjects.SessionTrackerId;
+import com.spottrack.platform.monitoring.domain.model.valueobjects.EquipmentId;
 
 public record CameraCaptureMotionCommand(
-        SessionTrackerId sessionTrackerId,
+        EquipmentId equipmentId,
         boolean movementDetectedViaVideo
 ) {
 }
