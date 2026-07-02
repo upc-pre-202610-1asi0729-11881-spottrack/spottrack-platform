@@ -104,6 +104,23 @@ public class ProfilesContextFacadeImpl implements ProfilesContextFacade {
     }
 
     @Override
+    public String fetchDniByEmail(String email) {
+        var emailAddress = new EmailAddress(email);
+
+        var clientOpt = clientQueryService.handle(new GetClientByEmailQuery(emailAddress));
+        if (clientOpt.isPresent() && clientOpt.get().isProfileComplete()) {
+            return clientOpt.get().getPersonInfo().dni().getDNI();
+        }
+
+        var adminOpt = adminQueryService.handle(new GetAdminByEmailQuery(emailAddress));
+        if (adminOpt.isPresent() && adminOpt.get().isProfileComplete()) {
+            return adminOpt.get().getPersonInfo().dni().getDNI();
+        }
+
+        return "";
+    }
+
+    @Override
     public String fetchActiveGymIdByClientId(Long clientId) {
         var activeOpt = associationRepository.findByClientIdAndActiveTrue(clientId);
         if (activeOpt.isEmpty()) return "";
