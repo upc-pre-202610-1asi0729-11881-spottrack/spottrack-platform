@@ -6,7 +6,6 @@ import com.spottrack.platform.iam.application.internal.outboundservices.tokens.T
 import com.spottrack.platform.iam.domain.model.aggregates.User;
 import com.spottrack.platform.iam.domain.model.commands.DeactivateAccountCommand;
 import com.spottrack.platform.iam.domain.model.commands.ProvisionIamAccountCommand;
-import com.spottrack.platform.iam.domain.model.commands.ResetPasswordCommand;
 import com.spottrack.platform.iam.domain.model.commands.SignInCommand;
 import com.spottrack.platform.iam.domain.model.commands.SignOutCommand;
 import com.spottrack.platform.iam.domain.model.commands.SignUpCommand;
@@ -104,18 +103,6 @@ public class UserCommandServiceImpl implements UserCommandService {
                 .toList();
         String token = tokenService.generateToken(user.getUsername(), roleNames);
         return Result.success(ImmutablePair.of(user, token));
-    }
-
-    @Override
-    public Result<User, ApplicationError> handle(ResetPasswordCommand command) {
-        var userOptional = userRepository.findByUsername(command.username());
-        if (userOptional.isEmpty()) {
-            return Result.failure(ApplicationError.notFound("USER", command.username()));
-        }
-        var user = userOptional.get();
-        user.setPassword(hashingService.encode(command.newPassword()));
-        var savedUser = userRepository.save(user);
-        return Result.success(savedUser);
     }
 
     @Override

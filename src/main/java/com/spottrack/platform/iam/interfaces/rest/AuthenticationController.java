@@ -4,13 +4,11 @@ import com.spottrack.platform.iam.application.commandservices.UserCommandService
 import com.spottrack.platform.iam.domain.model.commands.SignUpCommand;
 import com.spottrack.platform.iam.interfaces.rest.resources.DeactivateAccountResource;
 import com.spottrack.platform.iam.interfaces.rest.resources.PublicSignUpResource;
-import com.spottrack.platform.iam.interfaces.rest.resources.ResetPasswordResource;
 import com.spottrack.platform.iam.interfaces.rest.resources.SignInResource;
 import com.spottrack.platform.iam.interfaces.rest.resources.SignOutResource;
 import com.spottrack.platform.iam.interfaces.rest.resources.SignUpResource;
 import com.spottrack.platform.iam.interfaces.rest.transform.AuthenticatedUserResourceFromEntityAssembler;
 import com.spottrack.platform.iam.interfaces.rest.transform.DeactivateAccountCommandFromResourceAssembler;
-import com.spottrack.platform.iam.interfaces.rest.transform.ResetPasswordCommandFromResourceAssembler;
 import com.spottrack.platform.iam.interfaces.rest.transform.SignInCommandFromResourceAssembler;
 import com.spottrack.platform.iam.interfaces.rest.transform.SignOutCommandFromResourceAssembler;
 import com.spottrack.platform.iam.interfaces.rest.transform.SignUpCommandFromResourceAssembler;
@@ -67,17 +65,6 @@ public class AuthenticationController {
                 result,
                 UserResourceFromEntityAssembler::toResourceFromEntity,
                 HttpStatus.CREATED
-        );
-    }
-
-    @PostMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordResource resource) {
-        var command = ResetPasswordCommandFromResourceAssembler.toCommandFromResource(resource);
-        var result = userCommandService.handle(command);
-        return ResponseEntityAssembler.toResponseEntityFromResult(
-                result,
-                UserResourceFromEntityAssembler::toResourceFromEntity,
-                HttpStatus.OK
         );
     }
 
