@@ -49,15 +49,15 @@ public class TechnicalTicket extends AbstractDomainAggregateRoot<TechnicalTicket
     }
 
     public TechnicalTicket(String ticketId, String maintenanceId, String equipmentId,
-                           String technicianId, String description, String priority, String type,
+                           String technicianId, String description, TicketPriority priority, TicketType type,
                            String ticketStatus, String maintenanceStatus) {
         this.ticketId = new TechnicalTicketId(ticketId);
         this.maintenanceId = maintenanceId;
         this.equipmentId = equipmentId;
         this.technicianId = technicianId;
         this.description = description;
-        this.priority = TicketPriority.valueOf(priority);
-        this.type = TicketType.valueOf(type);
+        this.priority = priority;
+        this.type = type;
         this.ticketStatus = TicketStatus.valueOf(ticketStatus);
         this.maintenanceStatus = MaintenanceStatus.valueOf(maintenanceStatus);
     }
