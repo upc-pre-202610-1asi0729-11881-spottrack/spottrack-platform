@@ -2,13 +2,17 @@ package com.spottrack.platform.gym.application.internal.queryservices;
 
 import com.spottrack.platform.gym.application.queryservices.GymQueryService;
 import com.spottrack.platform.gym.domain.model.aggregates.Gym;
+import com.spottrack.platform.gym.domain.model.entities.Branch;
 import com.spottrack.platform.gym.domain.model.entities.GymWhitelistEntry;
 import com.spottrack.platform.gym.domain.model.queries.GetAllGymsQuery;
+import com.spottrack.platform.gym.domain.model.queries.GetBranchesByGymIdQuery;
 import com.spottrack.platform.gym.domain.model.queries.GetGymById;
 import com.spottrack.platform.gym.domain.model.queries.GetGymsByAdminUserId;
 import com.spottrack.platform.gym.domain.model.queries.GetWhitelistByGymIdQuery;
 import com.spottrack.platform.gym.domain.model.valueobjects.Dni;
+import com.spottrack.platform.gym.infrastructure.persistence.jpa.assemblers.BranchPersistenceAssembler;
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.assemblers.GymPersistenceAssembler;
+import com.spottrack.platform.gym.infrastructure.persistence.jpa.repositories.BranchPersistenceRepository;
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.repositories.GymPersistenceRepository;
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.repositories.GymWhitelistPersistenceRepository;
 import org.springframework.stereotype.Service;
@@ -20,11 +24,14 @@ import java.util.Optional;
 public class GymQueryServiceImpl implements GymQueryService {
     GymPersistenceRepository gymPersistenceRepository;
     GymWhitelistPersistenceRepository gymWhitelistPersistenceRepository;
+    BranchPersistenceRepository branchPersistenceRepository;
 
     public GymQueryServiceImpl(GymPersistenceRepository gymPersistenceRepository,
-                               GymWhitelistPersistenceRepository gymWhitelistPersistenceRepository) {
+                               GymWhitelistPersistenceRepository gymWhitelistPersistenceRepository,
+                               BranchPersistenceRepository branchPersistenceRepository) {
         this.gymPersistenceRepository = gymPersistenceRepository;
         this.gymWhitelistPersistenceRepository = gymWhitelistPersistenceRepository;
+        this.branchPersistenceRepository = branchPersistenceRepository;
     }
 
     @Override
@@ -52,6 +59,13 @@ public class GymQueryServiceImpl implements GymQueryService {
     public List<GymWhitelistEntry> handle(GetWhitelistByGymIdQuery query) {
         return gymWhitelistPersistenceRepository.findByGymId(query.gymId()).stream()
                 .map(e -> new GymWhitelistEntry(e.getId(), e.getGymId(), new Dni(e.getDni())))
+                .toList();
+    }
+
+    @Override
+    public List<Branch> handle(GetBranchesByGymIdQuery query) {
+        return branchPersistenceRepository.findByGymId(query.gymId()).stream()
+                .map(BranchPersistenceAssembler::toDomainFromPersistence)
                 .toList();
     }
 }
