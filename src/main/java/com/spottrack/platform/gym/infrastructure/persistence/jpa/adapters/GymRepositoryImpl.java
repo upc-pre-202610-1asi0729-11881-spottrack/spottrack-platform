@@ -37,4 +37,11 @@ public class GymRepositoryImpl implements GymRepository {
                 .map(GymPersistenceAssembler::toDomainFromPersistence)
                 .toList();
     }
+
+    @Override
+    public List<Gym> findAll() {
+        return gymPersistenceRepository.findAll().stream()
+                .map(GymPersistenceAssembler::toDomainFromPersistence)
+                .toList();
+    }
 }
