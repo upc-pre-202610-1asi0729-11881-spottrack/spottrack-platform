@@ -121,7 +121,7 @@ public class MaintenanceController {
             return ErrorResponseAssembler.toErrorResponseFromApplicationError(
                     ApplicationError.notFound("Admin", authentication.getName()));
         }
-        var ownershipError = checkEquipmentOwnership(resource.equipmentId(), adminUserId);
+        var ownershipError = checkMaintenanceOwnership(resource.maintenanceId(), adminUserId);
         if (ownershipError.isPresent()) return ownershipError.get();
         var command = CreateTechnicalTicketCommandFromResourceAssembler.toCommandFromResource(resource);
         var result = commandService.handle(command);
@@ -423,6 +423,12 @@ public class MaintenanceController {
                     ApplicationError.forbidden("Maintenance", "equipmentId:" + equipmentId)));
         }
         return Optional.empty();
+    }
+
+    private Optional<ResponseEntity<?>> checkMaintenanceOwnership(String maintenanceId, Long adminUserId) {
+        var maintenance = maintenancePersistenceRepository.findByMaintenanceId(maintenanceId);
+        if (maintenance.isEmpty()) return Optional.of(ResponseEntity.notFound().build());
+        return checkEquipmentOwnership(maintenance.get().getEquipmentId(), adminUserId);
     }
 
     private Optional<ResponseEntity<?>> checkTicketOwnership(String ticketId, Long adminUserId) {

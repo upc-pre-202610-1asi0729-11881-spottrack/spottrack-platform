@@ -9,8 +9,7 @@ public class CreateTechnicalTicketCommandFromResourceAssembler {
 
     public static CreateTechnicalTicketCommand toCommandFromResource(CreateTechnicalTicketResource resource) {
         return new CreateTechnicalTicketCommand(
-                resource.equipmentId(),
-                resource.description(),
+                resource.maintenanceId(),
                 TicketPriority.valueOf(resource.priority()),
                 TicketType.valueOf(resource.type())
         );
