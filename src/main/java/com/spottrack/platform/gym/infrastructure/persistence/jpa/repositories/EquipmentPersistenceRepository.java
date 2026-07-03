@@ -13,4 +13,5 @@ public interface EquipmentPersistenceRepository extends JpaRepository<EquipmentP
     Optional<EquipmentPersistenceEntity> findByEquipmentId(String equipmentId);
     Optional<EquipmentPersistenceEntity> findByEquipmentName(String equipmentName);
     Optional<EquipmentPersistenceEntity> findByStatus(EquipmentStatus equipmentStatus);
+    List<EquipmentPersistenceEntity> findByEquipmentNameAndStatusAndEquipmentIdNot(String equipmentName, EquipmentStatus status, String equipmentId);
 }
