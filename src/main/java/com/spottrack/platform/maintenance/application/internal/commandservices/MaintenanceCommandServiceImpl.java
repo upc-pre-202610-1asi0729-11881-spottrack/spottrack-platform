@@ -9,6 +9,7 @@ import com.spottrack.platform.maintenance.domain.model.commands.AcceptMaintenanc
 import com.spottrack.platform.maintenance.domain.model.commands.AssignTechnicalTicket;
 import com.spottrack.platform.maintenance.domain.model.commands.CompleteMaintenance;
 import com.spottrack.platform.maintenance.domain.model.commands.CreateTechnicalTicketCommand;
+import com.spottrack.platform.maintenance.domain.model.commands.CreateTechnicalTicketForMaintenance;
 import com.spottrack.platform.maintenance.domain.model.commands.DecommissionEquipment;
 import com.spottrack.platform.maintenance.domain.model.commands.ModifyTicketStatus;
 import com.spottrack.platform.maintenance.domain.model.commands.RecommendEquipmentTransfer;
@@ -19,6 +20,7 @@ import com.spottrack.platform.maintenance.domain.model.commands.UpdateMaintenanc
 import com.spottrack.platform.maintenance.domain.model.events.EquipmentDecommissionedEvent;
 import com.spottrack.platform.maintenance.domain.model.events.EquipmentTransferRecommendedEvent;
 import com.spottrack.platform.maintenance.domain.model.valueobjects.EquipmentId;
+import com.spottrack.platform.maintenance.domain.model.valueobjects.MaintenanceId;
 import com.spottrack.platform.maintenance.domain.repositories.MaintenanceJobRepository;
 import com.spottrack.platform.maintenance.domain.repositories.MaintenanceLogRepository;
 import com.spottrack.platform.maintenance.domain.repositories.MaintenanceRepository;
@@ -70,6 +72,30 @@ public class MaintenanceCommandServiceImpl implements MaintenanceCommandService 
                     savedMaintenance.getId().uuid(),
                     command.equipmentId(),
                     command.description(),
+                    command.priority(),
+                    command.type());
+            var saved = technicalTicketRepository.save(ticket);
+            return Result.success(saved);
+        } catch (IllegalArgumentException e) {
+            return Result.failure(ApplicationError.validationError("TechnicalTicket", e.getMessage()));
+        } catch (Exception e) {
+            return Result.failure(ApplicationError.unexpected("TechnicalTicket creation", e.getMessage()));
+        }
+    }
+
+    @Transactional
+    @Override
+    public Result<TechnicalTicket, ApplicationError> handle(CreateTechnicalTicketForMaintenance command) {
+        try {
+            var found = maintenanceRepository.findByMaintenanceId(new MaintenanceId(command.maintenanceId()));
+            if (found.isEmpty()) {
+                return Result.failure(ApplicationError.notFound("Maintenance", command.maintenanceId()));
+            }
+            var maintenance = found.get();
+            var ticket = new TechnicalTicket(
+                    maintenance.getId().uuid(),
+                    maintenance.getEquipmentId().uuid(),
+                    maintenance.getDescription(),
                     command.priority(),
                     command.type());
             var saved = technicalTicketRepository.save(ticket);
