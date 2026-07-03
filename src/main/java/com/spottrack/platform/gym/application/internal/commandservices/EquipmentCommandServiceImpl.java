@@ -127,13 +127,32 @@ public class EquipmentCommandServiceImpl implements EquipmentCommandService {
                 return Result.failure(ApplicationError.notFound("Equipment", command.equipmentId().uuid()));
             }
             var equipment = found.get();
-            equipment.setMaintenanceThreshold(command.threshold());
+            equipment.defineMaintenanceThreshold(command.threshold());
             equipmentRepository.save(equipment);
             return Result.success(equipment);
         } catch (IllegalArgumentException e) {
             return Result.failure(ApplicationError.validationError("Equipment", e.getMessage()));
         } catch (Exception e) {
             return Result.failure(ApplicationError.unexpected("Equipment maintenance threshold", e.getMessage()));
+        }
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Override
+    public Result<Equipment, ApplicationError> handle(MarkMaintenanceThresholdReached command) {
+        try {
+            var found = equipmentRepository.findById(command.equipmentId());
+            if (found.isEmpty()) {
+                return Result.failure(ApplicationError.notFound("Equipment", command.equipmentId().uuid()));
+            }
+            var equipment = found.get();
+            equipment.markMaintenanceThresholdReached();
+            equipmentRepository.save(equipment);
+            return Result.success(equipment);
+        } catch (IllegalArgumentException e) {
+            return Result.failure(ApplicationError.validationError("Equipment", e.getMessage()));
+        } catch (Exception e) {
+            return Result.failure(ApplicationError.unexpected("Equipment maintenance threshold reached", e.getMessage()));
         }
     }
 }

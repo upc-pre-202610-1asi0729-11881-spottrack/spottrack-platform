@@ -5,10 +5,14 @@ import com.spottrack.platform.maintenance.domain.model.aggregates.Maintenance;
 import com.spottrack.platform.maintenance.domain.model.aggregates.MaintenanceJob;
 import com.spottrack.platform.maintenance.domain.model.aggregates.MaintenanceLog;
 import com.spottrack.platform.maintenance.domain.model.aggregates.TechnicalTicket;
+import com.spottrack.platform.maintenance.domain.model.aggregates.Technician;
 import com.spottrack.platform.maintenance.domain.model.commands.AcceptMaintenance;
 import com.spottrack.platform.maintenance.domain.model.commands.AssignTechnicalTicket;
 import com.spottrack.platform.maintenance.domain.model.commands.CompleteMaintenance;
+import com.spottrack.platform.maintenance.domain.model.commands.CreateMaintenanceJob;
 import com.spottrack.platform.maintenance.domain.model.commands.CreateTechnicalTicketCommand;
+import com.spottrack.platform.maintenance.domain.model.commands.CreateTechnicalTicketForMaintenance;
+import com.spottrack.platform.maintenance.domain.model.commands.CreateTechnician;
 import com.spottrack.platform.maintenance.domain.model.commands.DecommissionEquipment;
 import com.spottrack.platform.maintenance.domain.model.commands.ModifyTicketStatus;
 import com.spottrack.platform.maintenance.domain.model.commands.RecommendEquipmentTransfer;
@@ -19,10 +23,13 @@ import com.spottrack.platform.maintenance.domain.model.commands.UpdateMaintenanc
 import com.spottrack.platform.maintenance.domain.model.events.EquipmentDecommissionedEvent;
 import com.spottrack.platform.maintenance.domain.model.events.EquipmentTransferRecommendedEvent;
 import com.spottrack.platform.maintenance.domain.model.valueobjects.EquipmentId;
+import com.spottrack.platform.maintenance.domain.model.valueobjects.MaintenanceId;
+import com.spottrack.platform.maintenance.domain.model.valueobjects.TechnicianId;
 import com.spottrack.platform.maintenance.domain.repositories.MaintenanceJobRepository;
 import com.spottrack.platform.maintenance.domain.repositories.MaintenanceLogRepository;
 import com.spottrack.platform.maintenance.domain.repositories.MaintenanceRepository;
 import com.spottrack.platform.maintenance.domain.repositories.TechnicalTicketRepository;
+import com.spottrack.platform.maintenance.domain.repositories.TechnicianRepository;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
 import org.springframework.context.ApplicationEventPublisher;
@@ -35,6 +42,7 @@ public class MaintenanceCommandServiceImpl implements MaintenanceCommandService 
     private final MaintenanceRepository maintenanceRepository;
     private final TechnicalTicketRepository technicalTicketRepository;
     private final MaintenanceJobRepository maintenanceJobRepository;
+    private final TechnicianRepository technicianRepository;
     private final MaintenanceLogRepository maintenanceLogRepository;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -42,11 +50,13 @@ public class MaintenanceCommandServiceImpl implements MaintenanceCommandService 
             MaintenanceRepository maintenanceRepository,
             TechnicalTicketRepository technicalTicketRepository,
             MaintenanceJobRepository maintenanceJobRepository,
+            TechnicianRepository technicianRepository,
             MaintenanceLogRepository maintenanceLogRepository,
             ApplicationEventPublisher eventPublisher) {
         this.maintenanceRepository = maintenanceRepository;
         this.technicalTicketRepository = technicalTicketRepository;
         this.maintenanceJobRepository = maintenanceJobRepository;
+        this.technicianRepository = technicianRepository;
         this.maintenanceLogRepository = maintenanceLogRepository;
         this.eventPublisher = eventPublisher;
     }
@@ -83,7 +93,34 @@ public class MaintenanceCommandServiceImpl implements MaintenanceCommandService 
 
     @Transactional
     @Override
+    public Result<TechnicalTicket, ApplicationError> handle(CreateTechnicalTicketForMaintenance command) {
+        try {
+            var found = maintenanceRepository.findByMaintenanceId(new MaintenanceId(command.maintenanceId()));
+            if (found.isEmpty()) {
+                return Result.failure(ApplicationError.notFound("Maintenance", command.maintenanceId()));
+            }
+            var maintenance = found.get();
+            var ticket = new TechnicalTicket(
+                    maintenance.getId().uuid(),
+                    maintenance.getEquipmentId().uuid(),
+                    maintenance.getDescription(),
+                    command.priority(),
+                    command.type());
+            var saved = technicalTicketRepository.save(ticket);
+            return Result.success(saved);
+        } catch (IllegalArgumentException e) {
+            return Result.failure(ApplicationError.validationError("TechnicalTicket", e.getMessage()));
+        } catch (Exception e) {
+            return Result.failure(ApplicationError.unexpected("TechnicalTicket creation", e.getMessage()));
+        }
+    }
+
+    @Transactional
+    @Override
     public Result<TechnicalTicket, ApplicationError> handle(AssignTechnicalTicket command) {
+        if (!technicianRepository.existsById(new TechnicianId(command.technicianId()))) {
+            return Result.failure(ApplicationError.notFound("Technician", command.technicianId()));
+        }
         var found = technicalTicketRepository.findById(command.ticketId());
         if (found.isEmpty()) {
             return Result.failure(ApplicationError.notFound("TechnicalTicket", command.ticketId().uuid()));
@@ -96,15 +133,30 @@ public class MaintenanceCommandServiceImpl implements MaintenanceCommandService 
 
     @Transactional
     @Override
+    public Result<MaintenanceJob, ApplicationError> handle(CreateMaintenanceJob command) {
+        var job = new MaintenanceJob(command.maintenanceId());
+        var saved = maintenanceJobRepository.save(job);
+        return Result.success(saved);
+    }
+
+    @Transactional
+    @Override
     public Result<MaintenanceJob, ApplicationError> handle(AcceptMaintenance command) {
+        if (!technicianRepository.existsById(new TechnicianId(command.technicianId()))) {
+            return Result.failure(ApplicationError.notFound("Technician", command.technicianId()));
+        }
         var found = maintenanceJobRepository.findById(command.maintenanceJobId());
         if (found.isEmpty()) {
             return Result.failure(ApplicationError.notFound("MaintenanceJob", command.maintenanceJobId().uuid()));
         }
-        var job = found.get();
-        job.accept(command);
-        var saved = maintenanceJobRepository.save(job);
-        return Result.success(saved);
+        try {
+            var job = found.get();
+            job.accept(command);
+            var saved = maintenanceJobRepository.save(job);
+            return Result.success(saved);
+        } catch (IllegalStateException e) {
+            return Result.failure(ApplicationError.validationError("MaintenanceJob", e.getMessage()));
+        }
     }
 
     @Transactional

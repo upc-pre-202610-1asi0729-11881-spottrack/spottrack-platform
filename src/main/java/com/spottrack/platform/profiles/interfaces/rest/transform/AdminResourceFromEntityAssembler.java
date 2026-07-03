@@ -6,9 +6,13 @@ import com.spottrack.platform.profiles.interfaces.rest.resources.AdminResource;
 public class AdminResourceFromEntityAssembler {
 
     public static AdminResource toResourceFromEntity(Admin entity) {
+        var phoneNumber = entity.getPersonInfo() != null
+                ? entity.getPersonInfo().phoneNumber().phoneNumber()
+                : null;
         return new AdminResource(
                 entity.getId(),
                 entity.getFullName(),
-                entity.getEmailAddress());
+                entity.getEmailAddress(),
+                phoneNumber);
     }
 }
