@@ -230,7 +230,9 @@ public class RoutinesController {
                 routineId,
                 resource.exerciseName(),
                 resource.exerciseType(),
-                resource.order());
+                resource.order(),
+                resource.sets(),
+                resource.reps());
         var command = AddExerciseBlockCommandFromResourceAssembler.toCommandFromResource(resourceWithId);
         var result = routineCommandService.handle(command);
         return ResponseEntityAssembler.toResponseEntityFromResult(
