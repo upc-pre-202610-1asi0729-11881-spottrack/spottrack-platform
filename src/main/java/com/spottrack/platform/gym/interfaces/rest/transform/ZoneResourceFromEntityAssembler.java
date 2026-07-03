@@ -8,7 +8,8 @@ public class ZoneResourceFromEntityAssembler {
         return new ZoneResource(
                 entity.getId().uuid(),
                 entity.getName(),
-                entity.getMaximumOccupancy()
+                entity.getMaximumOccupancy(),
+                entity.getBranchId().uuid()
         );
     }
 }
