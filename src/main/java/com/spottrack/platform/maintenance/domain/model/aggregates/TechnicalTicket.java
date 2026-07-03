@@ -81,6 +81,10 @@ public class TechnicalTicket extends AbstractDomainAggregateRoot<TechnicalTicket
     }
 
     public void modifyStatus(ModifyTicketStatus command) {
+        if (command.newStatus() == TicketStatus.RESOLVED) {
+            markAsResolved();
+            return;
+        }
         this.ticketStatus = command.newStatus();
         registerDomainEvent(new TicketStatusModifiedEvent(this.ticketId.uuid(), command.newStatus().name()));
     }
