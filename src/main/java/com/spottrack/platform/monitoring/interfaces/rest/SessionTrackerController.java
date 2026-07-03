@@ -1,6 +1,7 @@
 package com.spottrack.platform.monitoring.interfaces.rest;
 
 import com.spottrack.platform.gym.interfaces.acl.GymContextFacade;
+import com.spottrack.platform.iam.interfaces.acl.IamContextFacade;
 import com.spottrack.platform.monitoring.application.commandServices.SessionTrackerCommandService;
 import com.spottrack.platform.monitoring.application.queryServices.SessionTrackerQueryService;
 import com.spottrack.platform.monitoring.domain.model.aggregates.SessionTracker;
@@ -22,9 +23,13 @@ import com.spottrack.platform.shared.interfaces.rest.transform.ErrorResponseAsse
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/monitoring/session-trackers")
@@ -35,22 +40,39 @@ public class SessionTrackerController {
     private final GymContextFacade gymContextFacade;
     private final ReservationContextFacade reservationContextFacade;
     private final ProfilesContextFacade profilesContextFacade;
+    private final IamContextFacade iamContextFacade;
 
     public SessionTrackerController(SessionTrackerCommandService sessionTrackerCommandService,
                                      SessionTrackerQueryService sessionTrackerQueryService,
                                      GymContextFacade gymContextFacade,
                                      ReservationContextFacade reservationContextFacade,
-                                     ProfilesContextFacade profilesContextFacade){
+                                     ProfilesContextFacade profilesContextFacade,
+                                     IamContextFacade iamContextFacade){
         this.sessionTrackerCommandService = sessionTrackerCommandService;
         this.sessionTrackerQueryService = sessionTrackerQueryService;
         this.gymContextFacade = gymContextFacade;
         this.reservationContextFacade = reservationContextFacade;
         this.profilesContextFacade = profilesContextFacade;
+        this.iamContextFacade = iamContextFacade;
     }
 
     @GetMapping
     public List<SessionTrackerResource> getAllSessionTrackers() {
         return sessionTrackerQueryService.handle(new GetAllSessionTrackersQuery()).stream()
+                .map(this::toEnrichedResource)
+                .toList();
+    }
+
+    @GetMapping("/me")
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<SessionTrackerResource> getMySessionTrackers(Authentication authentication) {
+        var adminUserId = iamContextFacade.fetchUserIdByUsername(authentication.getName()).orElse(0L);
+        Set<String> myEquipmentIds = gymContextFacade.findEquipmentsByAdminUserId(adminUserId).stream()
+                .map(equipment -> equipment.getId().uuid())
+                .collect(Collectors.toSet());
+
+        return sessionTrackerQueryService.handle(new GetAllSessionTrackersQuery()).stream()
+                .filter(tracker -> myEquipmentIds.contains(tracker.getEquipmentId().uuid()))
                 .map(this::toEnrichedResource)
                 .toList();
     }
