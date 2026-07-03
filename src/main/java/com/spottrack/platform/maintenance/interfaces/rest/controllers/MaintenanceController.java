@@ -133,7 +133,7 @@ public class MaintenanceController {
         };
     }
 
-    @GetMapping("/tickets")
+    @GetMapping({"/tickets", "/tickets/me"})
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getAllTickets(Authentication authentication) {
         var adminUserId = resolveAdminUserId(authentication);
@@ -305,7 +305,7 @@ public class MaintenanceController {
         return ResponseEntity.ok(resources);
     }
 
-    @GetMapping("/logs")
+    @GetMapping({"/logs", "/logs/me"})
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getAllMaintenanceLogs(Authentication authentication) {
         var adminUserId = resolveAdminUserId(authentication);
