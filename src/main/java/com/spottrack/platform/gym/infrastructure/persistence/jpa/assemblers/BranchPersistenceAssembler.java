@@ -9,7 +9,7 @@ public class BranchPersistenceAssembler {
     }
 
     public static Branch toDomainFromPersistence(BranchPersistenceEntity entity){
-        return new Branch(entity.getGymId(), entity.getName(), entity.getAddress());
+        return new Branch(entity.getBranchId(), entity.getGymId(), entity.getName(), entity.getAddress());
     }
 
     public static BranchPersistenceEntity toPersistenceFromDomain(Branch entity){
