@@ -12,14 +12,12 @@ import com.spottrack.platform.maintenance.domain.model.commands.CompleteMaintena
 import com.spottrack.platform.maintenance.domain.model.commands.CreateMaintenanceJob;
 import com.spottrack.platform.maintenance.domain.model.commands.CreateTechnicalTicketCommand;
 import com.spottrack.platform.maintenance.domain.model.commands.CreateTechnician;
-import com.spottrack.platform.maintenance.domain.model.commands.DecommissionEquipment;
 import com.spottrack.platform.maintenance.domain.model.commands.ModifyTicketStatus;
 import com.spottrack.platform.maintenance.domain.model.commands.RecommendEquipmentTransfer;
 import com.spottrack.platform.maintenance.domain.model.commands.RegisterMaintenanceCompletion;
 import com.spottrack.platform.maintenance.domain.model.commands.RequestMaintenance;
 import com.spottrack.platform.maintenance.domain.model.commands.RequestUpdateMaintenanceStatus;
 import com.spottrack.platform.maintenance.domain.model.commands.UpdateMaintenanceStatus;
-import com.spottrack.platform.maintenance.domain.model.events.EquipmentDecommissionedEvent;
 import com.spottrack.platform.maintenance.domain.model.events.EquipmentTransferRecommendedEvent;
 import com.spottrack.platform.maintenance.domain.model.valueobjects.MaintenanceId;
 import com.spottrack.platform.maintenance.domain.model.valueobjects.TechnicianId;
@@ -210,13 +208,6 @@ public class MaintenanceCommandServiceImpl implements MaintenanceCommandService 
         ticket.updateMaintenanceStatus(command);
         var saved = technicalTicketRepository.save(ticket);
         return Result.success(saved);
-    }
-
-    @Transactional
-    @Override
-    public Result<String, ApplicationError> handle(DecommissionEquipment command) {
-        eventPublisher.publishEvent(new EquipmentDecommissionedEvent(command.equipmentId()));
-        return Result.success(command.equipmentId());
     }
 
     @Transactional
