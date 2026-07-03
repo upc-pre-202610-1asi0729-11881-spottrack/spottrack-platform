@@ -23,6 +23,7 @@ import com.spottrack.platform.membership.interfaces.rest.transform.CreateMembers
 import com.spottrack.platform.membership.interfaces.rest.transform.MembershipResourceFromEntityAssembler;
 import com.spottrack.platform.iam.interfaces.acl.IamContextFacade;
 import com.spottrack.platform.shared.application.result.ApplicationError;
+import com.spottrack.platform.shared.domain.model.valueobjects.Money;
 import com.spottrack.platform.shared.interfaces.rest.transform.ErrorResponseAssembler;
 import com.spottrack.platform.shared.interfaces.rest.transform.ResponseEntityAssembler;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -220,7 +221,9 @@ public class MembershipController {
                     ApplicationError.businessRuleViolation("Membership.upgradePlan",
                             "membership.error.upgrade.notHigherTier"));
         }
-        var command = new InitiateUpgradePaymentCommand(membershipId, newTier, newTier.toMoney());
+        var currentTierMoney = membership.get().getMembershipTier().toMoney();
+        var differenceAmount = newTier.toMoney().amount().subtract(currentTierMoney.amount());
+        var command = new InitiateUpgradePaymentCommand(membershipId, newTier, new Money(differenceAmount, newTier.toMoney().currency()));
         var result = paymentCommandService.handle(command);
         return switch (result) {
             case com.spottrack.platform.shared.application.result.Result.Success<String, ?> s ->
