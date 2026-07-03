@@ -21,6 +21,7 @@ import com.spottrack.platform.maintenance.domain.model.commands.UpdateMaintenanc
 import com.spottrack.platform.maintenance.domain.model.events.EquipmentDecommissionedEvent;
 import com.spottrack.platform.maintenance.domain.model.events.EquipmentTransferRecommendedEvent;
 import com.spottrack.platform.maintenance.domain.model.valueobjects.EquipmentId;
+import com.spottrack.platform.maintenance.domain.model.valueobjects.TechnicianId;
 import com.spottrack.platform.maintenance.domain.repositories.MaintenanceJobRepository;
 import com.spottrack.platform.maintenance.domain.repositories.MaintenanceLogRepository;
 import com.spottrack.platform.maintenance.domain.repositories.MaintenanceRepository;
@@ -90,6 +91,9 @@ public class MaintenanceCommandServiceImpl implements MaintenanceCommandService 
     @Transactional
     @Override
     public Result<TechnicalTicket, ApplicationError> handle(AssignTechnicalTicket command) {
+        if (!technicianRepository.existsById(new TechnicianId(command.technicianId()))) {
+            return Result.failure(ApplicationError.notFound("Technician", command.technicianId()));
+        }
         var found = technicalTicketRepository.findById(command.ticketId());
         if (found.isEmpty()) {
             return Result.failure(ApplicationError.notFound("TechnicalTicket", command.ticketId().uuid()));
@@ -117,14 +121,21 @@ public class MaintenanceCommandServiceImpl implements MaintenanceCommandService 
     @Transactional
     @Override
     public Result<MaintenanceJob, ApplicationError> handle(AcceptMaintenance command) {
+        if (!technicianRepository.existsById(new TechnicianId(command.technicianId()))) {
+            return Result.failure(ApplicationError.notFound("Technician", command.technicianId()));
+        }
         var found = maintenanceJobRepository.findById(command.maintenanceJobId());
         if (found.isEmpty()) {
             return Result.failure(ApplicationError.notFound("MaintenanceJob", command.maintenanceJobId().uuid()));
         }
-        var job = found.get();
-        job.accept(command);
-        var saved = maintenanceJobRepository.save(job);
-        return Result.success(saved);
+        try {
+            var job = found.get();
+            job.accept(command);
+            var saved = maintenanceJobRepository.save(job);
+            return Result.success(saved);
+        } catch (IllegalStateException e) {
+            return Result.failure(ApplicationError.validationError("MaintenanceJob", e.getMessage()));
+        }
     }
 
     @Transactional
