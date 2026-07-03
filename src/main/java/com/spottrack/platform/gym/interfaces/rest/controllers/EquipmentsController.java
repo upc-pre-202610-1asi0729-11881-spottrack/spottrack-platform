@@ -196,7 +196,7 @@ public class EquipmentsController {
         };
     }
 
-    @GetMapping
+    @GetMapping({"", "/me"})
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getAllEquipments(Authentication authentication) {
         var adminUserId = resolveAdminUserId(authentication);
