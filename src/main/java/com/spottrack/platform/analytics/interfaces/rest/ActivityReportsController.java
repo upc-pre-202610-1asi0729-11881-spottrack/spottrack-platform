@@ -10,12 +10,15 @@ import com.spottrack.platform.analytics.domain.model.commands.RequestTotalUsageT
 import com.spottrack.platform.analytics.domain.model.queries.GetAllActivityReportsQuery;
 import com.spottrack.platform.analytics.interfaces.rest.resources.ActivityReportResource;
 import com.spottrack.platform.analytics.interfaces.rest.transform.ActivityReportResourceFromEntityAssembler;
+import com.spottrack.platform.gym.interfaces.acl.GymContextFacade;
+import com.spottrack.platform.iam.interfaces.acl.IamContextFacade;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -25,6 +28,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(value = "/api/v1/activity-reports", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -32,11 +37,17 @@ public class ActivityReportsController {
 
     private final ActivityReportCommandService activityReportCommandService;
     private final ActivityReportQueryService activityReportQueryService;
+    private final GymContextFacade gymContextFacade;
+    private final IamContextFacade iamContextFacade;
 
     public ActivityReportsController(ActivityReportCommandService activityReportCommandService,
-                                      ActivityReportQueryService activityReportQueryService) {
+                                      ActivityReportQueryService activityReportQueryService,
+                                      GymContextFacade gymContextFacade,
+                                      IamContextFacade iamContextFacade) {
         this.activityReportCommandService = activityReportCommandService;
         this.activityReportQueryService = activityReportQueryService;
+        this.gymContextFacade = gymContextFacade;
+        this.iamContextFacade = iamContextFacade;
     }
 
     @PostMapping
@@ -55,6 +66,24 @@ public class ActivityReportsController {
         return activityReportQueryService.handle(new GetAllActivityReportsQuery()).stream()
                 .map(ActivityReportResourceFromEntityAssembler::toResourceFromEntity)
                 .toList();
+    }
+
+    @GetMapping("/me")
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<ActivityReportResource> getMyActivityReports(Authentication authentication) {
+        var adminUserId = resolveAdminUserId(authentication);
+        Set<String> myEquipmentIds = gymContextFacade.findEquipmentsByAdminUserId(adminUserId).stream()
+                .map(equipment -> equipment.getId().uuid())
+                .collect(Collectors.toSet());
+
+        return activityReportQueryService.handle(new GetAllActivityReportsQuery()).stream()
+                .filter(report -> myEquipmentIds.contains(report.getEquipmentId()))
+                .map(ActivityReportResourceFromEntityAssembler::toResourceFromEntity)
+                .toList();
+    }
+
+    private Long resolveAdminUserId(Authentication authentication) {
+        return iamContextFacade.fetchUserIdByUsername(authentication.getName()).orElse(0L);
     }
 
     @PatchMapping("/total-usage-time")

@@ -1,6 +1,7 @@
 package com.spottrack.platform.monitoring.interfaces.rest;
 
 import com.spottrack.platform.gym.interfaces.acl.GymContextFacade;
+import com.spottrack.platform.iam.interfaces.acl.IamContextFacade;
 import com.spottrack.platform.monitoring.application.commandServices.CameraSensorCommandService;
 import com.spottrack.platform.monitoring.application.commandServices.SessionTrackerCommandService;
 import com.spottrack.platform.monitoring.application.queryServices.CameraSensorQueryService;
@@ -26,6 +27,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -33,6 +36,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(value = "/api/v1/monitoring/camera-sensors", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -44,16 +49,19 @@ public class CameraSensorController {
     private final GymContextFacade gymContextFacade;
     private final ReservationContextFacade reservationContextFacade;
     private final ProfilesContextFacade profilesContextFacade;
+    private final IamContextFacade iamContextFacade;
 
     public CameraSensorController(CameraSensorCommandService cameraSensorCommandService, CameraSensorQueryService cameraSensorQueryService,
                                    SessionTrackerCommandService sessionTrackerCommandService, GymContextFacade gymContextFacade,
-                                   ReservationContextFacade reservationContextFacade, ProfilesContextFacade profilesContextFacade) {
+                                   ReservationContextFacade reservationContextFacade, ProfilesContextFacade profilesContextFacade,
+                                   IamContextFacade iamContextFacade) {
         this.cameraSensorCommandService = cameraSensorCommandService;
         this.cameraSensorQueryService = cameraSensorQueryService;
         this.sessionTrackerCommandService = sessionTrackerCommandService;
         this.gymContextFacade = gymContextFacade;
         this.reservationContextFacade = reservationContextFacade;
         this.profilesContextFacade = profilesContextFacade;
+        this.iamContextFacade = iamContextFacade;
     }
 
     private SessionTrackerResource toEnrichedResource(SessionTracker tracker) {
@@ -77,6 +85,23 @@ public class CameraSensorController {
     @GetMapping
     public List<CameraSensorResource> getAllCameraSensors() {
         return cameraSensorQueryService.handle(new GetAllCameraSensorsQuery()).stream()
+                .map(sensor -> CameraSensorResourceFromEntity.toResourceFromEntity(
+                        sensor,
+                        gymContextFacade.findEquipmentById(sensor.getEquipmentId().uuid()).orElse(null)
+                ))
+                .toList();
+    }
+
+    @GetMapping("/me")
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<CameraSensorResource> getMyCameraSensors(Authentication authentication) {
+        var adminUserId = iamContextFacade.fetchUserIdByUsername(authentication.getName()).orElse(0L);
+        Set<String> myEquipmentIds = gymContextFacade.findEquipmentsByAdminUserId(adminUserId).stream()
+                .map(equipment -> equipment.getId().uuid())
+                .collect(Collectors.toSet());
+
+        return cameraSensorQueryService.handle(new GetAllCameraSensorsQuery()).stream()
+                .filter(sensor -> myEquipmentIds.contains(sensor.getEquipmentId().uuid()))
                 .map(sensor -> CameraSensorResourceFromEntity.toResourceFromEntity(
                         sensor,
                         gymContextFacade.findEquipmentById(sensor.getEquipmentId().uuid()).orElse(null)
