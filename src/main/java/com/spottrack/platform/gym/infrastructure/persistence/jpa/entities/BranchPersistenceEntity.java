@@ -21,6 +21,9 @@ public class BranchPersistenceEntity extends AuditableAbstractPersistenceEntity 
     @Column(nullable = true, unique = true)
     private String branchId;
 
+    @Column(nullable = true)
+    private String gymId;
+
     @Column(nullable = false)
     private String name;
 
