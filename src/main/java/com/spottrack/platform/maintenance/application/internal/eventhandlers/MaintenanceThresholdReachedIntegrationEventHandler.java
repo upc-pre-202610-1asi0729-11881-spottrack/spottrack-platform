@@ -14,11 +14,11 @@ import org.springframework.stereotype.Component;
  * equipment out of service.
  */
 @Component
-public class MaintenanceThresholdReachedEventHandler {
+public class MaintenanceThresholdReachedIntegrationEventHandler {
 
     private final MaintenanceCommandService maintenanceCommandService;
 
-    public MaintenanceThresholdReachedEventHandler(MaintenanceCommandService maintenanceCommandService) {
+    public MaintenanceThresholdReachedIntegrationEventHandler(MaintenanceCommandService maintenanceCommandService) {
         this.maintenanceCommandService = maintenanceCommandService;
     }
 
