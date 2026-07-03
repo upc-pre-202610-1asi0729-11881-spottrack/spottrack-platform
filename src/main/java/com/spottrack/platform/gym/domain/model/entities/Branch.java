@@ -29,4 +29,12 @@ public class Branch {
         this.address = address;
         this.zoneList = new ArrayList<Zone>();
     }
+
+    public Branch(String branchId, String gymId, String name, String address) {
+        this.id = new BranchId(branchId);
+        this.gymId = gymId;
+        this.name = name;
+        this.address = address;
+        this.zoneList = new ArrayList<Zone>();
+    }
 }
