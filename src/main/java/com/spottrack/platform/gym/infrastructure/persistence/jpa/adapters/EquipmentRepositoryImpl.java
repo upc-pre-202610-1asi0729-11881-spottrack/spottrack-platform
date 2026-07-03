@@ -11,6 +11,7 @@ import com.spottrack.platform.gym.infrastructure.persistence.jpa.repositories.Eq
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -44,6 +45,13 @@ public class EquipmentRepositoryImpl implements EquipmentRepository {
     @Override
     public List<Equipment> findAll() {
         return equipmentPersistenceRepository.findAll().stream()
+                .map(EquipmentPersistenceAssembler::toDomainFromPersistence)
+                .toList();
+    }
+
+    @Override
+    public List<Equipment> findByMaintenanceThresholdLessThanEqualAndMaintenanceAlertSentFalse(LocalDate date) {
+        return equipmentPersistenceRepository.findByMaintenanceThresholdLessThanEqualAndMaintenanceAlertSentFalse(date).stream()
                 .map(EquipmentPersistenceAssembler::toDomainFromPersistence)
                 .toList();
     }

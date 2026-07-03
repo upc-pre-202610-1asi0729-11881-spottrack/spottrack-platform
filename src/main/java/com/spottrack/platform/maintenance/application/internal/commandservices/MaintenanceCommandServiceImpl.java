@@ -9,7 +9,9 @@ import com.spottrack.platform.maintenance.domain.model.aggregates.Technician;
 import com.spottrack.platform.maintenance.domain.model.commands.AcceptMaintenance;
 import com.spottrack.platform.maintenance.domain.model.commands.AssignTechnicalTicket;
 import com.spottrack.platform.maintenance.domain.model.commands.CompleteMaintenance;
+import com.spottrack.platform.maintenance.domain.model.commands.CreateMaintenanceJob;
 import com.spottrack.platform.maintenance.domain.model.commands.CreateTechnicalTicketCommand;
+import com.spottrack.platform.maintenance.domain.model.commands.CreateTechnicalTicketForMaintenance;
 import com.spottrack.platform.maintenance.domain.model.commands.CreateTechnician;
 import com.spottrack.platform.maintenance.domain.model.commands.DecommissionEquipment;
 import com.spottrack.platform.maintenance.domain.model.commands.ModifyTicketStatus;
@@ -21,6 +23,7 @@ import com.spottrack.platform.maintenance.domain.model.commands.UpdateMaintenanc
 import com.spottrack.platform.maintenance.domain.model.events.EquipmentDecommissionedEvent;
 import com.spottrack.platform.maintenance.domain.model.events.EquipmentTransferRecommendedEvent;
 import com.spottrack.platform.maintenance.domain.model.valueobjects.EquipmentId;
+import com.spottrack.platform.maintenance.domain.model.valueobjects.MaintenanceId;
 import com.spottrack.platform.maintenance.domain.model.valueobjects.TechnicianId;
 import com.spottrack.platform.maintenance.domain.repositories.MaintenanceJobRepository;
 import com.spottrack.platform.maintenance.domain.repositories.MaintenanceLogRepository;
@@ -90,6 +93,30 @@ public class MaintenanceCommandServiceImpl implements MaintenanceCommandService 
 
     @Transactional
     @Override
+    public Result<TechnicalTicket, ApplicationError> handle(CreateTechnicalTicketForMaintenance command) {
+        try {
+            var found = maintenanceRepository.findByMaintenanceId(new MaintenanceId(command.maintenanceId()));
+            if (found.isEmpty()) {
+                return Result.failure(ApplicationError.notFound("Maintenance", command.maintenanceId()));
+            }
+            var maintenance = found.get();
+            var ticket = new TechnicalTicket(
+                    maintenance.getId().uuid(),
+                    maintenance.getEquipmentId().uuid(),
+                    maintenance.getDescription(),
+                    command.priority(),
+                    command.type());
+            var saved = technicalTicketRepository.save(ticket);
+            return Result.success(saved);
+        } catch (IllegalArgumentException e) {
+            return Result.failure(ApplicationError.validationError("TechnicalTicket", e.getMessage()));
+        } catch (Exception e) {
+            return Result.failure(ApplicationError.unexpected("TechnicalTicket creation", e.getMessage()));
+        }
+    }
+
+    @Transactional
+    @Override
     public Result<TechnicalTicket, ApplicationError> handle(AssignTechnicalTicket command) {
         if (!technicianRepository.existsById(new TechnicianId(command.technicianId()))) {
             return Result.failure(ApplicationError.notFound("Technician", command.technicianId()));
@@ -106,16 +133,10 @@ public class MaintenanceCommandServiceImpl implements MaintenanceCommandService 
 
     @Transactional
     @Override
-    public Result<Technician, ApplicationError> handle(CreateTechnician command) {
-        try {
-            var technician = new Technician(command);
-            var saved = technicianRepository.save(technician);
-            return Result.success(saved);
-        } catch (IllegalArgumentException e) {
-            return Result.failure(ApplicationError.validationError("Technician", e.getMessage()));
-        } catch (Exception e) {
-            return Result.failure(ApplicationError.unexpected("Technician creation", e.getMessage()));
-        }
+    public Result<MaintenanceJob, ApplicationError> handle(CreateMaintenanceJob command) {
+        var job = new MaintenanceJob(command.maintenanceId());
+        var saved = maintenanceJobRepository.save(job);
+        return Result.success(saved);
     }
 
     @Transactional
