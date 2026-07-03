@@ -29,6 +29,12 @@ public class TechnicalTicketRepositoryImpl implements TechnicalTicketRepository 
     }
 
     @Override
+    public Optional<TechnicalTicket> findByMaintenanceId(String maintenanceId) {
+        return jpaRepository.findByMaintenanceId(maintenanceId)
+                .map(TechnicalTicketPersistenceAssembler::toDomainFromPersistence);
+    }
+
+    @Override
     public TechnicalTicket save(TechnicalTicket ticket) {
         var entity = TechnicalTicketPersistenceAssembler.toPersistenceFromDomain(ticket);
         jpaRepository.findByTicketId(ticket.getTicketId().uuid())

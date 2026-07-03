@@ -133,6 +133,20 @@ public class MaintenanceCommandServiceImpl implements MaintenanceCommandService 
 
     @Transactional
     @Override
+    public Result<Technician, ApplicationError> handle(CreateTechnician command) {
+        try {
+            var technician = new Technician(command);
+            var saved = technicianRepository.save(technician);
+            return Result.success(saved);
+        } catch (IllegalArgumentException e) {
+            return Result.failure(ApplicationError.validationError("Technician", e.getMessage()));
+        } catch (Exception e) {
+            return Result.failure(ApplicationError.unexpected("Technician creation", e.getMessage()));
+        }
+    }
+
+    @Transactional
+    @Override
     public Result<MaintenanceJob, ApplicationError> handle(CreateMaintenanceJob command) {
         var job = new MaintenanceJob(command.maintenanceId());
         var saved = maintenanceJobRepository.save(job);
