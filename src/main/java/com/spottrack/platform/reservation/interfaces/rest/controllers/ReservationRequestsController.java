@@ -1,5 +1,6 @@
 package com.spottrack.platform.reservation.interfaces.rest.controllers;
 
+import com.spottrack.platform.gym.interfaces.acl.GymContextFacade;
 import com.spottrack.platform.iam.interfaces.acl.IamContextFacade;
 import com.spottrack.platform.profiles.interfaces.acl.ProfilesContextFacade;
 import com.spottrack.platform.shared.interfaces.rest.guards.GymMembershipAccessGuard;
@@ -9,6 +10,7 @@ import com.spottrack.platform.reservation.domain.model.aggregates.ReservationReq
 import com.spottrack.platform.reservation.domain.model.commands.RequestEquipmentStatusChangeToAvailable;
 import com.spottrack.platform.reservation.domain.model.queries.GetReservationRequestByUuidQuery;
 import com.spottrack.platform.reservation.domain.model.valueobjects.ReservationRequestId;
+import com.spottrack.platform.reservation.interfaces.rest.resources.AlternativeEquipmentResource;
 import com.spottrack.platform.reservation.interfaces.rest.resources.RequestAlternativeEquipmentResource;
 import com.spottrack.platform.reservation.interfaces.rest.resources.SubmitRequestOccupyEquipmentResource;
 import com.spottrack.platform.reservation.interfaces.rest.transform.RequestAlternativeEquipmentCommandFromResourceAssembler;
@@ -34,6 +36,7 @@ public class ReservationRequestsController {
     private final ReservationRequestQueryService queryService;
     private final IamContextFacade iamContextFacade;
     private final ProfilesContextFacade profilesContextFacade;
+    private final GymContextFacade gymContextFacade;
     private final GymMembershipAccessGuard gymMembershipAccessGuard;
 
     public ReservationRequestsController(
@@ -41,11 +44,13 @@ public class ReservationRequestsController {
             ReservationRequestQueryService queryService,
             IamContextFacade iamContextFacade,
             ProfilesContextFacade profilesContextFacade,
+            GymContextFacade gymContextFacade,
             GymMembershipAccessGuard gymMembershipAccessGuard) {
         this.commandService = commandService;
         this.queryService = queryService;
         this.iamContextFacade = iamContextFacade;
         this.profilesContextFacade = profilesContextFacade;
+        this.gymContextFacade = gymContextFacade;
         this.gymMembershipAccessGuard = gymMembershipAccessGuard;
     }
 
@@ -98,6 +103,36 @@ public class ReservationRequestsController {
             case Result.Failure<ReservationRequest, ApplicationError> f ->
                     ResponseEntity.status(HttpStatus.NOT_FOUND).body(f.error());
         };
+    }
+
+    @GetMapping("/{id}/alternatives")
+    public ResponseEntity<?> viewAlternatives(Authentication authentication, @PathVariable String id) {
+        var clientId = resolveClientId(authentication);
+        if (clientId == 0L) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.notFound("Client", authentication.getName()));
+        }
+        var request = queryService.handle(new GetReservationRequestByUuidQuery(id));
+        if (request.isEmpty()) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.notFound("ReservationRequest", id));
+        }
+        var ownershipError = checkOwnership(request.get().getClientId().clientId(), clientId, id);
+        if (ownershipError.isPresent()) return ownershipError.get();
+
+        var requestedEquipmentId = request.get().getEquipmentId().uuid();
+        var requestedEquipment = gymContextFacade.findEquipmentById(requestedEquipmentId);
+        if (requestedEquipment.isEmpty()) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.notFound("Equipment", requestedEquipmentId));
+        }
+        var alternatives = gymContextFacade
+                .findAvailableAlternatives(requestedEquipment.get().getEquipmentName(), requestedEquipmentId)
+                .stream()
+                .map(equipment -> new AlternativeEquipmentResource(
+                        equipment.getId().uuid(), equipment.getEquipmentName(), equipment.getModel()))
+                .toList();
+        return ResponseEntity.ok(alternatives);
     }
 
     @PatchMapping("/{id}/release")
