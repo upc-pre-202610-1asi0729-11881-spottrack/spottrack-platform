@@ -12,7 +12,9 @@ public interface ProfilesContextFacade {
      */
     String fetchDniByEmail(String email);
 
-    void provisionAdminProfile(Long userId, String email);
+    void provisionAdminProfile(Long userId, String email,
+                               String firstName, String lastName,
+                               String phoneNumber, String dni);
 
     void provisionBusinessProfile(Long userId, String companyName, String ruc,
                                   String legalStructure, String companyPhone, String companyEmail,

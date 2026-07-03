@@ -61,13 +61,16 @@ public class ProfilesContextFacadeImpl implements ProfilesContextFacade {
     }
 
     @Override
-    public void provisionAdminProfile(Long userId, String email) {
+    public void provisionAdminProfile(Long userId, String email,
+                                      String firstName, String lastName,
+                                      String phoneNumber, String dni) {
         var existing = adminQueryService.handle(new GetAdminByUserIdQuery(userId));
         if (existing.isPresent()) {
             log.info("Admin profile already exists for userId {}, skipping", userId);
             return;
         }
-        var result = adminCommandService.handle(new CreateAdminCommand(userId, new EmailAddress(email)));
+        var result = adminCommandService.handle(
+                new CreateAdminCommand(userId, new EmailAddress(email), firstName, lastName, phoneNumber, dni));
         switch (result) {
             case Result.Success<?, ?> ignored ->
                     log.info("Admin profile provisioned for userId {}", userId);
