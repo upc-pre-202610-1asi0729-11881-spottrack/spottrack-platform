@@ -9,4 +9,5 @@ public interface GymRepository {
     Gym save(Gym gym);
     Optional<Gym> findById(GymId gymId);
     List<Gym> findByAdminUserId(Long adminUserId);
+    List<Gym> findAll();
 }
