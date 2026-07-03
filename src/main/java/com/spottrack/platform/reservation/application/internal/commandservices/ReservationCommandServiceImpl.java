@@ -3,6 +3,7 @@ package com.spottrack.platform.reservation.application.internal.commandservices;
 import com.spottrack.platform.reservation.application.commandServices.ReservationCommandService;
 import com.spottrack.platform.reservation.domain.model.aggregates.Reservation;
 import com.spottrack.platform.reservation.domain.model.commands.CancelReservation;
+import com.spottrack.platform.reservation.domain.model.commands.CreateReservationFromRequest;
 import com.spottrack.platform.reservation.domain.model.commands.EndReservation;
 import com.spottrack.platform.reservation.domain.model.commands.InitiateExpressReservation;
 import com.spottrack.platform.reservation.domain.model.commands.StartReservationTimer;
@@ -29,6 +30,26 @@ public class ReservationCommandServiceImpl implements ReservationCommandService 
             if (alreadyReserved == true) {
                 return Result.failure(ApplicationError.validationError("Reservation", "Client already has an active reservation"));
             }
+            var savedReservation = reservationRepository.save(reservation);
+            return Result.success(savedReservation);
+        } catch (IllegalArgumentException e) {
+            return Result.failure(ApplicationError.validationError("Reservation", e.getMessage()));
+        } catch (Exception e) {
+            return Result.failure(ApplicationError.unexpected("Reservation creation", e.getMessage()));
+        }
+    }
+
+    @Override
+    public Result<Reservation, ApplicationError> handle(CreateReservationFromRequest command) {
+        try {
+            // Guard against the Express path double-firing this: express already
+            // creates its own Reservation, then auto-submits a ReservationRequest as
+            // a side effect (see ExpressReservationInitiatedEventHandler), whose
+            // RequestOccupyEquipmentSubmittedEvent would otherwise land here too.
+            if (reservationRepository.existsByEquipmentIdAndStatus(command.equipmentId().uuid(), ReservationStatus.ACTIVE)) {
+                return Result.failure(ApplicationError.validationError("Reservation", "Equipment already has an active reservation"));
+            }
+            var reservation = new Reservation(command);
             var savedReservation = reservationRepository.save(reservation);
             return Result.success(savedReservation);
         } catch (IllegalArgumentException e) {
