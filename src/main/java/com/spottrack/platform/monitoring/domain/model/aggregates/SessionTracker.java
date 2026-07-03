@@ -147,7 +147,7 @@ public class SessionTracker extends AbstractDomainAggregateRoot {
      */
     public LocalTime calculateSessionTime() {
         var trueActivity = computeTrueActivity();
-        registerDomainEvent(new SessionTimeCalculatedEvent(this.sessionTrackerId, trueActivity));
+        registerDomainEvent(new SessionTimeCalculatedEvent(this.sessionTrackerId, this.equipmentId, trueActivity));
         return trueActivity;
     }
 
