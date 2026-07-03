@@ -21,7 +21,7 @@ import com.spottrack.platform.membership.interfaces.rest.resources.ResubscribeMe
 import com.spottrack.platform.membership.interfaces.rest.resources.UpgradeMembershipPlanResource;
 import com.spottrack.platform.membership.interfaces.rest.transform.CreateMembershipCommandFromResourceAssembler;
 import com.spottrack.platform.membership.interfaces.rest.transform.MembershipResourceFromEntityAssembler;
-import com.spottrack.platform.profiles.interfaces.acl.ProfilesContextFacade;
+import com.spottrack.platform.iam.interfaces.acl.IamContextFacade;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.interfaces.rest.transform.ErrorResponseAssembler;
 import com.spottrack.platform.shared.interfaces.rest.transform.ResponseEntityAssembler;
@@ -43,17 +43,17 @@ public class MembershipController {
     private final MembershipCommandService membershipCommandService;
     private final MembershipQueryService membershipQueryService;
     private final PaymentCommandService paymentCommandService;
-    private final ProfilesContextFacade profilesContextFacade;
+    private final IamContextFacade iamContextFacade;
 
     public MembershipController(
             MembershipCommandService membershipCommandService,
             MembershipQueryService membershipQueryService,
             PaymentCommandService paymentCommandService,
-            ProfilesContextFacade profilesContextFacade) {
+            IamContextFacade iamContextFacade) {
         this.membershipCommandService = membershipCommandService;
         this.membershipQueryService = membershipQueryService;
         this.paymentCommandService = paymentCommandService;
-        this.profilesContextFacade = profilesContextFacade;
+        this.iamContextFacade = iamContextFacade;
     }
 
     @PostMapping
@@ -271,7 +271,7 @@ public class MembershipController {
     }
 
     private Long resolveClientId(Authentication authentication) {
-        return profilesContextFacade.fetchClientIdByEmail(authentication.getName());
+        return iamContextFacade.fetchUserIdByUsername(authentication.getName()).orElse(0L);
     }
 
     private Optional<ResponseEntity<?>> checkOwnership(Long membershipClientId, Long callerClientId, String membershipId) {
