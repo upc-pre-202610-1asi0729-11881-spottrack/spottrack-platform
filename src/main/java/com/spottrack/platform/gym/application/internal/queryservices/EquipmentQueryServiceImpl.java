@@ -2,11 +2,13 @@ package com.spottrack.platform.gym.application.internal.queryservices;
 
 import com.spottrack.platform.gym.application.queryservices.EquipmentQueryService;
 import com.spottrack.platform.gym.domain.model.aggregates.Equipment;
+import com.spottrack.platform.gym.domain.model.queries.GetAvailableAlternativesQuery;
 import com.spottrack.platform.gym.domain.model.queries.GetEquipmentStatus;
 import com.spottrack.platform.gym.domain.model.queries.GetEquipments;
 import com.spottrack.platform.gym.domain.model.queries.GetEquipmentById;
 import com.spottrack.platform.gym.domain.model.queries.GetEquipmentByName;
 import com.spottrack.platform.gym.domain.model.valueobjects.EquipmentId;
+import com.spottrack.platform.gym.domain.model.valueobjects.EquipmentStatus;
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.assemblers.EquipmentPersistenceAssembler;
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.entities.EquipmentPersistenceEntity;
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.repositories.EquipmentPersistenceRepository;
@@ -49,5 +51,14 @@ public class EquipmentQueryServiceImpl implements EquipmentQueryService {
         var persistenceEquipment = equipmentPersistenceRepository.findAll();
         var domain = persistenceEquipment.stream().map(EquipmentPersistenceAssembler::toDomainFromPersistence).toList();
         return Result.success(domain);
+    }
+
+    @Override
+    public List<Equipment> handle(GetAvailableAlternativesQuery query) {
+        return equipmentPersistenceRepository
+                .findByEquipmentNameAndStatusAndEquipmentIdNot(query.equipmentName(), EquipmentStatus.AVAILABLE, query.excludeEquipmentId())
+                .stream()
+                .map(EquipmentPersistenceAssembler::toDomainFromPersistence)
+                .toList();
     }
 }
