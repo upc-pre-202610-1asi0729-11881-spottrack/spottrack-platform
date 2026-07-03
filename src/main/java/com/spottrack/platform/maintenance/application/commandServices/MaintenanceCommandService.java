@@ -10,7 +10,6 @@ import com.spottrack.platform.maintenance.domain.model.commands.AssignTechnicalT
 import com.spottrack.platform.maintenance.domain.model.commands.CompleteMaintenance;
 import com.spottrack.platform.maintenance.domain.model.commands.CreateMaintenanceJob;
 import com.spottrack.platform.maintenance.domain.model.commands.CreateTechnicalTicketCommand;
-import com.spottrack.platform.maintenance.domain.model.commands.CreateTechnicalTicketForMaintenance;
 import com.spottrack.platform.maintenance.domain.model.commands.CreateTechnician;
 import com.spottrack.platform.maintenance.domain.model.commands.DecommissionEquipment;
 import com.spottrack.platform.maintenance.domain.model.commands.ModifyTicketStatus;
@@ -27,8 +26,6 @@ public interface MaintenanceCommandService {
     Result<Maintenance, ApplicationError> handle(RequestMaintenance command);
 
     Result<TechnicalTicket, ApplicationError> handle(CreateTechnicalTicketCommand command);
-
-    Result<TechnicalTicket, ApplicationError> handle(CreateTechnicalTicketForMaintenance command);
 
     Result<TechnicalTicket, ApplicationError> handle(AssignTechnicalTicket command);
 
