@@ -7,6 +7,7 @@ import com.spottrack.platform.analytics.infrastructure.persistence.jpa.assembler
 import com.spottrack.platform.analytics.infrastructure.persistence.jpa.repositories.JpaActivityReportRepository;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Repository;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -34,5 +35,24 @@ public class ActivityReportRepositoryImpl implements ActivityReportRepository {
     public Optional<ActivityReport> findByActivityReportId(ActivityReportId activityReportId) {
         return jpaActivityReportRepository.findByActivityReportId(activityReportId)
                 .map(ActivityReportPersistenceAssembler::toDomainFromPersistence);
+    }
+
+    @Override
+    public Optional<ActivityReport> findById(Long id) {
+        return jpaActivityReportRepository.findById(id)
+                .map(ActivityReportPersistenceAssembler::toDomainFromPersistence);
+    }
+
+    @Override
+    public Optional<ActivityReport> findByEquipmentId(String equipmentId) {
+        return jpaActivityReportRepository.findByEquipmentId(equipmentId)
+                .map(ActivityReportPersistenceAssembler::toDomainFromPersistence);
+    }
+
+    @Override
+    public List<ActivityReport> findAll() {
+        return jpaActivityReportRepository.findAll().stream()
+                .map(ActivityReportPersistenceAssembler::toDomainFromPersistence)
+                .toList();
     }
 }

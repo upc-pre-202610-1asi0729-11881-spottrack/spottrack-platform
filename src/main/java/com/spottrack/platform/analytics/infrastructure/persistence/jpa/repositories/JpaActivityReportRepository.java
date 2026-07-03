@@ -7,4 +7,5 @@ import java.util.Optional;
 
 public interface JpaActivityReportRepository extends JpaRepository<ActivityReportPersistenceEntity, Long> {
     Optional<ActivityReportPersistenceEntity> findByActivityReportId(ActivityReportId activityReportId);
+    Optional<ActivityReportPersistenceEntity> findByEquipmentId(String equipmentId);
 }

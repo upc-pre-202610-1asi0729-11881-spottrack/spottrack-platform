@@ -13,6 +13,7 @@ public final class ActivityReportPersistenceAssembler {
         return new ActivityReport(
                 entity.getId(),
                 entity.getActivityReportId(),
+                entity.getEquipmentId(),
                 entity.getTotalUsageTime(),
                 entity.getDowntimeCost(),
                 entity.getPercentageComparison());
@@ -25,6 +26,7 @@ public final class ActivityReportPersistenceAssembler {
             entity.setId(activityReport.getId());
         }
         entity.setActivityReportId(activityReport.getActivityReportId());
+        entity.setEquipmentId(activityReport.getEquipmentId());
         entity.setTotalUsageTime(activityReport.getTotalUsageTime());
         entity.setDowntimeCost(activityReport.getDowntimeCost());
         entity.setPercentageComparison(activityReport.getPercentageComparison());
