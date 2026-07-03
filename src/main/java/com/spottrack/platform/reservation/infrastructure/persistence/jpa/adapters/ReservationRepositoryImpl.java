@@ -53,6 +53,11 @@ public class ReservationRepositoryImpl implements ReservationRepository {
         return reservationPersistenceRepository.existsByClientIdAndStatus(clientId, status) ? true : false;
     }
 
+    @Override
+    public boolean existsByEquipmentIdAndStatus(String equipmentId, ReservationStatus status) {
+        return reservationPersistenceRepository.existsByEquipmentIdAndStatus(equipmentId, status);
+    }
+
 
     @Override
     public Reservation save(Reservation reservation) {

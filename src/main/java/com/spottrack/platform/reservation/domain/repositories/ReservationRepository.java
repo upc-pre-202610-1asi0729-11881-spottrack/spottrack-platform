@@ -13,6 +13,7 @@ public interface ReservationRepository {
     List<Reservation> findAll();
     List<Reservation> findByClientId(Long clientId);
     boolean existsByClientIdAndStatus(Long clientId, ReservationStatus status);
+    boolean existsByEquipmentIdAndStatus(String equipmentId, ReservationStatus status);
     Reservation save(Reservation reservation);
     Optional<Reservation> findByStatus(ReservationStatus status);
 }
