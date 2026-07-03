@@ -6,6 +6,7 @@ import com.spottrack.platform.maintenance.domain.model.valueobjects.MaintenanceL
 import com.spottrack.platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
 import lombok.Getter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -16,6 +17,7 @@ public class MaintenanceLog extends AbstractDomainAggregateRoot<MaintenanceLog> 
     private String ticketId;
     private String maintenanceId;
     private String notes;
+    private BigDecimal cost;
     private LocalDateTime completedAt;
 
     protected MaintenanceLog() {}
@@ -25,15 +27,17 @@ public class MaintenanceLog extends AbstractDomainAggregateRoot<MaintenanceLog> 
         this.ticketId = command.ticketId().uuid();
         this.maintenanceId = command.maintenanceId().uuid();
         this.notes = command.notes();
+        this.cost = command.cost();
         this.completedAt = LocalDateTime.now();
         registerDomainEvent(new MaintenanceCompletionRegisteredToLogEvent(this.logId.uuid(), this.ticketId, this.maintenanceId));
     }
 
-    public MaintenanceLog(String logId, String ticketId, String maintenanceId, String notes, LocalDateTime completedAt) {
+    public MaintenanceLog(String logId, String ticketId, String maintenanceId, String notes, BigDecimal cost, LocalDateTime completedAt) {
         this.logId = new MaintenanceLogId(logId);
         this.ticketId = ticketId;
         this.maintenanceId = maintenanceId;
         this.notes = notes;
+        this.cost = cost;
         this.completedAt = completedAt;
     }
 }
