@@ -8,6 +8,8 @@ public class ROIProjectionResourceFromEntityAssembler {
         return new ROIProjectionResource(
                 entity.getId(),
                 entity.getRoiProjectionId() != null ? entity.getRoiProjectionId().value() : null,
+                entity.getRequestedDowntimeCost(),
+                entity.getRequestedEarnings(),
                 entity.getRoiIndex(),
                 entity.getDemandStatus()
         );
