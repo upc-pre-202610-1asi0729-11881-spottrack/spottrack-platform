@@ -14,6 +14,7 @@ public interface ReservationPersistenceRepository extends JpaRepository<Reservat
     Optional<ReservationPersistenceEntity> findById(Long id);
     List<ReservationPersistenceEntity> findByClientId(Long clientId);
     boolean existsByClientIdAndStatus(Long clientId, ReservationStatus status);
+    boolean existsByEquipmentIdAndStatus(String equipmentId, ReservationStatus status);
     Optional<ReservationPersistenceEntity> findByEquipmentIdAndStatus(String equipmentId, ReservationStatus status);
     List<ReservationPersistenceEntity> findAllByStatusAndTimerExpiryIsNotNullAndTimerExpiryBefore(ReservationStatus status, LocalDateTime now);
 }

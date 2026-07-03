@@ -5,6 +5,7 @@ import com.spottrack.platform.gym.application.queryservices.EquipmentQueryServic
 import com.spottrack.platform.gym.application.queryservices.GymQueryService;
 import com.spottrack.platform.gym.domain.model.aggregates.Equipment;
 import com.spottrack.platform.gym.domain.model.commands.UpdateEquipmentStatus;
+import com.spottrack.platform.gym.domain.model.queries.GetAvailableAlternativesQuery;
 import com.spottrack.platform.gym.domain.model.queries.GetEquipmentById;
 import com.spottrack.platform.gym.domain.model.queries.GetGymById;
 import com.spottrack.platform.gym.domain.model.queries.GetGymsByAdminUserId;
@@ -57,6 +58,11 @@ public class GymContextFacadeImpl implements GymContextFacade {
     @Override
     public Optional<Equipment> findEquipmentById(String equipmentId) {
         return equipmentQueryService.handle(new GetEquipmentById(new EquipmentId(equipmentId)));
+    }
+
+    @Override
+    public List<Equipment> findAvailableAlternatives(String equipmentName, String excludeEquipmentId) {
+        return equipmentQueryService.handle(new GetAvailableAlternativesQuery(equipmentName, excludeEquipmentId));
     }
 
     @Override

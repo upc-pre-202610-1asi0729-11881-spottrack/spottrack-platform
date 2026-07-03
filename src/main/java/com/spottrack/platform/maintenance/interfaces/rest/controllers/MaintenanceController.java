@@ -5,10 +5,12 @@ import com.spottrack.platform.iam.interfaces.acl.IamContextFacade;
 import com.spottrack.platform.maintenance.application.commandServices.MaintenanceCommandService;
 import com.spottrack.platform.maintenance.application.queryservices.MaintenanceLogQueryService;
 import com.spottrack.platform.maintenance.application.queryservices.TechnicalTicketQueryService;
+import com.spottrack.platform.maintenance.application.queryservices.TechnicianQueryService;
 import com.spottrack.platform.maintenance.domain.model.aggregates.Maintenance;
 import com.spottrack.platform.maintenance.domain.model.aggregates.MaintenanceJob;
 import com.spottrack.platform.maintenance.domain.model.aggregates.MaintenanceLog;
 import com.spottrack.platform.maintenance.domain.model.aggregates.TechnicalTicket;
+import com.spottrack.platform.maintenance.domain.model.aggregates.Technician;
 import com.spottrack.platform.maintenance.domain.model.commands.AcceptMaintenance;
 import com.spottrack.platform.maintenance.domain.model.commands.AssignTechnicalTicket;
 import com.spottrack.platform.maintenance.domain.model.commands.CompleteMaintenance;
@@ -17,6 +19,7 @@ import com.spottrack.platform.maintenance.domain.model.commands.RecommendEquipme
 import com.spottrack.platform.maintenance.domain.model.commands.RegisterMaintenanceCompletion;
 import com.spottrack.platform.maintenance.domain.model.commands.RequestUpdateMaintenanceStatus;
 import com.spottrack.platform.maintenance.domain.model.commands.UpdateMaintenanceStatus;
+import com.spottrack.platform.maintenance.domain.model.queries.GetAllTechniciansQuery;
 import com.spottrack.platform.maintenance.domain.model.queries.GetMaintenanceLogsByTicketIdQuery;
 import com.spottrack.platform.maintenance.domain.model.valueobjects.MaintenanceId;
 import com.spottrack.platform.maintenance.domain.model.valueobjects.MaintenanceJobId;
@@ -26,17 +29,20 @@ import com.spottrack.platform.maintenance.infrastructure.persistence.jpa.reposit
 import com.spottrack.platform.maintenance.infrastructure.persistence.jpa.repositories.MaintenancePersistenceRepository;
 import com.spottrack.platform.maintenance.infrastructure.persistence.jpa.repositories.TechnicalTicketJpaRepository;
 import com.spottrack.platform.maintenance.interfaces.rest.resources.CreateTechnicalTicketResource;
+import com.spottrack.platform.maintenance.interfaces.rest.resources.CreateTechnicianResource;
 import com.spottrack.platform.maintenance.interfaces.rest.resources.DecommissionEquipmentResource;
 import com.spottrack.platform.maintenance.interfaces.rest.resources.ModifyTicketStatusResource;
 import com.spottrack.platform.maintenance.interfaces.rest.resources.RegisterMaintenanceCompletionResource;
 import com.spottrack.platform.maintenance.interfaces.rest.resources.RequestMaintenanceResource;
 import com.spottrack.platform.maintenance.interfaces.rest.resources.UpdateMaintenanceStatusResource;
 import com.spottrack.platform.maintenance.interfaces.rest.transform.CreateTechnicalTicketCommandFromResourceAssembler;
+import com.spottrack.platform.maintenance.interfaces.rest.transform.CreateTechnicianCommandFromResourceAssembler;
 import com.spottrack.platform.maintenance.interfaces.rest.transform.MaintenanceJobResourceFromEntityAssembler;
 import com.spottrack.platform.maintenance.interfaces.rest.transform.MaintenanceLogResourceFromEntityAssembler;
 import com.spottrack.platform.maintenance.interfaces.rest.transform.MaintenanceResourceFromEntityAssembler;
 import com.spottrack.platform.maintenance.interfaces.rest.transform.RequestMaintenanceCommandFromResourceAssembler;
 import com.spottrack.platform.maintenance.interfaces.rest.transform.TechnicalTicketResourceFromEntityAssembler;
+import com.spottrack.platform.maintenance.interfaces.rest.transform.TechnicianResourceFromEntityAssembler;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
 import com.spottrack.platform.shared.interfaces.rest.transform.ErrorResponseAssembler;
@@ -62,6 +68,7 @@ public class MaintenanceController {
     private final TechnicalTicketJpaRepository technicalTicketJpaRepository;
     private final MaintenancePersistenceRepository maintenancePersistenceRepository;
     private final MaintenanceJobJpaRepository maintenanceJobJpaRepository;
+    private final TechnicianQueryService technicianQueryService;
 
     public MaintenanceController(MaintenanceCommandService commandService,
                                  TechnicalTicketQueryService technicalTicketQueryService,
@@ -70,7 +77,8 @@ public class MaintenanceController {
                                  IamContextFacade iamContextFacade,
                                  TechnicalTicketJpaRepository technicalTicketJpaRepository,
                                  MaintenancePersistenceRepository maintenancePersistenceRepository,
-                                 MaintenanceJobJpaRepository maintenanceJobJpaRepository) {
+                                 MaintenanceJobJpaRepository maintenanceJobJpaRepository,
+                                 TechnicianQueryService technicianQueryService) {
         this.commandService = commandService;
         this.technicalTicketQueryService = technicalTicketQueryService;
         this.maintenanceLogQueryService = maintenanceLogQueryService;
@@ -79,6 +87,7 @@ public class MaintenanceController {
         this.technicalTicketJpaRepository = technicalTicketJpaRepository;
         this.maintenancePersistenceRepository = maintenancePersistenceRepository;
         this.maintenanceJobJpaRepository = maintenanceJobJpaRepository;
+        this.technicianQueryService = technicianQueryService;
     }
 
     @PostMapping("/requests")
@@ -183,6 +192,30 @@ public class MaintenanceController {
             case Result.Failure<MaintenanceJob, ApplicationError> f ->
                     ResponseEntity.status(HttpStatus.NOT_FOUND).body(f.error());
         };
+    }
+
+    @PostMapping("/technicians")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> createTechnician(@RequestBody CreateTechnicianResource resource) {
+        var command = CreateTechnicianCommandFromResourceAssembler.toCommandFromResource(resource);
+        var result = commandService.handle(command);
+        return switch (result) {
+            case Result.Success<Technician, ApplicationError> s ->
+                    ResponseEntity.status(HttpStatus.CREATED)
+                            .body(TechnicianResourceFromEntityAssembler.toResourceFromEntity(s.value()));
+            case Result.Failure<Technician, ApplicationError> f ->
+                    ResponseEntity.badRequest().body(f.error());
+        };
+    }
+
+    @GetMapping("/technicians")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getAllTechnicians() {
+        var technicians = technicianQueryService.handle(new GetAllTechniciansQuery());
+        var resources = technicians.stream()
+                .map(TechnicianResourceFromEntityAssembler::toResourceFromEntity)
+                .toList();
+        return ResponseEntity.ok(resources);
     }
 
     @PatchMapping("/tickets/{ticketId}/complete")

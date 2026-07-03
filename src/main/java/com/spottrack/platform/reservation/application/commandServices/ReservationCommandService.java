@@ -2,6 +2,7 @@ package com.spottrack.platform.reservation.application.commandServices;
 
 import com.spottrack.platform.reservation.domain.model.aggregates.Reservation;
 import com.spottrack.platform.reservation.domain.model.commands.CancelReservation;
+import com.spottrack.platform.reservation.domain.model.commands.CreateReservationFromRequest;
 import com.spottrack.platform.reservation.domain.model.commands.EndReservation;
 import com.spottrack.platform.reservation.domain.model.commands.InitiateExpressReservation;
 import com.spottrack.platform.reservation.domain.model.commands.StartReservationTimer;
@@ -15,6 +16,8 @@ import com.spottrack.platform.shared.application.result.Result;
 public interface ReservationCommandService {
 
     Result<Reservation, ApplicationError> handle(InitiateExpressReservation command);
+
+    Result<Reservation, ApplicationError> handle(CreateReservationFromRequest command);
 
     Result<Reservation, ApplicationError> handle(CancelReservation command);
 
