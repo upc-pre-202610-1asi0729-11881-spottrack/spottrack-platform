@@ -1,5 +1,20 @@
 package com.spottrack.platform.shared.infrastructure.seeder;
 
+import com.spottrack.platform.analytics.application.commandservices.ActivityReportCommandService;
+import com.spottrack.platform.analytics.application.commandservices.MaintenanceQuoteCommandService;
+import com.spottrack.platform.analytics.application.commandservices.ROIProjectionCommandService;
+import com.spottrack.platform.analytics.application.queryservices.MaintenanceQuoteQueryService;
+import com.spottrack.platform.analytics.application.queryservices.ROIProjectionQueryService;
+import com.spottrack.platform.analytics.domain.model.commands.RequestADetailedMaintenanceQuoteCommand;
+import com.spottrack.platform.analytics.domain.model.commands.RequestActivityAnalysisCommand;
+import com.spottrack.platform.analytics.domain.model.commands.RequestDowntimeCostCommand;
+import com.spottrack.platform.analytics.domain.model.commands.RequestEarningsCommand;
+import com.spottrack.platform.analytics.domain.model.commands.RequestPreventiveCostCommand;
+import com.spottrack.platform.analytics.domain.model.commands.RequestRoiCommand;
+import com.spottrack.platform.analytics.domain.model.commands.RequestSparePartsCommand;
+import com.spottrack.platform.analytics.domain.model.queries.GetAllMaintenanceQuotesQuery;
+import com.spottrack.platform.analytics.domain.model.queries.GetAllROIProjectionsQuery;
+import com.spottrack.platform.analytics.domain.repositories.ActivityReportRepository;
 import com.spottrack.platform.gym.application.commandServices.EquipmentCommandService;
 import com.spottrack.platform.gym.application.commandServices.GymCommandService;
 import com.spottrack.platform.gym.domain.model.commands.AddBranchCommand;
@@ -11,6 +26,7 @@ import com.spottrack.platform.gym.domain.model.valueobjects.BranchId;
 import com.spottrack.platform.gym.domain.model.valueobjects.EquipmentStatus;
 import com.spottrack.platform.gym.domain.model.valueobjects.ManufacturerId;
 import com.spottrack.platform.gym.domain.model.valueobjects.ZoneId;
+import com.spottrack.platform.gym.infrastructure.persistence.jpa.repositories.EquipmentPersistenceRepository;
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.repositories.GymPersistenceRepository;
 import com.spottrack.platform.iam.application.commandservices.RoleCommandService;
 import com.spottrack.platform.iam.application.commandservices.UserCommandService;
@@ -20,6 +36,14 @@ import com.spottrack.platform.iam.domain.model.entities.Role;
 import com.spottrack.platform.iam.domain.model.valueobjects.Roles;
 import com.spottrack.platform.iam.domain.repositories.RoleRepository;
 import com.spottrack.platform.iam.domain.repositories.UserRepository;
+import com.spottrack.platform.maintenance.application.commandServices.MaintenanceCommandService;
+import com.spottrack.platform.maintenance.domain.model.commands.CreateTechnicalTicketCommand;
+import com.spottrack.platform.maintenance.domain.model.commands.RegisterMaintenanceCompletion;
+import com.spottrack.platform.maintenance.domain.model.valueobjects.MaintenanceId;
+import com.spottrack.platform.maintenance.domain.model.valueobjects.TechnicalTicketId;
+import com.spottrack.platform.maintenance.domain.model.valueobjects.TicketPriority;
+import com.spottrack.platform.maintenance.domain.model.valueobjects.TicketType;
+import com.spottrack.platform.maintenance.infrastructure.persistence.jpa.repositories.TechnicalTicketJpaRepository;
 import com.spottrack.platform.membership.application.commandservices.MembershipCommandService;
 import com.spottrack.platform.membership.domain.model.commands.ActivateMembershipCommand;
 import com.spottrack.platform.membership.domain.model.commands.CreateMembershipCommand;
@@ -75,8 +99,17 @@ public class DevDataSeeder {
     private final GymCommandService gymCommandService;
     private final EquipmentCommandService equipmentCommandService;
     private final GymPersistenceRepository gymPersistenceRepository;
+    private final EquipmentPersistenceRepository equipmentPersistenceRepository;
     private final MembershipCommandService membershipCommandService;
     private final MembershipRepository membershipRepository;
+    private final ActivityReportRepository activityReportRepository;
+    private final ActivityReportCommandService activityReportCommandService;
+    private final MaintenanceQuoteCommandService maintenanceQuoteCommandService;
+    private final MaintenanceQuoteQueryService maintenanceQuoteQueryService;
+    private final ROIProjectionCommandService roiProjectionCommandService;
+    private final ROIProjectionQueryService roiProjectionQueryService;
+    private final MaintenanceCommandService maintenanceCommandService;
+    private final TechnicalTicketJpaRepository technicalTicketJpaRepository;
 
     public DevDataSeeder(
             RoleCommandService roleCommandService,
@@ -90,8 +123,17 @@ public class DevDataSeeder {
             GymCommandService gymCommandService,
             EquipmentCommandService equipmentCommandService,
             GymPersistenceRepository gymPersistenceRepository,
+            EquipmentPersistenceRepository equipmentPersistenceRepository,
             MembershipCommandService membershipCommandService,
-            MembershipRepository membershipRepository) {
+            MembershipRepository membershipRepository,
+            ActivityReportRepository activityReportRepository,
+            ActivityReportCommandService activityReportCommandService,
+            MaintenanceQuoteCommandService maintenanceQuoteCommandService,
+            MaintenanceQuoteQueryService maintenanceQuoteQueryService,
+            ROIProjectionCommandService roiProjectionCommandService,
+            ROIProjectionQueryService roiProjectionQueryService,
+            MaintenanceCommandService maintenanceCommandService,
+            TechnicalTicketJpaRepository technicalTicketJpaRepository) {
         this.roleCommandService = roleCommandService;
         this.userCommandService = userCommandService;
         this.userRepository = userRepository;
@@ -103,9 +145,20 @@ public class DevDataSeeder {
         this.gymCommandService = gymCommandService;
         this.equipmentCommandService = equipmentCommandService;
         this.gymPersistenceRepository = gymPersistenceRepository;
+        this.equipmentPersistenceRepository = equipmentPersistenceRepository;
         this.membershipCommandService = membershipCommandService;
         this.membershipRepository = membershipRepository;
+        this.activityReportRepository = activityReportRepository;
+        this.activityReportCommandService = activityReportCommandService;
+        this.maintenanceQuoteCommandService = maintenanceQuoteCommandService;
+        this.maintenanceQuoteQueryService = maintenanceQuoteQueryService;
+        this.roiProjectionCommandService = roiProjectionCommandService;
+        this.roiProjectionQueryService = roiProjectionQueryService;
+        this.maintenanceCommandService = maintenanceCommandService;
+        this.technicalTicketJpaRepository = technicalTicketJpaRepository;
     }
+
+    private record GymSeedResult(String gymId, String equipmentId) {}
 
     @EventListener(ApplicationReadyEvent.class)
     @Order(10)
@@ -115,10 +168,14 @@ public class DevDataSeeder {
         roleCommandService.handle(new SeedRolesCommand());
 
         var adminUserId = seedAdminUser();
-        var gymId = seedGym(adminUserId);
+        var gymSeed = seedGym(adminUserId);
         seedMembership(adminUserId);
-        seedWhitelist(gymId);
-        seedClientUser(gymId);
+        seedWhitelist(gymSeed.gymId());
+        seedClientUser(gymSeed.gymId());
+        seedActivityReport(gymSeed.equipmentId());
+        seedMaintenanceQuote();
+        seedRoiProjection();
+        seedMaintenanceLog(gymSeed.equipmentId());
 
         log.info("[DevDataSeeder] Dev seed complete.");
     }
@@ -155,12 +212,14 @@ public class DevDataSeeder {
         return adminUserId;
     }
 
-    private String seedGym(Long adminUserId) {
+    private GymSeedResult seedGym(Long adminUserId) {
         var existing = gymPersistenceRepository.findByAdminUserId(adminUserId);
         if (!existing.isEmpty()) {
             var gymId = existing.get(0).getGymId();
+            var equipmentId = equipmentPersistenceRepository.findByEquipmentName("Cinta Seed")
+                    .map(e -> e.getEquipmentId()).orElse(null);
             log.info("[DevDataSeeder] Gym already exists gymId={}, skipping creation.", gymId);
-            return gymId;
+            return new GymSeedResult(gymId, equipmentId);
         }
 
         var gymResult = gymCommandService.handle(new CreateGym(SEED_GYM_NAME, adminUserId));
@@ -202,9 +261,10 @@ public class DevDataSeeder {
             log.error("[DevDataSeeder] Failed to create equipment: {}", f.error());
             throw new IllegalStateException("Dev seed failed at equipment creation");
         }
-        log.info("[DevDataSeeder] Equipment created.");
+        var equipmentId = ((Result.Success<com.spottrack.platform.gym.domain.model.aggregates.Equipment, ?>) equipResult).value().getId().uuid();
+        log.info("[DevDataSeeder] Equipment created equipmentId={}", equipmentId);
 
-        return gymId;
+        return new GymSeedResult(gymId, equipmentId);
     }
 
     private void seedMembership(Long adminUserId) {
@@ -288,5 +348,88 @@ public class DevDataSeeder {
         } else {
             log.info("[DevDataSeeder] Client associated with gym gymId={}.", gymId);
         }
+    }
+
+    private void seedActivityReport(String equipmentId) {
+        if (equipmentId == null) {
+            log.warn("[DevDataSeeder] Equipment ID not available, skipping activity report seeding.");
+            return;
+        }
+        if (activityReportRepository.findByEquipmentId(equipmentId).isPresent()) {
+            log.info("[DevDataSeeder] Activity report already exists for equipment {}, skipping.", equipmentId);
+            return;
+        }
+        activityReportCommandService.handle(new RequestActivityAnalysisCommand(
+                equipmentId, 45, 10, "Cinta atascada", 8.0));
+        log.info("[DevDataSeeder] Activity report seeded for equipment {}.", equipmentId);
+    }
+
+    private void seedMaintenanceQuote() {
+        if (!maintenanceQuoteQueryService.handle(new GetAllMaintenanceQuotesQuery()).isEmpty()) {
+            log.info("[DevDataSeeder] Maintenance quote already seeded, skipping.");
+            return;
+        }
+        var quoteResult = maintenanceQuoteCommandService.handle(new RequestADetailedMaintenanceQuoteCommand(
+                120.0, "USD", "CORRECTIVE", "n/a", 1, 0.0));
+        if (quoteResult.isEmpty()) {
+            log.warn("[DevDataSeeder] Failed to seed maintenance quote.");
+            return;
+        }
+        var quoteId = quoteResult.get().getId();
+        maintenanceQuoteCommandService.handle(quoteId, new RequestSparePartsCommand("Belt", 3, 25.0));
+        maintenanceQuoteCommandService.handle(quoteId, new RequestPreventiveCostCommand(40.0, "USD"));
+        log.info("[DevDataSeeder] Maintenance quote seeded, id={}.", quoteId);
+    }
+
+    private void seedRoiProjection() {
+        if (!roiProjectionQueryService.handle(new GetAllROIProjectionsQuery()).isEmpty()) {
+            log.info("[DevDataSeeder] ROI projection already seeded, skipping.");
+            return;
+        }
+        var roiResult = roiProjectionCommandService.handle(new RequestRoiCommand(12.5));
+        if (roiResult.isEmpty()) {
+            log.warn("[DevDataSeeder] Failed to seed ROI projection.");
+            return;
+        }
+        var roiId = roiResult.get().getId();
+        roiProjectionCommandService.handle(roiId, new RequestDowntimeCostCommand(20, "sensor jam"));
+        roiProjectionCommandService.handle(roiId, new RequestEarningsCommand(600.0));
+        log.info("[DevDataSeeder] ROI projection seeded, id={}.", roiId);
+    }
+
+    private void seedMaintenanceLog(String equipmentId) {
+        if (equipmentId == null) {
+            log.warn("[DevDataSeeder] Equipment ID not available, skipping maintenance log seeding.");
+            return;
+        }
+        boolean alreadyExists = technicalTicketJpaRepository.findAll().stream()
+                .anyMatch(t -> equipmentId.equals(t.getEquipmentId()));
+        if (alreadyExists) {
+            log.info("[DevDataSeeder] Maintenance ticket already exists for equipment {}, skipping.", equipmentId);
+            return;
+        }
+        var ticketResult = maintenanceCommandService.handle(new CreateTechnicalTicketCommand(
+                equipmentId,
+                "Rutina de mantenimiento preventivo",
+                TicketPriority.LOW,
+                TicketType.PREVENTIVE
+        ));
+        if (ticketResult instanceof Result.Failure<?, ?> f) {
+            log.error("[DevDataSeeder] Failed to create maintenance ticket: {}", f.error());
+            return;
+        }
+        var ticket = ((Result.Success<com.spottrack.platform.maintenance.domain.model.aggregates.TechnicalTicket, ?>) ticketResult).value();
+
+        var completionResult = maintenanceCommandService.handle(new RegisterMaintenanceCompletion(
+                new TechnicalTicketId(ticket.getTicketId().uuid()),
+                new MaintenanceId(ticket.getMaintenanceId()),
+                "Lubricación y ajuste de banda completados",
+                BigDecimal.valueOf(35.00)
+        ));
+        if (completionResult instanceof Result.Failure<?, ?> f) {
+            log.error("[DevDataSeeder] Failed to register maintenance completion: {}", f.error());
+            return;
+        }
+        log.info("[DevDataSeeder] Maintenance ticket and completion log seeded for equipment {}.", equipmentId);
     }
 }
