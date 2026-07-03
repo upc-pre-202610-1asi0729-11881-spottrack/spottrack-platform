@@ -3,6 +3,7 @@ package com.spottrack.platform.gym.application.internal.queryservices;
 import com.spottrack.platform.gym.application.queryservices.GymQueryService;
 import com.spottrack.platform.gym.domain.model.aggregates.Gym;
 import com.spottrack.platform.gym.domain.model.entities.GymWhitelistEntry;
+import com.spottrack.platform.gym.domain.model.queries.GetAllGymsQuery;
 import com.spottrack.platform.gym.domain.model.queries.GetGymById;
 import com.spottrack.platform.gym.domain.model.queries.GetGymsByAdminUserId;
 import com.spottrack.platform.gym.domain.model.queries.GetWhitelistByGymIdQuery;
@@ -35,6 +36,14 @@ public class GymQueryServiceImpl implements GymQueryService {
     @Override
     public List<Gym> handle(GetGymsByAdminUserId query) {
         return gymPersistenceRepository.findByAdminUserId(query.adminUserId()).stream()
+                .map(GymPersistenceAssembler::toDomainFromPersistence)
+                .toList();
+    }
+
+    @Override
+    public List<Gym> handle(GetAllGymsQuery query) {
+        // TODO: add pagination if gym volume grows
+        return gymPersistenceRepository.findAll().stream()
                 .map(GymPersistenceAssembler::toDomainFromPersistence)
                 .toList();
     }

@@ -8,6 +8,7 @@ import com.spottrack.platform.gym.domain.model.commands.RemoveDniFromWhitelistCo
 import com.spottrack.platform.gym.domain.model.entities.Branch;
 import com.spottrack.platform.gym.domain.model.entities.GymWhitelistEntry;
 import com.spottrack.platform.gym.domain.model.entities.Zone;
+import com.spottrack.platform.gym.domain.model.queries.GetAllGymsQuery;
 import com.spottrack.platform.gym.domain.model.queries.GetGymById;
 import com.spottrack.platform.gym.domain.model.queries.GetGymsByAdminUserId;
 import com.spottrack.platform.gym.domain.model.queries.GetWhitelistByGymIdQuery;
@@ -17,6 +18,7 @@ import com.spottrack.platform.gym.interfaces.rest.resources.AddBranchResource;
 import com.spottrack.platform.gym.interfaces.rest.resources.AddDniToWhitelistResource;
 import com.spottrack.platform.gym.interfaces.rest.resources.AddZoneResource;
 import com.spottrack.platform.gym.interfaces.rest.resources.CreateGymResource;
+import com.spottrack.platform.gym.interfaces.rest.resources.GymSummaryResource;
 import com.spottrack.platform.gym.interfaces.rest.resources.WhitelistEntryResource;
 import com.spottrack.platform.gym.interfaces.rest.transform.*;
 import com.spottrack.platform.iam.interfaces.acl.IamContextFacade;
@@ -66,6 +68,15 @@ public class GymController {
             case Result.Failure<Gym, ApplicationError> f ->
                     ResponseEntity.badRequest().body(f.error());
         };
+    }
+
+    @GetMapping
+    public ResponseEntity<List<GymSummaryResource>> getAllGyms() {
+        // TODO: add pagination if gym volume grows
+        var resources = gymQueryService.handle(new GetAllGymsQuery()).stream()
+                .map(g -> new GymSummaryResource(g.getId().uuid(), g.getName()))
+                .toList();
+        return ResponseEntity.ok(resources);
     }
 
     @GetMapping("/me")
