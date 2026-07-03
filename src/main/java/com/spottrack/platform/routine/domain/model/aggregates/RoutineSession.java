@@ -2,7 +2,6 @@ package com.spottrack.platform.routine.domain.model.aggregates;
 
 import com.spottrack.platform.routine.domain.model.commands.StartRoutineCommand;
 import com.spottrack.platform.routine.domain.model.entities.SessionExerciseCompletion;
-import com.spottrack.platform.routine.domain.model.events.ExerciseBlockCompletionChangedEvent;
 import com.spottrack.platform.routine.domain.model.events.RoutineCompletedEvent;
 import com.spottrack.platform.routine.domain.model.events.RoutineMissedEvent;
 import com.spottrack.platform.routine.domain.model.events.RoutineStartedEvent;
@@ -64,10 +63,8 @@ public class RoutineSession extends AbstractDomainAggregateRoot<RoutineSession> 
                 .anyMatch(c -> c.getExerciseBlockId().equals(exerciseBlockId));
         if (completed && !alreadyCompleted) {
             completedExercises.add(new SessionExerciseCompletion(null, exerciseBlockId));
-            registerDomainEvent(new ExerciseBlockCompletionChangedEvent(this.id, exerciseBlockId, true));
         } else if (!completed && alreadyCompleted) {
             completedExercises.removeIf(c -> c.getExerciseBlockId().equals(exerciseBlockId));
-            registerDomainEvent(new ExerciseBlockCompletionChangedEvent(this.id, exerciseBlockId, false));
         }
     }
 
