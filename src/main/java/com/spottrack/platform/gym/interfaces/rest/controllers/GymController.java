@@ -109,6 +109,8 @@ public class GymController {
         return switch (result) {
             case Result.Success<Branch, ApplicationError> s ->
                     ResponseEntity.status(HttpStatus.CREATED).body(BranchResourceFromEntityAssembler.toResourceFromEntity(s.value()));
+            case Result.Failure<Branch, ApplicationError> f when "BUSINESS_RULE_VIOLATION".equals(f.error().code()) ->
+                    ResponseEntity.status(HttpStatus.CONFLICT).body(f.error());
             case Result.Failure<Branch, ApplicationError> f ->
                     ResponseEntity.badRequest().body(f.error());
         };
