@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -28,6 +29,9 @@ public class MaintenanceLogPersistenceEntity extends AuditableAbstractPersistenc
 
     @Column(nullable = false)
     private String notes;
+
+    @Column(nullable = false)
+    private BigDecimal cost;
 
     @Column(nullable = false)
     private LocalDateTime completedAt;
