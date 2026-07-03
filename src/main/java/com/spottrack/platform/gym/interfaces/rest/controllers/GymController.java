@@ -9,6 +9,7 @@ import com.spottrack.platform.gym.domain.model.entities.Branch;
 import com.spottrack.platform.gym.domain.model.entities.GymWhitelistEntry;
 import com.spottrack.platform.gym.domain.model.entities.Zone;
 import com.spottrack.platform.gym.domain.model.queries.GetAllGymsQuery;
+import com.spottrack.platform.gym.domain.model.queries.GetBranchesByGymIdQuery;
 import com.spottrack.platform.gym.domain.model.queries.GetGymById;
 import com.spottrack.platform.gym.domain.model.queries.GetGymsByAdminUserId;
 import com.spottrack.platform.gym.domain.model.queries.GetWhitelistByGymIdQuery;
@@ -114,6 +115,23 @@ public class GymController {
             case Result.Failure<Branch, ApplicationError> f ->
                     ResponseEntity.badRequest().body(f.error());
         };
+    }
+
+    @GetMapping("/{gymId}/branches")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getBranchesByGymId(Authentication authentication,
+                                                 @PathVariable String gymId) {
+        var adminUserId = resolveAdminUserId(authentication);
+        if (adminUserId == 0L) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.notFound("Admin", authentication.getName()));
+        }
+        var ownershipError = checkOwnership(gymId, adminUserId);
+        if (ownershipError.isPresent()) return ownershipError.get();
+        var branches = gymQueryService.handle(new GetBranchesByGymIdQuery(gymId));
+        var resources = branches.stream()
+                .map(BranchResourceFromEntityAssembler::toResourceFromEntity).toList();
+        return ResponseEntity.ok(resources);
     }
 
     @PostMapping("/{gymId}/branches/{branchId}/zones")
