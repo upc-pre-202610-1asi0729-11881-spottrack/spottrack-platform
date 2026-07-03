@@ -181,4 +181,32 @@ public class IamContextFacadeImpl implements IamContextFacade {
                 .map(PendingRegistration::getDistrict)
                 .orElse("");
     }
+
+    @Override
+    public String fetchPendingRegistrationFirstName(UUID registrationId) {
+        return pendingRegistrationRepository.findById(registrationId)
+                .map(PendingRegistration::getFirstName)
+                .orElse("");
+    }
+
+    @Override
+    public String fetchPendingRegistrationLastName(UUID registrationId) {
+        return pendingRegistrationRepository.findById(registrationId)
+                .map(PendingRegistration::getLastName)
+                .orElse("");
+    }
+
+    @Override
+    public String fetchPendingRegistrationPhoneNumber(UUID registrationId) {
+        return pendingRegistrationRepository.findById(registrationId)
+                .map(PendingRegistration::getPhoneNumber)
+                .orElse("");
+    }
+
+    @Override
+    public String fetchPendingRegistrationDni(UUID registrationId) {
+        return pendingRegistrationRepository.findById(registrationId)
+                .map(PendingRegistration::getDni)
+                .orElse("");
+    }
 }

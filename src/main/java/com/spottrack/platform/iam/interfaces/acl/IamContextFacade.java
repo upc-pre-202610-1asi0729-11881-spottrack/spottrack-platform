@@ -24,4 +24,8 @@ public interface IamContextFacade {
     String fetchPendingRegistrationStreetAddress(UUID registrationId);
     String fetchPendingRegistrationCity(UUID registrationId);
     String fetchPendingRegistrationDistrict(UUID registrationId);
+    String fetchPendingRegistrationFirstName(UUID registrationId);
+    String fetchPendingRegistrationLastName(UUID registrationId);
+    String fetchPendingRegistrationPhoneNumber(UUID registrationId);
+    String fetchPendingRegistrationDni(UUID registrationId);
 }

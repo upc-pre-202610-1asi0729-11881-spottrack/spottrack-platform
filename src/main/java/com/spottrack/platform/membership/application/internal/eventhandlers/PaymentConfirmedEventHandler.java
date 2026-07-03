@@ -122,6 +122,10 @@ public class PaymentConfirmedEventHandler {
         log.info("Provisioning account for pendingRegistrationId={}, resolved userId={}", pendingId, userId);
 
         var email          = iamContextFacade.fetchPendingRegistrationEmail(pendingId);
+        var firstName      = iamContextFacade.fetchPendingRegistrationFirstName(pendingId);
+        var lastName       = iamContextFacade.fetchPendingRegistrationLastName(pendingId);
+        var phoneNumber    = iamContextFacade.fetchPendingRegistrationPhoneNumber(pendingId);
+        var dni            = iamContextFacade.fetchPendingRegistrationDni(pendingId);
         var companyName    = iamContextFacade.fetchPendingRegistrationCompanyName(pendingId);
         var ruc            = iamContextFacade.fetchPendingRegistrationRuc(pendingId);
         var legalStructure = iamContextFacade.fetchPendingRegistrationLegalStructure(pendingId);
@@ -131,7 +135,7 @@ public class PaymentConfirmedEventHandler {
         var city           = iamContextFacade.fetchPendingRegistrationCity(pendingId);
         var district       = iamContextFacade.fetchPendingRegistrationDistrict(pendingId);
 
-        profilesContextFacade.provisionAdminProfile(userId, email);
+        profilesContextFacade.provisionAdminProfile(userId, email, firstName, lastName, phoneNumber, dni);
 
         profilesContextFacade.provisionBusinessProfile(
                 userId,
