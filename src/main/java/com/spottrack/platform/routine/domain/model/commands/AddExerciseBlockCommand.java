@@ -6,5 +6,7 @@ public record AddExerciseBlockCommand(
         Long routineId,
         ExerciseName exerciseName,
         ExerciseType exerciseType,
-        int order
+        int order,
+        int sets,
+        int reps
 ) {}
