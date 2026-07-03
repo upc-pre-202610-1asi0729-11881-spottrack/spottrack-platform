@@ -43,20 +43,32 @@ public class MaintenanceQuote extends AbstractDomainAggregateRoot<MaintenanceQuo
     public void updateCorrectiveActionsCost(Double cost) {
         this.correctiveActionsCost = cost;
         this.registerDomainEvent(new CostOfTheCorrectiveActionsRequestedEvent(this.maintenanceQuoteId, cost));
+        recalculateTotal();
     }
 
     public void updateSparePartsCost(Double cost) {
         this.sparePartsCost = cost;
         this.registerDomainEvent(new CostOfSparePartsRequestedEvent(this.maintenanceQuoteId, cost));
+        recalculateTotal();
     }
 
     public void updatePreventiveCost(Double cost) {
         this.preventiveCost = cost;
         this.registerDomainEvent(new PreventiveCostRequestedEvent(this.maintenanceQuoteId, cost));
+        recalculateTotal();
     }
 
+    /**
+     * Explicit admin override of the total — distinct from the automatic
+     * recalculation the three component updates already do, e.g. for a
+     * vendor-negotiated flat total that doesn't equal the sum of parts.
+     */
     public void calculateTotalMaintenanceCost(Double totalCost) {
         this.totalMaintenanceCost = totalCost;
         this.registerDomainEvent(new MaintenanceCostRequestedEvent(this.maintenanceQuoteId, totalCost));
+    }
+
+    private void recalculateTotal() {
+        this.totalMaintenanceCost = this.correctiveActionsCost + this.sparePartsCost + this.preventiveCost;
     }
 }
