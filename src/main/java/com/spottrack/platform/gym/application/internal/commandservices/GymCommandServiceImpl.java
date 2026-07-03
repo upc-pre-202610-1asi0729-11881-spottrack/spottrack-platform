@@ -22,6 +22,7 @@ import com.spottrack.platform.gym.infrastructure.persistence.jpa.repositories.Eq
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.repositories.GymPersistenceRepository;
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.repositories.GymWhitelistPersistenceRepository;
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.repositories.ZonePersistenceRepository;
+import com.spottrack.platform.membership.interfaces.acl.MembershipContextFacade;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
 import jakarta.transaction.Transactional;
@@ -34,17 +35,20 @@ public class GymCommandServiceImpl implements GymCommandService {
     BranchPersistenceRepository branchPersistenceRepository;
     ZonePersistenceRepository zonePersistenceRepository;
     GymWhitelistPersistenceRepository gymWhitelistPersistenceRepository;
+    MembershipContextFacade membershipContextFacade;
 
     public GymCommandServiceImpl(GymPersistenceRepository gymPersistenceRepository,
                                  EquipmentPersistenceRepository equipmentPersistenceRepository,
                                  BranchPersistenceRepository branchPersistenceRepository,
                                  ZonePersistenceRepository zonePersistenceRepository,
-                                 GymWhitelistPersistenceRepository gymWhitelistPersistenceRepository) {
+                                 GymWhitelistPersistenceRepository gymWhitelistPersistenceRepository,
+                                 MembershipContextFacade membershipContextFacade) {
         this.gymPersistenceRepository = gymPersistenceRepository;
         this.zonePersistenceRepository = zonePersistenceRepository;
         this.equipmentPersistenceRepository = equipmentPersistenceRepository;
         this.branchPersistenceRepository = branchPersistenceRepository;
         this.gymWhitelistPersistenceRepository = gymWhitelistPersistenceRepository;
+        this.membershipContextFacade = membershipContextFacade;
     }
 
     @Override
@@ -64,6 +68,20 @@ public class GymCommandServiceImpl implements GymCommandService {
     @Transactional
     @Override
     public Result<Branch, ApplicationError> handle(AddBranchCommand command) {
+        var gym = gymPersistenceRepository.findByGymId(command.gymId());
+        if (gym.isEmpty()) {
+            return Result.failure(ApplicationError.notFound("Gym", command.gymId()));
+        }
+        var tierOpt = membershipContextFacade.fetchActiveMembershipTier(gym.get().getAdminUserId());
+        if (tierOpt.isEmpty()) {
+            return Result.failure(ApplicationError.businessRuleViolation(
+                    "Active membership required", "gym.error.branch.noActiveMembership"));
+        }
+        int currentCount = branchPersistenceRepository.countByGymId(command.gymId());
+        if (currentCount >= tierOpt.get().maxBranches()) {
+            return Result.failure(ApplicationError.businessRuleViolation(
+                    "Branch limit", "gym.error.branch.limitReached"));
+        }
         var branch = new Branch(command.gymId(), command.name(), command.address());
         var branchEntity = BranchPersistenceAssembler.toPersistenceFromDomain(branch);
         branchPersistenceRepository.save(branchEntity);
