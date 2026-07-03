@@ -31,7 +31,4 @@ public class MaintenancePersistenceEntity extends AuditableAbstractPersistenceEn
      */
     @Column(nullable = false)
     private String description;
-
-    @Column(nullable = false)
-    private String status;
 }
