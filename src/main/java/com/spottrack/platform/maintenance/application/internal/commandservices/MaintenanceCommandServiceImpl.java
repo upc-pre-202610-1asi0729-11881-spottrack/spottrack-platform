@@ -5,10 +5,12 @@ import com.spottrack.platform.maintenance.domain.model.aggregates.Maintenance;
 import com.spottrack.platform.maintenance.domain.model.aggregates.MaintenanceJob;
 import com.spottrack.platform.maintenance.domain.model.aggregates.MaintenanceLog;
 import com.spottrack.platform.maintenance.domain.model.aggregates.TechnicalTicket;
+import com.spottrack.platform.maintenance.domain.model.aggregates.Technician;
 import com.spottrack.platform.maintenance.domain.model.commands.AcceptMaintenance;
 import com.spottrack.platform.maintenance.domain.model.commands.AssignTechnicalTicket;
 import com.spottrack.platform.maintenance.domain.model.commands.CompleteMaintenance;
 import com.spottrack.platform.maintenance.domain.model.commands.CreateTechnicalTicketCommand;
+import com.spottrack.platform.maintenance.domain.model.commands.CreateTechnician;
 import com.spottrack.platform.maintenance.domain.model.commands.DecommissionEquipment;
 import com.spottrack.platform.maintenance.domain.model.commands.ModifyTicketStatus;
 import com.spottrack.platform.maintenance.domain.model.commands.RecommendEquipmentTransfer;
@@ -23,6 +25,7 @@ import com.spottrack.platform.maintenance.domain.repositories.MaintenanceJobRepo
 import com.spottrack.platform.maintenance.domain.repositories.MaintenanceLogRepository;
 import com.spottrack.platform.maintenance.domain.repositories.MaintenanceRepository;
 import com.spottrack.platform.maintenance.domain.repositories.TechnicalTicketRepository;
+import com.spottrack.platform.maintenance.domain.repositories.TechnicianRepository;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
 import org.springframework.context.ApplicationEventPublisher;
@@ -35,6 +38,7 @@ public class MaintenanceCommandServiceImpl implements MaintenanceCommandService 
     private final MaintenanceRepository maintenanceRepository;
     private final TechnicalTicketRepository technicalTicketRepository;
     private final MaintenanceJobRepository maintenanceJobRepository;
+    private final TechnicianRepository technicianRepository;
     private final MaintenanceLogRepository maintenanceLogRepository;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -42,11 +46,13 @@ public class MaintenanceCommandServiceImpl implements MaintenanceCommandService 
             MaintenanceRepository maintenanceRepository,
             TechnicalTicketRepository technicalTicketRepository,
             MaintenanceJobRepository maintenanceJobRepository,
+            TechnicianRepository technicianRepository,
             MaintenanceLogRepository maintenanceLogRepository,
             ApplicationEventPublisher eventPublisher) {
         this.maintenanceRepository = maintenanceRepository;
         this.technicalTicketRepository = technicalTicketRepository;
         this.maintenanceJobRepository = maintenanceJobRepository;
+        this.technicianRepository = technicianRepository;
         this.maintenanceLogRepository = maintenanceLogRepository;
         this.eventPublisher = eventPublisher;
     }
@@ -92,6 +98,20 @@ public class MaintenanceCommandServiceImpl implements MaintenanceCommandService 
         ticket.assign(command);
         var saved = technicalTicketRepository.save(ticket);
         return Result.success(saved);
+    }
+
+    @Transactional
+    @Override
+    public Result<Technician, ApplicationError> handle(CreateTechnician command) {
+        try {
+            var technician = new Technician(command);
+            var saved = technicianRepository.save(technician);
+            return Result.success(saved);
+        } catch (IllegalArgumentException e) {
+            return Result.failure(ApplicationError.validationError("Technician", e.getMessage()));
+        } catch (Exception e) {
+            return Result.failure(ApplicationError.unexpected("Technician creation", e.getMessage()));
+        }
     }
 
     @Transactional
