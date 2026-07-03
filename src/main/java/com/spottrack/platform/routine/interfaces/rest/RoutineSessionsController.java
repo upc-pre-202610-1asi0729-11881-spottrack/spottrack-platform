@@ -7,10 +7,12 @@ import com.spottrack.platform.routine.application.commandservices.RoutineSession
 import com.spottrack.platform.routine.application.queryservices.RoutineSessionQueryService;
 import com.spottrack.platform.routine.domain.model.commands.CompleteRoutineCommand;
 import com.spottrack.platform.routine.domain.model.commands.MarkRoutineMissedCommand;
+import com.spottrack.platform.routine.domain.model.commands.SetExerciseBlockCompletionCommand;
 import com.spottrack.platform.routine.domain.model.queries.GetAllRoutineSessionsByClientIdQuery;
 import com.spottrack.platform.routine.domain.model.queries.GetRoutineSessionByIdQuery;
 import com.spottrack.platform.routine.domain.model.valueobjects.ClientId;
 import com.spottrack.platform.routine.interfaces.rest.resources.RoutineSessionResource;
+import com.spottrack.platform.routine.interfaces.rest.resources.SetExerciseBlockCompletionResource;
 import com.spottrack.platform.routine.interfaces.rest.resources.StartRoutineResource;
 import com.spottrack.platform.routine.interfaces.rest.transform.RoutineSessionResourceFromEntityAssembler;
 import com.spottrack.platform.routine.interfaces.rest.transform.StartRoutineCommandFromResourceAssembler;
@@ -198,6 +200,46 @@ public class RoutineSessionsController {
         var ownershipError = checkOwnership(session.get().getClientId().clientId(), clientId, routineSessionId.toString());
         if (ownershipError.isPresent()) return ownershipError.get();
         var command = new MarkRoutineMissedCommand(routineSessionId);
+        var result = routineSessionCommandService.handle(command);
+        return ResponseEntityAssembler.toResponseEntityFromResult(
+                result,
+                RoutineSessionResourceFromEntityAssembler::toResourceFromEntity,
+                HttpStatus.OK
+        );
+    }
+
+    @PatchMapping("/{routineSessionId}/exercise-blocks/{exerciseBlockId}")
+    @Operation(summary = "Mark an exercise block as completed or not", description = "Sets the completion state of an exercise block for this routine session. Returns 403 if the session does not belong to the authenticated client.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Completion state updated successfully",
+                    content = @Content(schema = @Schema(implementation = RoutineSessionResource.class))),
+            @ApiResponse(responseCode = "400", description = "Exercise block does not belong to this routine"),
+            @ApiResponse(responseCode = "403", description = "Access denied"),
+            @ApiResponse(responseCode = "404", description = "Routine session not found")
+    })
+    public ResponseEntity<?> setExerciseBlockCompletion(
+            Authentication authentication,
+            @PathVariable
+            @Parameter(description = "Routine session unique identifier", example = "1", required = true)
+            Long routineSessionId,
+            @PathVariable
+            @Parameter(description = "Exercise block unique identifier", example = "1", required = true)
+            Long exerciseBlockId,
+            @Valid @RequestBody SetExerciseBlockCompletionResource resource
+    ) {
+        var clientId = resolveClientId(authentication);
+        if (clientId == 0L) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.notFound("Client", authentication.getName()));
+        }
+        var session = routineSessionQueryService.handle(new GetRoutineSessionByIdQuery(routineSessionId));
+        if (session.isEmpty()) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.notFound("RoutineSession", routineSessionId.toString()));
+        }
+        var ownershipError = checkOwnership(session.get().getClientId().clientId(), clientId, routineSessionId.toString());
+        if (ownershipError.isPresent()) return ownershipError.get();
+        var command = new SetExerciseBlockCompletionCommand(routineSessionId, exerciseBlockId, resource.completed());
         var result = routineSessionCommandService.handle(command);
         return ResponseEntityAssembler.toResponseEntityFromResult(
                 result,
