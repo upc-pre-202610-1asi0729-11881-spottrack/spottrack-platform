@@ -15,6 +15,7 @@ public class ActivityReport extends AbstractDomainAggregateRoot<ActivityReport> 
 
     private ActivityReportId activityReportId;
 
+    private String equipmentId;
     private Long totalUsageTime;
     private Long downtimeCost;
     private Double percentageComparison;
@@ -24,14 +25,28 @@ public class ActivityReport extends AbstractDomainAggregateRoot<ActivityReport> 
 
     public ActivityReport(RequestActivityAnalysisCommand command, ActivityReportId activityReportId) {
         this.activityReportId = activityReportId;
+        this.equipmentId = command.equipmentId();
         this.totalUsageTime = 0L;
         this.downtimeCost = 0L;
         this.percentageComparison = 0.0;
     }
 
-    public ActivityReport(Long id, ActivityReportId activityReportId, Long totalUsageTime, Long downtimeCost, Double percentageComparison) {
+    /**
+     * Used by the monitoring event listener to find-or-create a report for
+     * an equipment that has never had one before real usage data arrives.
+     */
+    public ActivityReport(String equipmentId) {
+        this.activityReportId = new ActivityReportId(java.util.concurrent.ThreadLocalRandom.current().nextLong(1, Long.MAX_VALUE));
+        this.equipmentId = equipmentId;
+        this.totalUsageTime = 0L;
+        this.downtimeCost = 0L;
+        this.percentageComparison = 0.0;
+    }
+
+    public ActivityReport(Long id, ActivityReportId activityReportId, String equipmentId, Long totalUsageTime, Long downtimeCost, Double percentageComparison) {
         this.id = id;
         this.activityReportId = activityReportId;
+        this.equipmentId = equipmentId;
         this.totalUsageTime = totalUsageTime;
         this.downtimeCost = downtimeCost;
         this.percentageComparison = percentageComparison;
