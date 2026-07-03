@@ -7,6 +7,7 @@ import com.spottrack.platform.membership.domain.model.commands.UpgradeMembership
 import com.spottrack.platform.membership.domain.model.events.GymMembershipActivatedEvent;
 import com.spottrack.platform.membership.domain.model.events.GymMembershipRenewedEvent;
 import com.spottrack.platform.membership.domain.model.events.MembershipCancellationRequestedEvent;
+import com.spottrack.platform.membership.domain.model.events.MembershipCancellationUndoneEvent;
 import com.spottrack.platform.membership.domain.model.events.MembershipCancelledEvent;
 import com.spottrack.platform.membership.domain.model.events.MembershipCreatedEvent;
 import com.spottrack.platform.membership.domain.model.events.MembershipDowngradeRequestedEvent;
@@ -95,6 +96,17 @@ public class Membership extends AbstractDomainAggregateRoot<Membership> {
         this.cancelAtPeriodEnd = true;
         this.pendingDowngradeTier = null;
         registerDomainEvent(MembershipCancellationRequestedEvent.from(this));
+    }
+
+    public void undoCancellation() {
+        if (this.status != MembershipStatus.ACTIVE) {
+            throw new IllegalStateException("membership.error.undoCancellation.notActive");
+        }
+        if (!this.cancelAtPeriodEnd) {
+            throw new IllegalStateException("membership.error.undoCancellation.notScheduled");
+        }
+        this.cancelAtPeriodEnd = false;
+        registerDomainEvent(MembershipCancellationUndoneEvent.from(this));
     }
 
     public void completeCancellation() {

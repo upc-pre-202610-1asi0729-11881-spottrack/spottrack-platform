@@ -8,6 +8,7 @@ import com.spottrack.platform.membership.domain.model.commands.CreateMembershipC
 import com.spottrack.platform.membership.domain.model.commands.RenewMembershipCommand;
 import com.spottrack.platform.membership.domain.model.commands.RequestDowngradePlanCommand;
 import com.spottrack.platform.membership.domain.model.commands.SuspendMembershipCommand;
+import com.spottrack.platform.membership.domain.model.commands.UndoCancellationCommand;
 import com.spottrack.platform.membership.domain.model.commands.UpgradeMembershipPlanCommand;
 import com.spottrack.platform.membership.domain.repositories.MembershipRepository;
 import com.spottrack.platform.shared.application.result.ApplicationError;
@@ -55,6 +56,23 @@ public class MembershipCommandServiceImpl implements MembershipCommandService {
             return Result.failure(ApplicationError.businessRuleViolation("Membership.cancel", e.getMessage()));
         } catch (Exception e) {
             return Result.failure(ApplicationError.unexpected("Membership cancellation", e.getMessage()));
+        }
+    }
+
+    @Override
+    public Result<Membership, ApplicationError> handle(UndoCancellationCommand command) {
+        try {
+            var membership = membershipRepository.findByMembershipId(command.membershipId());
+            if (membership.isEmpty()) {
+                return Result.failure(ApplicationError.notFound("Membership", command.membershipId().uuid().toString()));
+            }
+            membership.get().undoCancellation();
+            var saved = membershipRepository.save(membership.get());
+            return Result.success(saved);
+        } catch (IllegalStateException e) {
+            return Result.failure(ApplicationError.businessRuleViolation("Membership.undoCancellation", e.getMessage()));
+        } catch (Exception e) {
+            return Result.failure(ApplicationError.unexpected("Membership undo cancellation", e.getMessage()));
         }
     }
 
