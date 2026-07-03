@@ -10,10 +10,12 @@ import com.spottrack.platform.membership.domain.model.commands.InitiateUpgradePa
 import com.spottrack.platform.membership.domain.model.commands.RequestDowngradePlanCommand;
 import com.spottrack.platform.membership.domain.model.queries.GetMembershipByIdQuery;
 import com.spottrack.platform.membership.domain.model.queries.GetMembershipsByClientIdQuery;
+import com.spottrack.platform.membership.domain.model.queries.GetPrimaryMembershipByClientIdQuery;
 import com.spottrack.platform.membership.domain.model.valueobjects.MembershipId;
 import com.spottrack.platform.membership.domain.model.valueobjects.MembershipStatus;
 import com.spottrack.platform.membership.domain.model.valueobjects.MembershipTier;
 import com.spottrack.platform.membership.interfaces.rest.resources.CreateMembershipResource;
+import com.spottrack.platform.membership.interfaces.rest.resources.MembershipResource;
 import com.spottrack.platform.membership.interfaces.rest.resources.DowngradeMembershipPlanResource;
 import com.spottrack.platform.membership.interfaces.rest.resources.ResubscribeMembershipResource;
 import com.spottrack.platform.membership.interfaces.rest.resources.UpgradeMembershipPlanResource;
@@ -64,6 +66,20 @@ public class MembershipController {
                 MembershipResourceFromEntityAssembler::toResourceFromEntity,
                 HttpStatus.CREATED
         );
+    }
+
+    @GetMapping("/me")
+    @Schema(description = "Get the primary membership of the authenticated admin")
+    public ResponseEntity<?> getMyMembership(Authentication authentication) {
+        var clientId = resolveClientId(authentication);
+        if (clientId == 0L) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.notFound("Client", authentication.getName()));
+        }
+        return membershipQueryService.handle(new GetPrimaryMembershipByClientIdQuery(clientId))
+                .<ResponseEntity<?>>map(m -> ResponseEntity.ok(MembershipResourceFromEntityAssembler.toResourceFromEntity(m)))
+                .orElseGet(() -> ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                        ApplicationError.notFound("Membership", "clientId:" + clientId)));
     }
 
     @PatchMapping("/{membershipId}/cancel")
