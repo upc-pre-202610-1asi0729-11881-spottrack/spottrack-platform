@@ -8,4 +8,5 @@ import java.util.Optional;
 public interface ZonePersistenceRepository extends JpaRepository<ZonePersistenceEntity, Long> {
     Optional<ZonePersistenceEntity> findByZoneId(String zoneId);
     Optional<ZonePersistenceEntity> findByName(String zoneName);
+    List<ZonePersistenceEntity> findByBranchId(String branchId);
 }
