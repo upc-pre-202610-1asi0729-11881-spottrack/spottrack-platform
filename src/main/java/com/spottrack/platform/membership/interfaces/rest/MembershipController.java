@@ -4,6 +4,7 @@ import com.spottrack.platform.membership.application.commandservices.MembershipC
 import com.spottrack.platform.membership.application.commandservices.PaymentCommandService;
 import com.spottrack.platform.membership.application.queryservices.MembershipQueryService;
 import com.spottrack.platform.membership.domain.model.commands.CancelMembershipCommand;
+import com.spottrack.platform.membership.domain.model.commands.UndoCancellationCommand;
 import com.spottrack.platform.membership.domain.model.commands.InitiateDebtPaymentCommand;
 import com.spottrack.platform.membership.domain.model.commands.InitiateResubscriptionPaymentCommand;
 import com.spottrack.platform.membership.domain.model.commands.InitiateUpgradePaymentCommand;
@@ -101,6 +102,32 @@ public class MembershipController {
         var ownershipError = checkOwnership(membership.get().getClientId(), clientId, membershipId.toString());
         if (ownershipError.isPresent()) return ownershipError.get();
         var command = new CancelMembershipCommand(new MembershipId(membershipId));
+        var result = membershipCommandService.handle(command);
+        return ResponseEntityAssembler.toResponseEntityFromResult(
+                result,
+                MembershipResourceFromEntityAssembler::toResourceFromEntity,
+                HttpStatus.OK
+        );
+    }
+
+    @PatchMapping("/{membershipId}/undo-cancel")
+    @Schema(description = "Undo a scheduled cancellation for an active membership with cancelAtPeriodEnd=true")
+    public ResponseEntity<?> undoCancelMembership(
+            Authentication authentication,
+            @PathVariable UUID membershipId) {
+        var clientId = resolveClientId(authentication);
+        if (clientId == 0L) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.notFound("Client", authentication.getName()));
+        }
+        var membership = membershipQueryService.handle(new GetMembershipByIdQuery(new MembershipId(membershipId)));
+        if (membership.isEmpty()) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.notFound("Membership", membershipId.toString()));
+        }
+        var ownershipError = checkOwnership(membership.get().getClientId(), clientId, membershipId.toString());
+        if (ownershipError.isPresent()) return ownershipError.get();
+        var command = new UndoCancellationCommand(new MembershipId(membershipId));
         var result = membershipCommandService.handle(command);
         return ResponseEntityAssembler.toResponseEntityFromResult(
                 result,
