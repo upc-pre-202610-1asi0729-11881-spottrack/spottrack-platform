@@ -20,4 +20,12 @@ public enum MembershipTier {
     public Money toMoney() {
         return new Money(price, CURRENCY);
     }
+
+    public int maxBranches() {
+        return switch (this) {
+            case BASIC -> 1;
+            case MID -> 3;
+            case PLATINUM -> Integer.MAX_VALUE;
+        };
+    }
 }
