@@ -17,11 +17,11 @@ import org.springframework.transaction.event.TransactionalEventListener;
  * notification hook owned by another team (not consumed in this codebase).
  */
 @Component
-public class MaintenanceThresholdReachedEventHandler {
+public class MaintenanceThresholdReachedPolicy {
 
     private final ApplicationEventPublisher eventPublisher;
 
-    public MaintenanceThresholdReachedEventHandler(ApplicationEventPublisher eventPublisher) {
+    public MaintenanceThresholdReachedPolicy(ApplicationEventPublisher eventPublisher) {
         this.eventPublisher = eventPublisher;
     }
 
