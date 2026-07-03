@@ -16,6 +16,9 @@ public record AdminResource(
         String fullName,
 
         @Schema(description = "Admin email address", example = "john.smith@example.com")
-        String email
+        String email,
+
+        @Schema(description = "Admin phone number, null if the profile is incomplete", example = "123456789")
+        String phoneNumber
 ) {
 }
