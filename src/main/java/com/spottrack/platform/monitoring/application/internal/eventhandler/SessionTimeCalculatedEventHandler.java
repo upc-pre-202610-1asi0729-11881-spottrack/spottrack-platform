@@ -38,6 +38,7 @@ public class SessionTimeCalculatedEventHandler {
                 event.sessionTrackerId().uuid());
         eventPublisher.publishEvent(new SessionTimeCalculatedAnalyticsIntegrationEvent(
                 event.sessionTrackerId().uuid(),
+                event.equipmentId().uuid(),
                 event.trueActivity()
         ));
         sessionTrackerCommandService.handle(new DeleteSessionTrackerCommand(event.sessionTrackerId()));

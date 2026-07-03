@@ -22,6 +22,9 @@ public class ActivityReportPersistenceEntity extends AuditableAbstractPersistenc
     @Column(nullable = false, unique = true)
     private ActivityReportId activityReportId;
 
+    @Column(nullable = true)
+    private String equipmentId;
+
     @Column(nullable = false)
     private Long totalUsageTime;
 
