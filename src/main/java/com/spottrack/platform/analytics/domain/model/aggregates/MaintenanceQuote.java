@@ -14,6 +14,7 @@ public class MaintenanceQuote extends AbstractDomainAggregateRoot<MaintenanceQuo
 
     private MaintenanceQuoteId maintenanceQuoteId;
 
+    private String equipmentId;
     private Double correctiveActionsCost;
     private Double sparePartsCost;
     private Double preventiveCost;
@@ -22,18 +23,20 @@ public class MaintenanceQuote extends AbstractDomainAggregateRoot<MaintenanceQuo
     public MaintenanceQuote() {
     }
 
-    public MaintenanceQuote(MaintenanceQuoteId maintenanceQuoteId) {
+    public MaintenanceQuote(MaintenanceQuoteId maintenanceQuoteId, String equipmentId) {
         this.maintenanceQuoteId = maintenanceQuoteId;
+        this.equipmentId = equipmentId;
         this.correctiveActionsCost = 0.0;
         this.sparePartsCost = 0.0;
         this.preventiveCost = 0.0;
         this.totalMaintenanceCost = 0.0;
     }
 
-    public MaintenanceQuote(Long id, MaintenanceQuoteId maintenanceQuoteId, Double correctiveActionsCost,
+    public MaintenanceQuote(Long id, MaintenanceQuoteId maintenanceQuoteId, String equipmentId, Double correctiveActionsCost,
                              Double sparePartsCost, Double preventiveCost, Double totalMaintenanceCost) {
         this.id = id;
         this.maintenanceQuoteId = maintenanceQuoteId;
+        this.equipmentId = equipmentId;
         this.correctiveActionsCost = correctiveActionsCost;
         this.sparePartsCost = sparePartsCost;
         this.preventiveCost = preventiveCost;

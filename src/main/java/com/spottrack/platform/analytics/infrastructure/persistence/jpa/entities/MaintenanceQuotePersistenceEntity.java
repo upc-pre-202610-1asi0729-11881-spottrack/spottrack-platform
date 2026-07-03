@@ -22,6 +22,9 @@ public class MaintenanceQuotePersistenceEntity extends AuditableAbstractPersiste
     @Column(nullable = false, unique = true)
     private MaintenanceQuoteId maintenanceQuoteId;
 
+    @Column(nullable = true)
+    private String equipmentId;
+
     @Column(nullable = false)
     private Double correctiveActionsCost;
 

@@ -26,7 +26,7 @@ public class MaintenanceQuoteCommandServiceImpl implements MaintenanceQuoteComma
     public Optional<MaintenanceQuote> handle(RequestADetailedMaintenanceQuoteCommand command) {
         var maintenanceQuoteId = new MaintenanceQuoteId(
             ThreadLocalRandom.current().nextLong(1, Long.MAX_VALUE));
-        var maintenanceQuote = new MaintenanceQuote(maintenanceQuoteId);
+        var maintenanceQuote = new MaintenanceQuote(maintenanceQuoteId, command.equipmentId());
         maintenanceQuote.updateCorrectiveActionsCost(command.amount());
         this.maintenanceQuoteRepository.save(maintenanceQuote);
         return Optional.of(maintenanceQuote);
