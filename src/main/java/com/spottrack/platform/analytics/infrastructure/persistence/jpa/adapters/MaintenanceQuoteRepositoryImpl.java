@@ -7,6 +7,7 @@ import com.spottrack.platform.analytics.infrastructure.persistence.jpa.assembler
 import com.spottrack.platform.analytics.infrastructure.persistence.jpa.repositories.JpaMaintenanceQuoteRepository;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Repository;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -34,5 +35,18 @@ public class MaintenanceQuoteRepositoryImpl implements MaintenanceQuoteRepositor
     public Optional<MaintenanceQuote> findByMaintenanceQuoteId(MaintenanceQuoteId maintenanceQuoteId) {
         return this.jpaMaintenanceQuoteRepository.findByMaintenanceQuoteId(maintenanceQuoteId)
                 .map(MaintenanceQuotePersistenceAssembler::toDomainFromPersistence);
+    }
+
+    @Override
+    public Optional<MaintenanceQuote> findById(Long id) {
+        return this.jpaMaintenanceQuoteRepository.findById(id)
+                .map(MaintenanceQuotePersistenceAssembler::toDomainFromPersistence);
+    }
+
+    @Override
+    public List<MaintenanceQuote> findAll() {
+        return this.jpaMaintenanceQuoteRepository.findAll().stream()
+                .map(MaintenanceQuotePersistenceAssembler::toDomainFromPersistence)
+                .toList();
     }
 }
