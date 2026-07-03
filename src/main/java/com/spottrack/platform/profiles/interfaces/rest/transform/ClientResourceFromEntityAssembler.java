@@ -6,9 +6,13 @@ import com.spottrack.platform.profiles.interfaces.rest.resources.ClientResource;
 public class ClientResourceFromEntityAssembler {
 
     public static ClientResource toResourceFromEntity(Client entity) {
+        var phoneNumber = entity.getPersonInfo() != null
+                ? entity.getPersonInfo().phoneNumber().phoneNumber()
+                : null;
         return new ClientResource(
                 entity.getId(),
                 entity.getFullName(),
-                entity.getEmailAddress());
+                entity.getEmailAddress(),
+                phoneNumber);
     }
 }

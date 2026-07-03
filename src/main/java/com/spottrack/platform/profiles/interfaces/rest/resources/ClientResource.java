@@ -16,6 +16,9 @@ public record ClientResource(
         String fullName,
 
         @Schema(description = "Client email address", example = "jane.doe@example.com")
-        String email
+        String email,
+
+        @Schema(description = "Client phone number, null if the profile is incomplete", example = "987654321")
+        String phoneNumber
 ) {
 }
