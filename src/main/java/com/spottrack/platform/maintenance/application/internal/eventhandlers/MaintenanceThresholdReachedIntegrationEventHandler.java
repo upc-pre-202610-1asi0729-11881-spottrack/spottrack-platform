@@ -9,9 +9,9 @@ import org.springframework.stereotype.Component;
 
 /**
  * Consumes gym's [Threshold reached?] Emit Maintenance Request integration event
- * and auto-opens a RequestMaintenance, which in turn (via
- * MaintenanceRequestedEventHandler) opens a TechnicalTicket and marks the
- * equipment out of service.
+ * and auto-opens a RequestMaintenance. This only records that the equipment
+ * needs maintenance — an admin still has to manually create the
+ * TechnicalTicket that actually drives the work.
  */
 @Component
 public class MaintenanceThresholdReachedIntegrationEventHandler {

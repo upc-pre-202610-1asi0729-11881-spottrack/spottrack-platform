@@ -39,6 +39,8 @@ import com.spottrack.platform.iam.domain.repositories.UserRepository;
 import com.spottrack.platform.maintenance.application.commandServices.MaintenanceCommandService;
 import com.spottrack.platform.maintenance.domain.model.commands.CreateTechnicalTicketCommand;
 import com.spottrack.platform.maintenance.domain.model.commands.RegisterMaintenanceCompletion;
+import com.spottrack.platform.maintenance.domain.model.commands.RequestMaintenance;
+import com.spottrack.platform.maintenance.domain.model.valueobjects.EquipmentId;
 import com.spottrack.platform.maintenance.domain.model.valueobjects.MaintenanceId;
 import com.spottrack.platform.maintenance.domain.model.valueobjects.TechnicalTicketId;
 import com.spottrack.platform.maintenance.domain.model.valueobjects.TicketPriority;
@@ -408,9 +410,16 @@ public class DevDataSeeder {
             log.info("[DevDataSeeder] Maintenance ticket already exists for equipment {}, skipping.", equipmentId);
             return;
         }
+        var maintenanceResult = maintenanceCommandService.handle(new RequestMaintenance(
+                new EquipmentId(equipmentId), "SYSTEM", "Rutina de mantenimiento preventivo"));
+        if (maintenanceResult instanceof Result.Failure<?, ?> f) {
+            log.error("[DevDataSeeder] Failed to request maintenance: {}", f.error());
+            return;
+        }
+        var maintenanceId = ((Result.Success<com.spottrack.platform.maintenance.domain.model.aggregates.Maintenance, ?>) maintenanceResult).value().getId().uuid();
+
         var ticketResult = maintenanceCommandService.handle(new CreateTechnicalTicketCommand(
-                equipmentId,
-                "Rutina de mantenimiento preventivo",
+                maintenanceId,
                 TicketPriority.LOW,
                 TicketType.PREVENTIVE
         ));

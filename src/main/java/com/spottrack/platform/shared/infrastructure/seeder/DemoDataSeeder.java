@@ -23,6 +23,8 @@ import com.spottrack.platform.iam.domain.repositories.RoleRepository;
 import com.spottrack.platform.iam.domain.repositories.UserRepository;
 import com.spottrack.platform.maintenance.application.commandServices.MaintenanceCommandService;
 import com.spottrack.platform.maintenance.domain.model.commands.CreateTechnicalTicketCommand;
+import com.spottrack.platform.maintenance.domain.model.commands.RequestMaintenance;
+import com.spottrack.platform.maintenance.domain.model.valueobjects.EquipmentId;
 import com.spottrack.platform.maintenance.domain.model.valueobjects.TicketPriority;
 import com.spottrack.platform.maintenance.domain.model.valueobjects.TicketType;
 import com.spottrack.platform.maintenance.infrastructure.persistence.jpa.repositories.TechnicalTicketJpaRepository;
@@ -460,9 +462,17 @@ public class DemoDataSeeder {
             log.info("[DemoDataSeeder] Maintenance ticket already exists for equipment {}, skipping.", outOfServiceEquipmentId);
             return;
         }
+        var maintenanceResult = maintenanceCommandService.handle(new RequestMaintenance(
+                new EquipmentId(outOfServiceEquipmentId), "SYSTEM",
+                "Mantenimiento correctivo requerido — fallo detectado en sistema de freno."));
+        if (maintenanceResult instanceof Result.Failure<?, ?> f) {
+            log.error("[DemoDataSeeder] Failed to request maintenance: {}", f.error());
+            return;
+        }
+        var maintenanceId = ((Result.Success<com.spottrack.platform.maintenance.domain.model.aggregates.Maintenance, ?>) maintenanceResult).value().getId().uuid();
+
         var result = maintenanceCommandService.handle(new CreateTechnicalTicketCommand(
-                outOfServiceEquipmentId,
-                "Mantenimiento correctivo requerido — fallo detectado en sistema de freno.",
+                maintenanceId,
                 TicketPriority.HIGH,
                 TicketType.CORRECTIVE
         ));

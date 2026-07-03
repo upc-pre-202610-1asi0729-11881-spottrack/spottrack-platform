@@ -1,8 +1,7 @@
 package com.spottrack.platform.maintenance.interfaces.rest.resources;
 
 public record CreateTechnicalTicketResource(
-        String equipmentId,
-        String description,
+        String maintenanceId,
         String priority,
         String type
 ) {}
