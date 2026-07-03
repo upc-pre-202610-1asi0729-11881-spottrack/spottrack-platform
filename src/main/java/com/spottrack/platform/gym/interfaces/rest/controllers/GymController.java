@@ -13,6 +13,7 @@ import com.spottrack.platform.gym.domain.model.queries.GetBranchesByGymIdQuery;
 import com.spottrack.platform.gym.domain.model.queries.GetGymById;
 import com.spottrack.platform.gym.domain.model.queries.GetGymsByAdminUserId;
 import com.spottrack.platform.gym.domain.model.queries.GetWhitelistByGymIdQuery;
+import com.spottrack.platform.gym.domain.model.queries.GetZonesByGymIdQuery;
 import com.spottrack.platform.gym.domain.model.valueobjects.Dni;
 import com.spottrack.platform.gym.domain.model.valueobjects.GymId;
 import com.spottrack.platform.gym.interfaces.rest.resources.AddBranchResource;
@@ -21,6 +22,7 @@ import com.spottrack.platform.gym.interfaces.rest.resources.AddZoneResource;
 import com.spottrack.platform.gym.interfaces.rest.resources.CreateGymResource;
 import com.spottrack.platform.gym.interfaces.rest.resources.GymSummaryResource;
 import com.spottrack.platform.gym.interfaces.rest.resources.WhitelistEntryResource;
+import com.spottrack.platform.gym.interfaces.rest.resources.ZoneResource;
 import com.spottrack.platform.gym.interfaces.rest.transform.*;
 import com.spottrack.platform.iam.interfaces.acl.IamContextFacade;
 import com.spottrack.platform.shared.application.result.ApplicationError;
@@ -131,6 +133,24 @@ public class GymController {
         var branches = gymQueryService.handle(new GetBranchesByGymIdQuery(gymId));
         var resources = branches.stream()
                 .map(BranchResourceFromEntityAssembler::toResourceFromEntity).toList();
+        return ResponseEntity.ok(resources);
+    }
+
+    @GetMapping("/{gymId}/zones")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getZonesByGymId(Authentication authentication,
+                                              @PathVariable String gymId) {
+        var adminUserId = resolveAdminUserId(authentication);
+        if (adminUserId == 0L) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.notFound("Admin", authentication.getName()));
+        }
+        var ownershipError = checkOwnership(gymId, adminUserId);
+        if (ownershipError.isPresent()) return ownershipError.get();
+        var zones = gymQueryService.handle(new GetZonesByGymIdQuery(gymId));
+        List<ZoneResource> resources = zones.stream()
+                .map(ZoneResourceFromEntityAssembler::toResourceFromEntity)
+                .toList();
         return ResponseEntity.ok(resources);
     }
 

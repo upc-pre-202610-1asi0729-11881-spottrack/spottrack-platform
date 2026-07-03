@@ -10,4 +10,5 @@ public interface ZonePersistenceRepository extends JpaRepository<ZonePersistence
     Optional<ZonePersistenceEntity> findByZoneId(String zoneId);
     Optional<ZonePersistenceEntity> findByName(String zoneName);
     List<ZonePersistenceEntity> findByBranchId(String branchId);
+    List<ZonePersistenceEntity> findByBranchIdIn(List<String> branchIds);
 }
