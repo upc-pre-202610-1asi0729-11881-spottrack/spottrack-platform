@@ -3,6 +3,7 @@ package com.spottrack.platform.routine.interfaces.rest.resources;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.Date;
+import java.util.List;
 
 @Schema(
         name = "RoutineSessionResponse",
@@ -23,5 +24,8 @@ public record RoutineSessionResource(
         String status,
 
         @Schema(description = "Session start timestamp")
-        Date startedAt
+        Date startedAt,
+
+        @Schema(description = "IDs of the exercise blocks marked as completed in this session")
+        List<Long> completedExerciseBlockIds
 ) {}
