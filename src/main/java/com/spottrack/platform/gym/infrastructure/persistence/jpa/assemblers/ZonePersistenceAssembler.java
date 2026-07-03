@@ -11,7 +11,7 @@ public class ZonePersistenceAssembler {
 
     public static Zone toDomainFromPersistence(ZonePersistenceEntity entity) {
         var branchId = new BranchId(entity.getBranchId());
-        return new Zone(entity.getName(), entity.getMaximumOccupancy(), branchId);
+        return new Zone(entity.getZoneId(), entity.getName(), entity.getMaximumOccupancy(), branchId);
     }
 
     public static ZonePersistenceEntity toPersistenceFromDomain(Zone entity) {
