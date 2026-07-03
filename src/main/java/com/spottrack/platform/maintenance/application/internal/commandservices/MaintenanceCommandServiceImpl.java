@@ -8,6 +8,7 @@ import com.spottrack.platform.maintenance.domain.model.aggregates.TechnicalTicke
 import com.spottrack.platform.maintenance.domain.model.commands.AcceptMaintenance;
 import com.spottrack.platform.maintenance.domain.model.commands.AssignTechnicalTicket;
 import com.spottrack.platform.maintenance.domain.model.commands.CompleteMaintenance;
+import com.spottrack.platform.maintenance.domain.model.commands.CreateMaintenanceJob;
 import com.spottrack.platform.maintenance.domain.model.commands.CreateTechnicalTicketCommand;
 import com.spottrack.platform.maintenance.domain.model.commands.CreateTechnicalTicketForMaintenance;
 import com.spottrack.platform.maintenance.domain.model.commands.DecommissionEquipment;
@@ -117,6 +118,14 @@ public class MaintenanceCommandServiceImpl implements MaintenanceCommandService 
         var ticket = found.get();
         ticket.assign(command);
         var saved = technicalTicketRepository.save(ticket);
+        return Result.success(saved);
+    }
+
+    @Transactional
+    @Override
+    public Result<MaintenanceJob, ApplicationError> handle(CreateMaintenanceJob command) {
+        var job = new MaintenanceJob(command.maintenanceId());
+        var saved = maintenanceJobRepository.save(job);
         return Result.success(saved);
     }
 
