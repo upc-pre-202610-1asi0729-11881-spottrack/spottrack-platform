@@ -34,8 +34,8 @@ public class Routine extends AbstractDomainAggregateRoot<Routine> {
         this(null, command.routineName(), command.clientId(), new ArrayList<>());
     }
 
-    public void addExerciseBlock(ExerciseName exerciseName, ExerciseType exerciseType, int order) {
-        var block = new ExerciseBlock(null, exerciseName, exerciseType, order);
+    public void addExerciseBlock(ExerciseName exerciseName, ExerciseType exerciseType, int order, int sets, int reps) {
+        var block = new ExerciseBlock(null, exerciseName, exerciseType, order, sets, reps);
         this.exerciseBlocks.add(block);
         registerDomainEvent(ExerciseBlockAddedEvent.from(this, block));
     }
