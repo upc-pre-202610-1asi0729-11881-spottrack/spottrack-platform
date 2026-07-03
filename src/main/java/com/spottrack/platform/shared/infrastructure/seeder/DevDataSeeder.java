@@ -175,7 +175,7 @@ public class DevDataSeeder {
         seedWhitelist(gymSeed.gymId());
         seedClientUser(gymSeed.gymId());
         seedActivityReport(gymSeed.equipmentId());
-        seedMaintenanceQuote();
+        seedMaintenanceQuote(gymSeed.equipmentId());
         seedRoiProjection();
         seedMaintenanceLog(gymSeed.equipmentId());
 
@@ -366,13 +366,13 @@ public class DevDataSeeder {
         log.info("[DevDataSeeder] Activity report seeded for equipment {}.", equipmentId);
     }
 
-    private void seedMaintenanceQuote() {
+    private void seedMaintenanceQuote(String equipmentId) {
         if (!maintenanceQuoteQueryService.handle(new GetAllMaintenanceQuotesQuery()).isEmpty()) {
             log.info("[DevDataSeeder] Maintenance quote already seeded, skipping.");
             return;
         }
         var quoteResult = maintenanceQuoteCommandService.handle(new RequestADetailedMaintenanceQuoteCommand(
-                120.0, "USD", "CORRECTIVE", "n/a", 1, 0.0));
+                equipmentId, 120.0, "USD", "CORRECTIVE", "n/a", 1, 0.0));
         if (quoteResult.isEmpty()) {
             log.warn("[DevDataSeeder] Failed to seed maintenance quote.");
             return;
