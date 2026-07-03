@@ -14,7 +14,6 @@ import com.spottrack.platform.maintenance.domain.model.aggregates.Technician;
 import com.spottrack.platform.maintenance.domain.model.commands.AcceptMaintenance;
 import com.spottrack.platform.maintenance.domain.model.commands.AssignTechnicalTicket;
 import com.spottrack.platform.maintenance.domain.model.commands.CompleteMaintenance;
-import com.spottrack.platform.maintenance.domain.model.commands.DecommissionEquipment;
 import com.spottrack.platform.maintenance.domain.model.commands.RecommendEquipmentTransfer;
 import com.spottrack.platform.maintenance.domain.model.commands.RegisterMaintenanceCompletion;
 import com.spottrack.platform.maintenance.domain.model.commands.RequestUpdateMaintenanceStatus;
@@ -364,28 +363,6 @@ public class MaintenanceController {
                     ResponseEntity.ok(TechnicalTicketResourceFromEntityAssembler.toResourceFromEntity(s.value()));
             case Result.Failure<TechnicalTicket, ApplicationError> f ->
                     ResponseEntity.status(HttpStatus.NOT_FOUND).body(f.error());
-        };
-    }
-
-    @DeleteMapping("/equipment/{equipmentId}/decommission")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> decommissionEquipment(Authentication authentication,
-                                                   @PathVariable String equipmentId,
-                                                   @RequestBody DecommissionEquipmentResource resource) {
-        var adminUserId = resolveAdminUserId(authentication);
-        if (adminUserId == 0L) {
-            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
-                    ApplicationError.notFound("Admin", authentication.getName()));
-        }
-        var ownershipError = checkEquipmentOwnership(equipmentId, adminUserId);
-        if (ownershipError.isPresent()) return ownershipError.get();
-        var command = new DecommissionEquipment(equipmentId);
-        var result = commandService.handle(command);
-        return switch (result) {
-            case Result.Success<String, ApplicationError> s ->
-                    ResponseEntity.ok().build();
-            case Result.Failure<String, ApplicationError> f ->
-                    ResponseEntity.badRequest().body(f.error());
         };
     }
 
