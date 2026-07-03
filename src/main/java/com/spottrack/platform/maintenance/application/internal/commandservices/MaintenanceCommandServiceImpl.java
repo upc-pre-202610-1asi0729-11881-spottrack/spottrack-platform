@@ -140,6 +140,8 @@ public class MaintenanceCommandServiceImpl implements MaintenanceCommandService 
             return Result.success(saved);
         } catch (IllegalArgumentException e) {
             return Result.failure(ApplicationError.validationError("Technician", e.getMessage()));
+        } catch (Exception e) {
+            return Result.failure(ApplicationError.unexpected("Technician creation", e.getMessage()));
         }
     }
 

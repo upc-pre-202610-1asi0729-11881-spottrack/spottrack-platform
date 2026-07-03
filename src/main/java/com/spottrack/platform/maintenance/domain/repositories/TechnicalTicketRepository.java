@@ -7,5 +7,6 @@ import java.util.Optional;
 
 public interface TechnicalTicketRepository {
     Optional<TechnicalTicket> findById(TechnicalTicketId id);
+    Optional<TechnicalTicket> findByMaintenanceId(String maintenanceId);
     TechnicalTicket save(TechnicalTicket ticket);
 }
