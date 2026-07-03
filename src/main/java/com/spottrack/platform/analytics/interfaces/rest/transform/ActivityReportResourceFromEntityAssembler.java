@@ -9,6 +9,7 @@ public class ActivityReportResourceFromEntityAssembler {
         return new ActivityReportResource(
                 entity.getId(),
                 entity.getActivityReportId() != null ? entity.getActivityReportId().value() : null,
+                entity.getEquipmentId(),
                 entity.getTotalUsageTime(),
                 entity.getDowntimeCost(),
                 entity.getPercentageComparison()
