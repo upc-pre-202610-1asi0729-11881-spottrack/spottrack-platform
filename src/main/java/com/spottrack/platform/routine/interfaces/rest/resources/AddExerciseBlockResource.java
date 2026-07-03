@@ -8,7 +8,7 @@ import jakarta.validation.constraints.NotNull;
 @Schema(
         name = "AddExerciseBlockRequest",
         description = "Request payload for adding an exercise block to a routine",
-        example = "{\"routineId\": 1, \"exerciseName\": \"Push-up\", \"exerciseType\": \"STRENGTH\", \"order\": 1}"
+        example = "{\"routineId\": 1, \"exerciseName\": \"Push-up\", \"exerciseType\": \"STRENGTH\", \"order\": 1, \"sets\": 3, \"reps\": 12}"
 )
 public record AddExerciseBlockResource(
 
@@ -26,6 +26,12 @@ public record AddExerciseBlockResource(
 
         @NotNull
         @Schema(description = "Order of the exercise block within the routine", example = "1")
-        int order
+        int order,
+
+        @Schema(description = "Number of sets prescribed for this exercise", example = "3")
+        int sets,
+
+        @Schema(description = "Number of repetitions per set prescribed for this exercise", example = "12")
+        int reps
 ) {
 }

@@ -441,9 +441,9 @@ public class DemoDataSeeder {
         var routine = ((Result.Success<com.spottrack.platform.routine.domain.model.aggregates.Routine, ?>) routineResult).value();
         var routineId = routine.getId();
 
-        routineCommandService.handle(new AddExerciseBlockCommand(routineId, new ExerciseName("Carrera en cinta"),  ExerciseType.CARDIO,      1));
-        routineCommandService.handle(new AddExerciseBlockCommand(routineId, new ExerciseName("Sentadillas"),       ExerciseType.STRENGTH,    2));
-        routineCommandService.handle(new AddExerciseBlockCommand(routineId, new ExerciseName("Estiramientos"),     ExerciseType.FLEXIBILITY, 3));
+        routineCommandService.handle(new AddExerciseBlockCommand(routineId, new ExerciseName("Carrera en cinta"),  ExerciseType.CARDIO,      1, 1, 10));
+        routineCommandService.handle(new AddExerciseBlockCommand(routineId, new ExerciseName("Sentadillas"),       ExerciseType.STRENGTH,    2, 3, 12));
+        routineCommandService.handle(new AddExerciseBlockCommand(routineId, new ExerciseName("Estiramientos"),     ExerciseType.FLEXIBILITY, 3, 1, 1));
         log.info("[DemoDataSeeder] Routine 'Rutina de Iniciación' created with 3 exercise blocks, routineId={}.", routineId);
     }
 

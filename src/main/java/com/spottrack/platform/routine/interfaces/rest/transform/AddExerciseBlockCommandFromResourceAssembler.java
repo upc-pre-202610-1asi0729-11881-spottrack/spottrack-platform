@@ -11,6 +11,8 @@ public class AddExerciseBlockCommandFromResourceAssembler {
                 resource.routineId(),
                 new ExerciseName(resource.exerciseName()),
                 resource.exerciseType(),
-                resource.order());
+                resource.order(),
+                resource.sets(),
+                resource.reps());
     }
 }

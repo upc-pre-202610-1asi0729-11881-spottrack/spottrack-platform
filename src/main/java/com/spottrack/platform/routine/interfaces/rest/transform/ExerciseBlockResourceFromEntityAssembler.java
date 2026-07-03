@@ -10,6 +10,8 @@ public class ExerciseBlockResourceFromEntityAssembler {
                 entity.getId(),
                 entity.getExerciseName().exerciseName(),
                 entity.getExerciseType().name(),
-                entity.getOrder());
+                entity.getOrder(),
+                entity.getSets(),
+                entity.getReps());
     }
 }
