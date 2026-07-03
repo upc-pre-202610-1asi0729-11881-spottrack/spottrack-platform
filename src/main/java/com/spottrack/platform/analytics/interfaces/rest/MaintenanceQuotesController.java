@@ -10,26 +10,37 @@ import com.spottrack.platform.analytics.domain.model.commands.RequestSparePartsC
 import com.spottrack.platform.analytics.domain.model.queries.GetAllMaintenanceQuotesQuery;
 import com.spottrack.platform.analytics.interfaces.rest.resources.MaintenanceQuoteResource;
 import com.spottrack.platform.analytics.interfaces.rest.transform.MaintenanceQuoteResourceFromEntityAssembler;
+import com.spottrack.platform.gym.interfaces.acl.GymContextFacade;
+import com.spottrack.platform.iam.interfaces.acl.IamContextFacade;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(value = "/api/v1/maintenance-quotes", produces = MediaType.APPLICATION_JSON_VALUE)
 public class MaintenanceQuotesController {
     private final MaintenanceQuoteCommandService maintenanceQuoteCommandService;
     private final MaintenanceQuoteQueryService maintenanceQuoteQueryService;
+    private final GymContextFacade gymContextFacade;
+    private final IamContextFacade iamContextFacade;
 
     public MaintenanceQuotesController(MaintenanceQuoteCommandService maintenanceQuoteCommandService,
-                                        MaintenanceQuoteQueryService maintenanceQuoteQueryService) {
+                                        MaintenanceQuoteQueryService maintenanceQuoteQueryService,
+                                        GymContextFacade gymContextFacade,
+                                        IamContextFacade iamContextFacade) {
         this.maintenanceQuoteCommandService = maintenanceQuoteCommandService;
         this.maintenanceQuoteQueryService = maintenanceQuoteQueryService;
+        this.gymContextFacade = gymContextFacade;
+        this.iamContextFacade = iamContextFacade;
     }
 
     @PostMapping
@@ -44,6 +55,20 @@ public class MaintenanceQuotesController {
     @PreAuthorize("hasRole('ADMIN')")
     public List<MaintenanceQuoteResource> getAllMaintenanceQuotes() {
         return maintenanceQuoteQueryService.handle(new GetAllMaintenanceQuotesQuery()).stream()
+                .map(MaintenanceQuoteResourceFromEntityAssembler::toResourceFromEntity)
+                .toList();
+    }
+
+    @GetMapping("/me")
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<MaintenanceQuoteResource> getMyMaintenanceQuotes(Authentication authentication) {
+        var adminUserId = iamContextFacade.fetchUserIdByUsername(authentication.getName()).orElse(0L);
+        Set<String> myEquipmentIds = gymContextFacade.findEquipmentsByAdminUserId(adminUserId).stream()
+                .map(equipment -> equipment.getId().uuid())
+                .collect(Collectors.toSet());
+
+        return maintenanceQuoteQueryService.handle(new GetAllMaintenanceQuotesQuery()).stream()
+                .filter(quote -> myEquipmentIds.contains(quote.getEquipmentId()))
                 .map(MaintenanceQuoteResourceFromEntityAssembler::toResourceFromEntity)
                 .toList();
     }

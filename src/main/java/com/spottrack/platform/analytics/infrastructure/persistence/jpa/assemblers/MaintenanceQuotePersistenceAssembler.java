@@ -13,6 +13,7 @@ public final class MaintenanceQuotePersistenceAssembler {
         return new MaintenanceQuote(
                 entity.getId(),
                 entity.getMaintenanceQuoteId(),
+                entity.getEquipmentId(),
                 entity.getCorrectiveActionsCost(),
                 entity.getSparePartsCost(),
                 entity.getPreventiveCost(),
@@ -26,6 +27,7 @@ public final class MaintenanceQuotePersistenceAssembler {
             entity.setId(maintenanceQuote.getId());
         }
         entity.setMaintenanceQuoteId(maintenanceQuote.getMaintenanceQuoteId());
+        entity.setEquipmentId(maintenanceQuote.getEquipmentId());
         entity.setCorrectiveActionsCost(maintenanceQuote.getCorrectiveActionsCost());
         entity.setSparePartsCost(maintenanceQuote.getSparePartsCost());
         entity.setPreventiveCost(maintenanceQuote.getPreventiveCost());
