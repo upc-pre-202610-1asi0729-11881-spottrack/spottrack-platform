@@ -2,17 +2,10 @@ package com.spottrack.platform.gym.interfaces.rest.controllers;
 
 import com.spottrack.platform.gym.application.commandServices.EquipmentCommandService;
 import com.spottrack.platform.gym.application.queryservices.EquipmentQueryService;
-import com.spottrack.platform.gym.application.queryservices.GymQueryService;
 import com.spottrack.platform.gym.domain.model.aggregates.Equipment;
 import com.spottrack.platform.gym.domain.model.queries.GetEquipmentById;
-import com.spottrack.platform.gym.domain.model.queries.GetGymById;
-import com.spottrack.platform.gym.domain.model.queries.GetGymsByAdminUserId;
 import com.spottrack.platform.gym.domain.model.valueobjects.EquipmentId;
-import com.spottrack.platform.gym.domain.model.valueobjects.GymId;
-import com.spottrack.platform.gym.infrastructure.persistence.jpa.assemblers.EquipmentPersistenceAssembler;
-import com.spottrack.platform.gym.infrastructure.persistence.jpa.repositories.BranchPersistenceRepository;
-import com.spottrack.platform.gym.infrastructure.persistence.jpa.repositories.EquipmentPersistenceRepository;
-import com.spottrack.platform.gym.infrastructure.persistence.jpa.repositories.ZonePersistenceRepository;
+import com.spottrack.platform.gym.interfaces.acl.GymContextFacade;
 import com.spottrack.platform.gym.interfaces.rest.resources.*;
 import com.spottrack.platform.gym.interfaces.rest.transform.*;
 import com.spottrack.platform.iam.interfaces.acl.IamContextFacade;
@@ -35,26 +28,17 @@ public class EquipmentsController {
 
     private final EquipmentCommandService commandService;
     private final EquipmentQueryService equipmentQueryService;
-    private final GymQueryService gymQueryService;
+    private final GymContextFacade gymContextFacade;
     private final IamContextFacade iamContextFacade;
-    private final ZonePersistenceRepository zonePersistenceRepository;
-    private final BranchPersistenceRepository branchPersistenceRepository;
-    private final EquipmentPersistenceRepository equipmentPersistenceRepository;
 
     public EquipmentsController(EquipmentCommandService commandService,
                                 EquipmentQueryService queryService,
-                                GymQueryService gymQueryService,
-                                IamContextFacade iamContextFacade,
-                                ZonePersistenceRepository zonePersistenceRepository,
-                                BranchPersistenceRepository branchPersistenceRepository,
-                                EquipmentPersistenceRepository equipmentPersistenceRepository) {
+                                GymContextFacade gymContextFacade,
+                                IamContextFacade iamContextFacade) {
         this.commandService = commandService;
         this.equipmentQueryService = queryService;
-        this.gymQueryService = gymQueryService;
+        this.gymContextFacade = gymContextFacade;
         this.iamContextFacade = iamContextFacade;
-        this.zonePersistenceRepository = zonePersistenceRepository;
-        this.branchPersistenceRepository = branchPersistenceRepository;
-        this.equipmentPersistenceRepository = equipmentPersistenceRepository;
     }
 
     @PostMapping
@@ -220,44 +204,33 @@ public class EquipmentsController {
             return ErrorResponseAssembler.toErrorResponseFromApplicationError(
                     ApplicationError.notFound("Admin", authentication.getName()));
         }
-        var gyms = gymQueryService.handle(new GetGymsByAdminUserId(adminUserId));
-        var equipments = gyms.stream()
-                .flatMap(gym -> branchPersistenceRepository.findByGymId(gym.getId().uuid()).stream())
-                .flatMap(branch -> zonePersistenceRepository.findByBranchId(branch.getBranchId()).stream())
-                .flatMap(zone -> equipmentPersistenceRepository.findByZoneId(zone.getZoneId()).stream())
-                .map(EquipmentPersistenceAssembler::toDomainFromPersistence)
-                .toList();
-        return ResponseEntity.ok(equipments.stream()
+        var resources = gymContextFacade.findEquipmentsByAdminUserId(adminUserId).stream()
                 .map(EquipmentResourceFromEntityAssembler::toResourceFromEntity)
-                .toList());
+                .toList();
+        return ResponseEntity.ok(resources);
     }
 
     private Long resolveAdminUserId(Authentication authentication) {
         return iamContextFacade.fetchUserIdByUsername(authentication.getName()).orElse(0L);
     }
 
-    private Optional<ResponseEntity<?>> checkZoneOwnership(String zoneId, Long callerAdminUserId) {
-        var zone = zonePersistenceRepository.findByZoneId(zoneId);
-        if (zone.isEmpty()) return Optional.of(ResponseEntity.notFound().build());
-        var branch = branchPersistenceRepository.findByBranchId(zone.get().getBranchId());
-        if (branch.isEmpty()) return Optional.of(ResponseEntity.notFound().build());
-        var gym = gymQueryService.handle(new GetGymById(new GymId(branch.get().getGymId())));
-        if (gym.isEmpty()) return Optional.of(ResponseEntity.notFound().build());
-        if (!callerAdminUserId.equals(gym.get().getAdminUserId())) {
+    private Optional<ResponseEntity<?>> checkZoneOwnership(String zoneId, Long adminUserId) {
+        var gymId = gymContextFacade.resolveGymIdForZone(zoneId);
+        if (gymId.isEmpty()) return Optional.of(ResponseEntity.notFound().build());
+        if (!gymContextFacade.isGymOwnedByAdmin(gymId.get(), adminUserId)) {
             return Optional.of(ErrorResponseAssembler.toErrorResponseFromApplicationError(
                     ApplicationError.forbidden("Equipment", "zoneId:" + zoneId)));
         }
         return Optional.empty();
     }
 
-    private Optional<ResponseEntity<?>> checkEquipmentOwnership(String equipmentId, Long callerAdminUserId) {
-        var equipment = equipmentQueryService.handle(new GetEquipmentById(new EquipmentId(equipmentId)));
-        if (equipment.isEmpty()) return Optional.of(ResponseEntity.notFound().build());
-        var zoneId = equipment.get().getZoneId();
-        if (zoneId == null) {
+    private Optional<ResponseEntity<?>> checkEquipmentOwnership(String equipmentId, Long adminUserId) {
+        var gymId = gymContextFacade.resolveGymIdForEquipment(equipmentId);
+        if (gymId.isEmpty()) return Optional.of(ResponseEntity.notFound().build());
+        if (!gymContextFacade.isGymOwnedByAdmin(gymId.get(), adminUserId)) {
             return Optional.of(ErrorResponseAssembler.toErrorResponseFromApplicationError(
                     ApplicationError.forbidden("Equipment", "equipmentId:" + equipmentId)));
         }
-        return checkZoneOwnership(zoneId.uuid(), callerAdminUserId);
+        return Optional.empty();
     }
 }
