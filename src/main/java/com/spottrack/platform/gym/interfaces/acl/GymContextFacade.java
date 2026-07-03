@@ -25,4 +25,16 @@ public interface GymContextFacade {
     Long fetchAdminUserIdByGymId(String gymId);
 
     boolean isDniWhitelistedForGym(String gymId, String dni);
+
+    // Returns the gymId for the branch that owns the given zone, empty if zone or branch not found.
+    Optional<String> resolveGymIdForZone(String zoneId);
+
+    // Returns the gymId for the gym that owns the given equipment, empty if equipment, zone, or branch not found.
+    Optional<String> resolveGymIdForEquipment(String equipmentId);
+
+    // Returns true if the gym exists and its adminUserId matches the given adminUserId.
+    boolean isGymOwnedByAdmin(String gymId, Long adminUserId);
+
+    // Returns all Equipment aggregates belonging to any gym owned by the given admin.
+    List<Equipment> findEquipmentsByAdminUserId(Long adminUserId);
 }

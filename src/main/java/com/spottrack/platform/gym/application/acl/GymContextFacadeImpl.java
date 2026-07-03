@@ -8,10 +8,15 @@ import com.spottrack.platform.gym.domain.model.commands.UpdateEquipmentStatus;
 import com.spottrack.platform.gym.domain.model.queries.GetAvailableAlternativesQuery;
 import com.spottrack.platform.gym.domain.model.queries.GetEquipmentById;
 import com.spottrack.platform.gym.domain.model.queries.GetGymById;
+import com.spottrack.platform.gym.domain.model.queries.GetGymsByAdminUserId;
 import com.spottrack.platform.gym.domain.model.valueobjects.EquipmentId;
 import com.spottrack.platform.gym.domain.model.valueobjects.EquipmentStatus;
 import com.spottrack.platform.gym.domain.model.valueobjects.GymId;
+import com.spottrack.platform.gym.infrastructure.persistence.jpa.assemblers.EquipmentPersistenceAssembler;
+import com.spottrack.platform.gym.infrastructure.persistence.jpa.repositories.BranchPersistenceRepository;
+import com.spottrack.platform.gym.infrastructure.persistence.jpa.repositories.EquipmentPersistenceRepository;
 import com.spottrack.platform.gym.infrastructure.persistence.jpa.repositories.GymWhitelistPersistenceRepository;
+import com.spottrack.platform.gym.infrastructure.persistence.jpa.repositories.ZonePersistenceRepository;
 import com.spottrack.platform.gym.interfaces.acl.GymContextFacade;
 import org.springframework.stereotype.Service;
 
@@ -25,15 +30,24 @@ public class GymContextFacadeImpl implements GymContextFacade {
     private final EquipmentQueryService equipmentQueryService;
     private final GymQueryService gymQueryService;
     private final GymWhitelistPersistenceRepository gymWhitelistPersistenceRepository;
+    private final ZonePersistenceRepository zonePersistenceRepository;
+    private final BranchPersistenceRepository branchPersistenceRepository;
+    private final EquipmentPersistenceRepository equipmentPersistenceRepository;
 
     public GymContextFacadeImpl(EquipmentCommandService equipmentCommandService,
                                 EquipmentQueryService equipmentQueryService,
                                 GymQueryService gymQueryService,
-                                GymWhitelistPersistenceRepository gymWhitelistPersistenceRepository) {
+                                GymWhitelistPersistenceRepository gymWhitelistPersistenceRepository,
+                                ZonePersistenceRepository zonePersistenceRepository,
+                                BranchPersistenceRepository branchPersistenceRepository,
+                                EquipmentPersistenceRepository equipmentPersistenceRepository) {
         this.equipmentCommandService = equipmentCommandService;
         this.equipmentQueryService = equipmentQueryService;
         this.gymQueryService = gymQueryService;
         this.gymWhitelistPersistenceRepository = gymWhitelistPersistenceRepository;
+        this.zonePersistenceRepository = zonePersistenceRepository;
+        this.branchPersistenceRepository = branchPersistenceRepository;
+        this.equipmentPersistenceRepository = equipmentPersistenceRepository;
     }
 
     @Override
@@ -61,5 +75,36 @@ public class GymContextFacadeImpl implements GymContextFacade {
     @Override
     public boolean isDniWhitelistedForGym(String gymId, String dni) {
         return gymWhitelistPersistenceRepository.existsByGymIdAndDni(gymId, dni);
+    }
+
+    @Override
+    public Optional<String> resolveGymIdForZone(String zoneId) {
+        return zonePersistenceRepository.findByZoneId(zoneId)
+                .flatMap(zone -> branchPersistenceRepository.findByBranchId(zone.getBranchId()))
+                .map(branch -> branch.getGymId());
+    }
+
+    @Override
+    public Optional<String> resolveGymIdForEquipment(String equipmentId) {
+        return equipmentQueryService.handle(new GetEquipmentById(new EquipmentId(equipmentId)))
+                .filter(eq -> eq.getZoneId() != null)
+                .flatMap(eq -> resolveGymIdForZone(eq.getZoneId().uuid()));
+    }
+
+    @Override
+    public boolean isGymOwnedByAdmin(String gymId, Long adminUserId) {
+        return gymQueryService.handle(new GetGymById(new GymId(gymId)))
+                .map(gym -> adminUserId.equals(gym.getAdminUserId()))
+                .orElse(false);
+    }
+
+    @Override
+    public List<Equipment> findEquipmentsByAdminUserId(Long adminUserId) {
+        return gymQueryService.handle(new GetGymsByAdminUserId(adminUserId)).stream()
+                .flatMap(gym -> branchPersistenceRepository.findByGymId(gym.getId().uuid()).stream())
+                .flatMap(branch -> zonePersistenceRepository.findByBranchId(branch.getBranchId()).stream())
+                .flatMap(zone -> equipmentPersistenceRepository.findByZoneId(zone.getZoneId()).stream())
+                .map(EquipmentPersistenceAssembler::toDomainFromPersistence)
+                .toList();
     }
 }
