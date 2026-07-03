@@ -37,4 +37,11 @@ public class MaintenanceLogRepositoryImpl implements MaintenanceLogRepository {
                 .map(MaintenanceLogPersistenceAssembler::toDomainFromPersistence)
                 .toList();
     }
+
+    @Override
+    public List<MaintenanceLog> findAll() {
+        return jpaRepository.findAll().stream()
+                .map(MaintenanceLogPersistenceAssembler::toDomainFromPersistence)
+                .toList();
+    }
 }
