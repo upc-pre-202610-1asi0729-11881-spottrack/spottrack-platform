@@ -15,6 +15,7 @@ import com.spottrack.platform.maintenance.domain.model.commands.RecommendEquipme
 import com.spottrack.platform.maintenance.domain.model.commands.RegisterMaintenanceCompletion;
 import com.spottrack.platform.maintenance.domain.model.commands.RequestUpdateMaintenanceStatus;
 import com.spottrack.platform.maintenance.domain.model.commands.UpdateMaintenanceStatus;
+import com.spottrack.platform.maintenance.domain.model.queries.GetAllMaintenanceLogsQuery;
 import com.spottrack.platform.maintenance.domain.model.queries.GetAllTicketsQuery;
 import com.spottrack.platform.maintenance.domain.model.queries.GetMaintenanceLogsByTicketIdQuery;
 import com.spottrack.platform.maintenance.domain.model.valueobjects.MaintenanceId;
@@ -156,7 +157,8 @@ public class MaintenanceController {
         var command = new RegisterMaintenanceCompletion(
                 new TechnicalTicketId(ticketId),
                 new MaintenanceId(resource.maintenanceId()),
-                resource.notes());
+                resource.notes(),
+                resource.cost());
         var result = commandService.handle(command);
         return switch (result) {
             case Result.Success<MaintenanceLog, ApplicationError> s ->
@@ -171,6 +173,16 @@ public class MaintenanceController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getMaintenanceCompletionLog(@PathVariable String ticketId) {
         var logs = maintenanceLogQueryService.handle(new GetMaintenanceLogsByTicketIdQuery(ticketId));
+        var resources = logs.stream()
+                .map(MaintenanceLogResourceFromEntityAssembler::toResourceFromEntity)
+                .toList();
+        return ResponseEntity.ok(resources);
+    }
+
+    @GetMapping("/logs")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getAllMaintenanceLogs() {
+        var logs = maintenanceLogQueryService.handle(new GetAllMaintenanceLogsQuery());
         var resources = logs.stream()
                 .map(MaintenanceLogResourceFromEntityAssembler::toResourceFromEntity)
                 .toList();

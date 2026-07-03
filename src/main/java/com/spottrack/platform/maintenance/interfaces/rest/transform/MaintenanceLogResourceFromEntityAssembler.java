@@ -11,6 +11,7 @@ public class MaintenanceLogResourceFromEntityAssembler {
                 entity.getTicketId(),
                 entity.getMaintenanceId(),
                 entity.getNotes(),
+                entity.getCost(),
                 entity.getCompletedAt()
         );
     }
