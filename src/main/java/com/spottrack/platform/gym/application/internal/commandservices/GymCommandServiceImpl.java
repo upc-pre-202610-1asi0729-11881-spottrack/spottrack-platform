@@ -64,7 +64,7 @@ public class GymCommandServiceImpl implements GymCommandService {
     @Transactional
     @Override
     public Result<Branch, ApplicationError> handle(AddBranchCommand command) {
-        var branch = new Branch(command.name(), command.address());
+        var branch = new Branch(command.gymId(), command.name(), command.address());
         var branchEntity = BranchPersistenceAssembler.toPersistenceFromDomain(branch);
         branchPersistenceRepository.save(branchEntity);
         return Result.success(branch);
