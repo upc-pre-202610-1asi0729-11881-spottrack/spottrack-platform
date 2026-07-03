@@ -3,6 +3,7 @@ package com.spottrack.platform.reservation.domain.model.aggregates;
 import com.spottrack.platform.reservation.domain.model.commands.RequestAlternativeEquipment;
 import com.spottrack.platform.reservation.domain.model.commands.RequestEquipmentStatusChangeToAvailable;
 import com.spottrack.platform.reservation.domain.model.commands.SubmitRequestOccupyEquipment;
+import com.spottrack.platform.reservation.domain.model.events.AlternativeEquipmentRequestedEvent;
 import com.spottrack.platform.reservation.domain.model.events.EquipmentStatusChangeToAvailableRequestedEvent;
 import com.spottrack.platform.reservation.domain.model.events.RequestOccupyEquipmentSubmittedEvent;
 import com.spottrack.platform.reservation.domain.model.valueobjects.ClientId;
@@ -80,6 +81,7 @@ public class ReservationRequest extends AbstractDomainAggregateRoot<ReservationR
             throw new IllegalStateException("reservation.request.alternativeNotAllowed");
         }
         this.status = ReservationRequestStatus.ALTERNATIVE_REQUESTED;
+        registerDomainEvent(new AlternativeEquipmentRequestedEvent(this.id.uuid(), this.equipmentId.uuid(), command.reason()));
     }
 
     /**
