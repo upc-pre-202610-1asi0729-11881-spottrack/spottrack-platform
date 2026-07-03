@@ -43,7 +43,9 @@ public class EquipmentRepositoryImpl implements EquipmentRepository {
 
     @Override
     public List<Equipment> findAll() {
-        return List.of();
+        return equipmentPersistenceRepository.findAll().stream()
+                .map(EquipmentPersistenceAssembler::toDomainFromPersistence)
+                .toList();
     }
 
     @Override
