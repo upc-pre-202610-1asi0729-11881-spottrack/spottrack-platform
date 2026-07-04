@@ -185,10 +185,35 @@ public class DevDataSeeder {
         seedMaintenanceQuote(gymSeed.equipmentId());
         seedRoiProjection();
         var technicianId = seedTechnician();
-
         seedMaintenanceLog(gymSeed.equipmentId(), technicianId);
+        seedMaintenanceThreshold(gymSeed.equipmentId());
 
         log.info("[DevDataSeeder] Dev seed complete.");
+    }
+
+    /** Sets a past-due threshold so the scheduler raises a real alert on its next tick, instead of leaving the seeded admin's alert inbox empty. */
+    private void seedMaintenanceThreshold(String equipmentId) {
+        if (equipmentId == null) {
+            log.warn("[DevDataSeeder] Equipment ID not available, skipping maintenance threshold seeding.");
+            return;
+        }
+        // Always (re)force a clearly past-due date, even if ticket completion already set one to
+        // today's date as a side effect — "today" is too fragile against the hourly scheduler tick.
+        var equipment = equipmentPersistenceRepository.findByEquipmentId(equipmentId).orElse(null);
+        if (equipment != null && equipment.getMaintenanceThreshold() != null
+                && equipment.getMaintenanceThreshold().isBefore(LocalDate.now())) {
+            log.info("[DevDataSeeder] Maintenance threshold already past-due for equipment {}, skipping.", equipmentId);
+            return;
+        }
+        var result = equipmentCommandService.handle(new com.spottrack.platform.gym.domain.model.commands.DefineMaintenanceThresholdCommand(
+                new com.spottrack.platform.gym.domain.model.valueobjects.EquipmentId(equipmentId),
+                LocalDate.now().minusDays(1)
+        ));
+        if (result instanceof Result.Failure<?, ?> f) {
+            log.error("[DevDataSeeder] Failed to define maintenance threshold: {}", f.error());
+            return;
+        }
+        log.info("[DevDataSeeder] Maintenance threshold set in the past for equipment {}; scheduler will raise an alert shortly.", equipmentId);
     }
 
     private String seedTechnician() {
