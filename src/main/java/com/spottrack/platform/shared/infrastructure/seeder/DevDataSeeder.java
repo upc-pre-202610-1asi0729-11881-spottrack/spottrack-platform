@@ -37,9 +37,13 @@ import com.spottrack.platform.iam.domain.model.valueobjects.Roles;
 import com.spottrack.platform.iam.domain.repositories.RoleRepository;
 import com.spottrack.platform.iam.domain.repositories.UserRepository;
 import com.spottrack.platform.maintenance.application.commandServices.MaintenanceCommandService;
+import com.spottrack.platform.maintenance.application.queryservices.TechnicianQueryService;
+import com.spottrack.platform.maintenance.domain.model.commands.AssignTechnicalTicket;
+import com.spottrack.platform.maintenance.domain.model.commands.CreateTechnician;
 import com.spottrack.platform.maintenance.domain.model.commands.CreateTechnicalTicketCommand;
 import com.spottrack.platform.maintenance.domain.model.commands.RegisterMaintenanceCompletion;
 import com.spottrack.platform.maintenance.domain.model.commands.RequestMaintenance;
+import com.spottrack.platform.maintenance.domain.model.queries.GetAllTechniciansQuery;
 import com.spottrack.platform.maintenance.domain.model.valueobjects.EquipmentId;
 import com.spottrack.platform.maintenance.domain.model.valueobjects.MaintenanceId;
 import com.spottrack.platform.maintenance.domain.model.valueobjects.TechnicalTicketId;
@@ -112,6 +116,7 @@ public class DevDataSeeder {
     private final ROIProjectionQueryService roiProjectionQueryService;
     private final MaintenanceCommandService maintenanceCommandService;
     private final TechnicalTicketJpaRepository technicalTicketJpaRepository;
+    private final TechnicianQueryService technicianQueryService;
     private final com.spottrack.platform.monitoring.application.commandServices.MotionSensorCommandService motionSensorCommandService;
     private final com.spottrack.platform.monitoring.domain.repositories.MotionSensorRepository motionSensorRepository;
 
@@ -138,6 +143,7 @@ public class DevDataSeeder {
             ROIProjectionQueryService roiProjectionQueryService,
             MaintenanceCommandService maintenanceCommandService,
             TechnicalTicketJpaRepository technicalTicketJpaRepository,
+            TechnicianQueryService technicianQueryService) {
             com.spottrack.platform.monitoring.application.commandServices.MotionSensorCommandService motionSensorCommandService,
             com.spottrack.platform.monitoring.domain.repositories.MotionSensorRepository motionSensorRepository) {
         this.roleCommandService = roleCommandService;
@@ -162,6 +168,7 @@ public class DevDataSeeder {
         this.roiProjectionQueryService = roiProjectionQueryService;
         this.maintenanceCommandService = maintenanceCommandService;
         this.technicalTicketJpaRepository = technicalTicketJpaRepository;
+        this.technicianQueryService = technicianQueryService;
         this.motionSensorCommandService = motionSensorCommandService;
         this.motionSensorRepository = motionSensorRepository;
     }
@@ -184,9 +191,52 @@ public class DevDataSeeder {
         seedMaintenanceQuote(gymSeed.equipmentId());
         seedMotionSensor(gymSeed.equipmentId());
         seedRoiProjection();
-        seedMaintenanceLog(gymSeed.equipmentId());
+        var technicianId = seedTechnician();
+        seedMaintenanceLog(gymSeed.equipmentId(), technicianId);
+        seedMaintenanceThreshold(gymSeed.equipmentId());
 
         log.info("[DevDataSeeder] Dev seed complete.");
+    }
+
+    /** Sets a past-due threshold so the scheduler raises a real alert on its next tick, instead of leaving the seeded admin's alert inbox empty. */
+    private void seedMaintenanceThreshold(String equipmentId) {
+        if (equipmentId == null) {
+            log.warn("[DevDataSeeder] Equipment ID not available, skipping maintenance threshold seeding.");
+            return;
+        }
+        // Always (re)force a clearly past-due date, even if ticket completion already set one to
+        // today's date as a side effect — "today" is too fragile against the hourly scheduler tick.
+        var equipment = equipmentPersistenceRepository.findByEquipmentId(equipmentId).orElse(null);
+        if (equipment != null && equipment.getMaintenanceThreshold() != null
+                && equipment.getMaintenanceThreshold().isBefore(LocalDate.now())) {
+            log.info("[DevDataSeeder] Maintenance threshold already past-due for equipment {}, skipping.", equipmentId);
+            return;
+        }
+        var result = equipmentCommandService.handle(new com.spottrack.platform.gym.domain.model.commands.DefineMaintenanceThresholdCommand(
+                new com.spottrack.platform.gym.domain.model.valueobjects.EquipmentId(equipmentId),
+                LocalDate.now().minusDays(1)
+        ));
+        if (result instanceof Result.Failure<?, ?> f) {
+            log.error("[DevDataSeeder] Failed to define maintenance threshold: {}", f.error());
+            return;
+        }
+        log.info("[DevDataSeeder] Maintenance threshold set in the past for equipment {}; scheduler will raise an alert shortly.", equipmentId);
+    }
+
+    private String seedTechnician() {
+        var existing = technicianQueryService.handle(new GetAllTechniciansQuery());
+        if (!existing.isEmpty()) {
+            log.info("[DevDataSeeder] Technician already exists, skipping creation.");
+            return existing.get(0).getTechnicianId().uuid();
+        }
+        var result = maintenanceCommandService.handle(new CreateTechnician("Carlos Seed"));
+        if (result instanceof Result.Failure<?, ?> f) {
+            log.error("[DevDataSeeder] Failed to create technician: {}", f.error());
+            throw new IllegalStateException("Dev seed failed at technician creation");
+        }
+        var technicianId = ((Result.Success<com.spottrack.platform.maintenance.domain.model.aggregates.Technician, ?>) result).value().getTechnicianId().uuid();
+        log.info("[DevDataSeeder] Technician created, technicianId={}", technicianId);
+        return technicianId;
     }
 
     private Long seedAdminUser() {
@@ -436,7 +486,7 @@ public class DevDataSeeder {
         log.info("[DevDataSeeder] ROI projection seeded, id={}.", roiId);
     }
 
-    private void seedMaintenanceLog(String equipmentId) {
+    private void seedMaintenanceLog(String equipmentId, String technicianId) {
         if (equipmentId == null) {
             log.warn("[DevDataSeeder] Equipment ID not available, skipping maintenance log seeding.");
             return;
@@ -465,6 +515,13 @@ public class DevDataSeeder {
             return;
         }
         var ticket = ((Result.Success<com.spottrack.platform.maintenance.domain.model.aggregates.TechnicalTicket, ?>) ticketResult).value();
+
+        var assignResult = maintenanceCommandService.handle(new AssignTechnicalTicket(ticket.getTicketId(), technicianId));
+        if (assignResult instanceof Result.Failure<?, ?> f) {
+            log.error("[DevDataSeeder] Failed to assign technician to ticket: {}", f.error());
+            return;
+        }
+        log.info("[DevDataSeeder] Technician {} assigned to ticket {}.", technicianId, ticket.getTicketId().uuid());
 
         var completionResult = maintenanceCommandService.handle(new RegisterMaintenanceCompletion(
                 new TechnicalTicketId(ticket.getTicketId().uuid()),
