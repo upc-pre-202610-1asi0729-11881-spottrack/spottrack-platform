@@ -252,7 +252,7 @@ public class DemoDataSeeder {
         var pesasId  = addZone("Pesas", 20, branch1);
         addEquipment("Mancuernas Ajustables 30kg", EquipmentStatus.AVAILABLE,      "Dumbbell-Adj-30",     pesasId, 250.00);
         addEquipment("Barra Olímpica 20kg",        EquipmentStatus.AVAILABLE,      "Barbell-Olympic-20",  pesasId, 180.00);
-        addEquipment("Rack Multiuso",              EquipmentStatus.OUT_OF_SERVICE, "Rack-Multi-500",      pesasId, 800.00);
+        addEquipment("Rack Multiuso",              EquipmentStatus.AVAILABLE,      "Rack-Multi-500",      pesasId, 800.00);
 
         // Branch 2 – San Isidro
         var branch2     = addBranch(gymId, "Sede San Isidro", "Av. República de Panamá 3500, San Isidro");
@@ -261,7 +261,7 @@ public class DemoDataSeeder {
         addEquipment("Kettlebell 16kg",    EquipmentStatus.AVAILABLE, "Kettlebell-16kg",   funcionalId, 120.00);
         var maquinasId = addZone("Máquinas", 18, branch2);
         addEquipment("Prensa de Piernas", EquipmentStatus.AVAILABLE,      "Leg-Press-X3",      maquinasId, 1500.00);
-        addEquipment("Polea Cable",       EquipmentStatus.OUT_OF_SERVICE, "Cable-Pulley-200",  maquinasId,  700.00);
+        addEquipment("Polea Cable",       EquipmentStatus.AVAILABLE,      "Cable-Pulley-200",  maquinasId,  700.00);
 
         log.info("[DemoDataSeeder] Gym structure seeded: 2 branches, 4 zones, 10 equipment.");
         return new GymSeedResult(gymId, equipA, equipB, equipOOS);
