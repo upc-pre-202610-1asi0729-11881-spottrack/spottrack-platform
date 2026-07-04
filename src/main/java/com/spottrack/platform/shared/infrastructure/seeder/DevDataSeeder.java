@@ -74,6 +74,17 @@ import com.spottrack.platform.reservation.application.queryservices.ReservationQ
 import com.spottrack.platform.reservation.domain.model.commands.InitiateExpressReservation;
 import com.spottrack.platform.reservation.domain.model.queries.GetReservationsByClientIdQuery;
 import com.spottrack.platform.reservation.domain.model.valueobjects.TimeInterval;
+import com.spottrack.platform.routine.application.commandservices.RoutineCommandService;
+import com.spottrack.platform.routine.application.commandservices.RoutineSessionCommandService;
+import com.spottrack.platform.routine.application.queryservices.RoutineSessionQueryService;
+import com.spottrack.platform.routine.domain.model.commands.AddExerciseBlockCommand;
+import com.spottrack.platform.routine.domain.model.commands.CompleteRoutineCommand;
+import com.spottrack.platform.routine.domain.model.commands.CreateRoutineCommand;
+import com.spottrack.platform.routine.domain.model.commands.StartRoutineCommand;
+import com.spottrack.platform.routine.domain.model.queries.GetAllRoutineSessionsByClientIdQuery;
+import com.spottrack.platform.routine.domain.model.valueobjects.ExerciseName;
+import com.spottrack.platform.routine.domain.model.valueobjects.ExerciseType;
+import com.spottrack.platform.routine.domain.model.valueobjects.RoutineName;
 import com.spottrack.platform.shared.application.result.Result;
 import com.spottrack.platform.shared.domain.model.valueobjects.Money;
 import lombok.extern.slf4j.Slf4j;
@@ -131,6 +142,9 @@ public class DevDataSeeder {
     private final com.spottrack.platform.monitoring.application.commandServices.AnomalyCommandService anomalyCommandService;
     private final ReservationCommandService reservationCommandService;
     private final ReservationQueryService reservationQueryService;
+    private final RoutineCommandService routineCommandService;
+    private final RoutineSessionCommandService routineSessionCommandService;
+    private final RoutineSessionQueryService routineSessionQueryService;
 
     public DevDataSeeder(
             RoleCommandService roleCommandService,
@@ -160,7 +174,10 @@ public class DevDataSeeder {
             com.spottrack.platform.monitoring.domain.repositories.MotionSensorRepository motionSensorRepository,
             com.spottrack.platform.monitoring.application.commandServices.AnomalyCommandService anomalyCommandService,
             ReservationCommandService reservationCommandService,
-            ReservationQueryService reservationQueryService) {
+            ReservationQueryService reservationQueryService,
+            RoutineCommandService routineCommandService,
+            RoutineSessionCommandService routineSessionCommandService,
+            RoutineSessionQueryService routineSessionQueryService) {
         this.roleCommandService = roleCommandService;
         this.userCommandService = userCommandService;
         this.userRepository = userRepository;
@@ -190,6 +207,9 @@ public class DevDataSeeder {
 
         this.reservationCommandService = reservationCommandService;
         this.reservationQueryService = reservationQueryService;
+        this.routineCommandService = routineCommandService;
+        this.routineSessionCommandService = routineSessionCommandService;
+        this.routineSessionQueryService = routineSessionQueryService;
     }
 
     private record GymSeedResult(String gymId, String equipmentId) {}
@@ -216,6 +236,7 @@ public class DevDataSeeder {
         seedMaintenanceThreshold(gymSeed.equipmentId());
         seedMonthOfUsage(gymSeed.equipmentId());
         seedReservableEquipment(gymSeed.equipmentId(), firstClientId, secondClientId);
+        seedRoutine(firstClientId);
 
         log.info("[DevDataSeeder] Dev seed complete.");
     }
@@ -754,5 +775,36 @@ public class DevDataSeeder {
             return;
         }
         log.info("[DevDataSeeder] Maintenance ticket and completion log seeded for equipment {}.", equipmentId);
+    }
+
+    /** A routine with exercise blocks and one completed session, so a client testing the app has
+     *  real routine history to look at instead of an empty routines tab. */
+    private void seedRoutine(Long clientId) {
+        var routineClientId = new com.spottrack.platform.routine.domain.model.valueobjects.ClientId(clientId);
+        if (!routineSessionQueryService.handle(new GetAllRoutineSessionsByClientIdQuery(routineClientId)).isEmpty()) {
+            log.info("[DevDataSeeder] Routine session already seeded, skipping.");
+            return;
+        }
+
+        var routineResult = routineCommandService.handle(new CreateRoutineCommand(
+                new RoutineName("Rutina Seed"), routineClientId));
+        if (routineResult instanceof Result.Failure<?, ?> f) {
+            log.warn("[DevDataSeeder] Failed to seed routine: {}", f.error());
+            return;
+        }
+        var routine = ((Result.Success<com.spottrack.platform.routine.domain.model.aggregates.Routine, ?>) routineResult).value();
+        var routineId = routine.getId();
+
+        routineCommandService.handle(new AddExerciseBlockCommand(routineId, new ExerciseName("Carrera en cinta"), ExerciseType.CARDIO, 1, 1, 10));
+        routineCommandService.handle(new AddExerciseBlockCommand(routineId, new ExerciseName("Sentadillas"), ExerciseType.STRENGTH, 2, 3, 12));
+
+        var sessionResult = routineSessionCommandService.handle(new StartRoutineCommand(routineId, routineClientId));
+        if (sessionResult instanceof Result.Failure<?, ?> f) {
+            log.warn("[DevDataSeeder] Failed to start routine session: {}", f.error());
+            return;
+        }
+        var session = ((Result.Success<com.spottrack.platform.routine.domain.model.aggregates.RoutineSession, ?>) sessionResult).value();
+        routineSessionCommandService.handle(new CompleteRoutineCommand(session.getId()));
+        log.info("[DevDataSeeder] Routine and completed session seeded for client {}.", clientId);
     }
 }
