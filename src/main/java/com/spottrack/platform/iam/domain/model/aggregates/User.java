@@ -27,6 +27,15 @@ public class User extends AbstractDomainAggregateRoot<User> {
     @Setter
     private boolean active = true;
 
+    @Setter
+    private boolean notifyOnCritical = true;
+
+    @Setter
+    private boolean notifyOnWarning = true;
+
+    @Setter
+    private String notificationEmail;
+
     public User() {
         this.roles = new HashSet<>();
     }
