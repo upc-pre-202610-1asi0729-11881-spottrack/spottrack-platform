@@ -25,6 +25,7 @@ import com.spottrack.platform.gym.interfaces.rest.resources.WhitelistEntryResour
 import com.spottrack.platform.gym.interfaces.rest.resources.ZoneResource;
 import com.spottrack.platform.gym.interfaces.rest.transform.*;
 import com.spottrack.platform.iam.interfaces.acl.IamContextFacade;
+import com.spottrack.platform.profiles.interfaces.acl.ProfilesContextFacade;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
 import com.spottrack.platform.shared.interfaces.rest.transform.ErrorResponseAssembler;
@@ -46,13 +47,16 @@ public class GymController {
     private final GymCommandService commandService;
     private final GymQueryService gymQueryService;
     private final IamContextFacade iamContextFacade;
+    private final ProfilesContextFacade profilesContextFacade;
 
     public GymController(GymCommandService commandService,
                          GymQueryService gymQueryService,
-                         IamContextFacade iamContextFacade) {
+                         IamContextFacade iamContextFacade,
+                         ProfilesContextFacade profilesContextFacade) {
         this.commandService = commandService;
         this.gymQueryService = gymQueryService;
         this.iamContextFacade = iamContextFacade;
+        this.profilesContextFacade = profilesContextFacade;
     }
 
     @PostMapping
@@ -120,16 +124,11 @@ public class GymController {
     }
 
     @GetMapping("/{gymId}/branches")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CLIENT')")
     public ResponseEntity<?> getBranchesByGymId(Authentication authentication,
                                                  @PathVariable String gymId) {
-        var adminUserId = resolveAdminUserId(authentication);
-        if (adminUserId == 0L) {
-            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
-                    ApplicationError.notFound("Admin", authentication.getName()));
-        }
-        var ownershipError = checkOwnership(gymId, adminUserId);
-        if (ownershipError.isPresent()) return ownershipError.get();
+        var accessError = checkGymAccess(authentication, gymId);
+        if (accessError.isPresent()) return accessError.get();
         var branches = gymQueryService.handle(new GetBranchesByGymIdQuery(gymId));
         var resources = branches.stream()
                 .map(BranchResourceFromEntityAssembler::toResourceFromEntity).toList();
@@ -137,16 +136,11 @@ public class GymController {
     }
 
     @GetMapping("/{gymId}/zones")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CLIENT')")
     public ResponseEntity<?> getZonesByGymId(Authentication authentication,
                                               @PathVariable String gymId) {
-        var adminUserId = resolveAdminUserId(authentication);
-        if (adminUserId == 0L) {
-            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
-                    ApplicationError.notFound("Admin", authentication.getName()));
-        }
-        var ownershipError = checkOwnership(gymId, adminUserId);
-        if (ownershipError.isPresent()) return ownershipError.get();
+        var accessError = checkGymAccess(authentication, gymId);
+        if (accessError.isPresent()) return accessError.get();
         var zones = gymQueryService.handle(new GetZonesByGymIdQuery(gymId));
         List<ZoneResource> resources = zones.stream()
                 .map(ZoneResourceFromEntityAssembler::toResourceFromEntity)
@@ -243,6 +237,33 @@ public class GymController {
 
     private Long resolveAdminUserId(Authentication authentication) {
         return iamContextFacade.fetchUserIdByUsername(authentication.getName()).orElse(0L);
+    }
+
+    private Optional<ResponseEntity<?>> checkGymAccess(Authentication authentication, String gymId) {
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        if (isAdmin) {
+            var adminUserId = resolveAdminUserId(authentication);
+            if (adminUserId == 0L) {
+                return Optional.of(ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                        ApplicationError.notFound("Admin", authentication.getName())));
+            }
+            return checkOwnership(gymId, adminUserId);
+        }
+        return checkClientAssociation(gymId, authentication.getName());
+    }
+
+    private Optional<ResponseEntity<?>> checkClientAssociation(String gymId, String username) {
+        var clientId = profilesContextFacade.fetchClientIdByEmail(username);
+        if (clientId == 0L) {
+            return Optional.of(ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.notFound("Client", username)));
+        }
+        if (!profilesContextFacade.hasActiveAssociationWithGym(clientId, gymId)) {
+            return Optional.of(ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.forbidden("Gym", "gymId:" + gymId)));
+        }
+        return Optional.empty();
     }
 
     private Optional<ResponseEntity<?>> checkOwnership(String gymId, Long callerAdminUserId) {
