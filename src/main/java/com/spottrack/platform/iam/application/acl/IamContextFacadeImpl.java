@@ -13,6 +13,7 @@ import com.spottrack.platform.iam.domain.repositories.PendingRegistrationReposit
 import com.spottrack.platform.iam.interfaces.acl.IamContextFacade;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
+import com.spottrack.platform.shared.domain.model.valueobjects.AlertSeverity;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,6 +51,13 @@ public class IamContextFacadeImpl implements IamContextFacade {
     @Override
     public boolean existsUserByUsername(String username) {
         return userQueryService.handle(new GetUserByUsernameQuery(username)).isPresent();
+    }
+
+    @Override
+    public boolean shouldNotify(Long userId, AlertSeverity severity) {
+        return userQueryService.handle(new com.spottrack.platform.iam.domain.model.queries.GetUserByIdQuery(userId))
+                .map(user -> severity == AlertSeverity.CRITICAL ? user.isNotifyOnCritical() : user.isNotifyOnWarning())
+                .orElse(true);
     }
 
     @Override
