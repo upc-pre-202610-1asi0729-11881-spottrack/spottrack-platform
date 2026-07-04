@@ -8,7 +8,9 @@ import com.spottrack.platform.monitoring.infrastructure.persistence.jpa.reposito
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class MotionSensorRepositoryImpl implements MotionSensorRepository {
@@ -33,15 +35,35 @@ public class MotionSensorRepositoryImpl implements MotionSensorRepository {
     }
 
     @Override
+    public Optional<MotionSensor> findById(Long id) {
+        return motionSensorPersistenceRepository.findById(id)
+                .map(MotionSensorPersistenceAssembler::toDomainFromPersistence);
+    }
+
+    @Override
+    public List<MotionSensor> findAllOnline() {
+        return motionSensorPersistenceRepository.findByOnlineTrue().stream()
+                .map(MotionSensorPersistenceAssembler::toDomainFromPersistence)
+                .toList();
+    }
+
+    @Override
+    public List<MotionSensor> findAllOfflineSince(LocalDateTime threshold) {
+        return motionSensorPersistenceRepository.findByOnlineFalseAndLastStatusChangeAtBefore(threshold).stream()
+                .map(MotionSensorPersistenceAssembler::toDomainFromPersistence)
+                .toList();
+    }
+
+    @Override
     public MotionSensor save(MotionSensor motionSensor) {
         boolean isNew = motionSensor.getId() == null;
         var savedEntity = motionSensorPersistenceRepository.save(MotionSensorPersistenceAssembler.toPersistenceFromDomain(motionSensor));
         var savedDomain = MotionSensorPersistenceAssembler.toDomainFromPersistence(savedEntity);
         if (isNew) {
             motionSensor.onCreated();
-            motionSensor.domainEvents().forEach(eventPublisher::publishEvent);
-            motionSensor.clearDomainEvents();
         }
+        motionSensor.domainEvents().forEach(eventPublisher::publishEvent);
+        motionSensor.clearDomainEvents();
         return savedDomain;
     }
 }

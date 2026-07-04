@@ -116,6 +116,8 @@ public class DemoDataSeeder {
     private final RoutineRepository routineRepository;
     private final MaintenanceCommandService maintenanceCommandService;
     private final TechnicalTicketJpaRepository technicalTicketJpaRepository;
+    private final com.spottrack.platform.monitoring.application.commandServices.MotionSensorCommandService motionSensorCommandService;
+    private final com.spottrack.platform.monitoring.domain.repositories.MotionSensorRepository motionSensorRepository;
 
     public DemoDataSeeder(
             RoleCommandService roleCommandService,
@@ -137,7 +139,9 @@ public class DemoDataSeeder {
             RoutineCommandService routineCommandService,
             RoutineRepository routineRepository,
             MaintenanceCommandService maintenanceCommandService,
-            TechnicalTicketJpaRepository technicalTicketJpaRepository) {
+            TechnicalTicketJpaRepository technicalTicketJpaRepository,
+            com.spottrack.platform.monitoring.application.commandServices.MotionSensorCommandService motionSensorCommandService,
+            com.spottrack.platform.monitoring.domain.repositories.MotionSensorRepository motionSensorRepository) {
         this.roleCommandService = roleCommandService;
         this.userCommandService = userCommandService;
         this.userRepository = userRepository;
@@ -158,6 +162,8 @@ public class DemoDataSeeder {
         this.routineRepository = routineRepository;
         this.maintenanceCommandService = maintenanceCommandService;
         this.technicalTicketJpaRepository = technicalTicketJpaRepository;
+        this.motionSensorCommandService = motionSensorCommandService;
+        this.motionSensorRepository = motionSensorRepository;
     }
 
     private record GymSeedResult(String gymId, String equipA, String equipB, String equipOOS) {}
@@ -178,6 +184,7 @@ public class DemoDataSeeder {
         seedReservations(clientProfileId, gymSeed);
         seedRoutines(clientProfileId);
         seedMaintenanceTicket(gymSeed.equipOOS());
+        seedMotionSensor(gymSeed.equipA());
 
         log.info("[DemoDataSeeder] Demo seed complete.");
     }
@@ -481,5 +488,23 @@ public class DemoDataSeeder {
             log.error("[DemoDataSeeder] Failed to create maintenance ticket: {}", f.error());
         else
             log.info("[DemoDataSeeder] Maintenance ticket (HIGH/CORRECTIVE) created for equipment {}.", outOfServiceEquipmentId);
+    }
+
+    private void seedMotionSensor(String equipmentId) {
+        if (equipmentId == null) {
+            log.warn("[DemoDataSeeder] Equipment ID not available, skipping motion sensor seeding.");
+            return;
+        }
+        if (motionSensorRepository.existsByEquipmentId(new com.spottrack.platform.monitoring.domain.model.valueobjects.EquipmentId(equipmentId))) {
+            log.info("[DemoDataSeeder] Motion sensor already exists for equipment {}, skipping.", equipmentId);
+            return;
+        }
+        var result = motionSensorCommandService.handle(
+                new com.spottrack.platform.monitoring.domain.model.commands.RegisterMotionSensorCommand(equipmentId));
+        if (result instanceof Result.Failure<?, ?> f) {
+            log.warn("[DemoDataSeeder] Failed to seed motion sensor: {}", f.error());
+            return;
+        }
+        log.info("[DemoDataSeeder] Motion sensor seeded for equipment {}.", equipmentId);
     }
 }

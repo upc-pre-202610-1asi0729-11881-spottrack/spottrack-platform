@@ -13,7 +13,9 @@ public class MotionSensorResourceFromEntity {
                 equipment != null ? equipment.getEquipmentName() : null,
                 equipment != null ? equipment.getModel() : null,
                 equipment != null ? equipment.getStatus().name() : null,
-                entity.getRegisteredAt()
+                entity.getRegisteredAt(),
+                entity.isOnline(),
+                entity.getLastStatusChangeAt()
         );
     }
 }
