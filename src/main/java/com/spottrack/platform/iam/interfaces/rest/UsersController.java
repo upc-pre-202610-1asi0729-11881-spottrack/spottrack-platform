@@ -4,10 +4,13 @@ import com.spottrack.platform.iam.application.commandservices.UserCommandService
 import com.spottrack.platform.iam.application.queryservices.UserQueryService;
 import com.spottrack.platform.iam.domain.model.queries.GetAllUsersQuery;
 import com.spottrack.platform.iam.domain.model.queries.GetUserByIdQuery;
+import com.spottrack.platform.iam.domain.model.queries.GetUserByUsernameQuery;
 import com.spottrack.platform.iam.interfaces.rest.resources.ChangePasswordResource;
+import com.spottrack.platform.iam.interfaces.rest.resources.NotificationPreferencesResource;
 import com.spottrack.platform.iam.interfaces.rest.resources.SignUpResource;
 import com.spottrack.platform.iam.interfaces.rest.transform.ChangePasswordCommandFromResourceAssembler;
 import com.spottrack.platform.iam.interfaces.rest.transform.SignUpCommandFromResourceAssembler;
+import com.spottrack.platform.iam.interfaces.rest.transform.UpdateNotificationPreferencesCommandFromResourceAssembler;
 import com.spottrack.platform.iam.interfaces.rest.transform.UserResourceFromEntityAssembler;
 import com.spottrack.platform.shared.interfaces.rest.transform.ResponseEntityAssembler;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -74,5 +77,27 @@ public class UsersController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(UserResourceFromEntityAssembler.toResourceFromEntity(userOptional.get()));
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUser(Authentication authentication) {
+        var userOptional = userQueryService.handle(new GetUserByUsernameQuery(authentication.getName()));
+        if (userOptional.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(UserResourceFromEntityAssembler.toResourceFromEntity(userOptional.get()));
+    }
+
+    @PatchMapping("/me/notification-preferences")
+    public ResponseEntity<?> updateNotificationPreferences(
+            @Valid @RequestBody NotificationPreferencesResource resource,
+            Authentication authentication) {
+        var command = UpdateNotificationPreferencesCommandFromResourceAssembler.toCommandFromResource(resource, authentication.getName());
+        var result = userCommandService.handle(command);
+        return ResponseEntityAssembler.toResponseEntityFromResult(
+                result,
+                UserResourceFromEntityAssembler::toResourceFromEntity,
+                HttpStatus.OK
+        );
     }
 }
