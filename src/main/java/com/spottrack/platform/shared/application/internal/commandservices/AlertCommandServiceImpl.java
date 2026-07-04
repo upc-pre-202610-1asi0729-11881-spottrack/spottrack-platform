@@ -8,6 +8,8 @@ import com.spottrack.platform.shared.domain.model.commands.CreateAlertCommand;
 import com.spottrack.platform.shared.domain.model.commands.ResolveAlertCommand;
 import com.spottrack.platform.shared.domain.repositories.AlertRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 
@@ -20,6 +22,7 @@ public class AlertCommandServiceImpl implements AlertCommandService {
         this.alertRepository = alertRepository;
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
     public Result<Alert, ApplicationError> handle(CreateAlertCommand command) {
         try {
@@ -34,6 +37,7 @@ public class AlertCommandServiceImpl implements AlertCommandService {
         }
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
     public Result<Alert, ApplicationError> handle(ResolveAlertCommand command) {
         try {
