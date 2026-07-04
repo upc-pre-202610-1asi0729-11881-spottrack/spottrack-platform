@@ -1,6 +1,7 @@
 package com.spottrack.platform.shared.infrastructure.seeder;
 
-import com.spottrack.platform.analytics.application.commandservices.ActivityReportCommandService;
+import com.spottrack.platform.analytics.application.commandservices
+        .ActivityReportCommandService;
 import com.spottrack.platform.analytics.application.commandservices.MaintenanceQuoteCommandService;
 import com.spottrack.platform.analytics.application.commandservices.ROIProjectionCommandService;
 import com.spottrack.platform.analytics.application.queryservices.MaintenanceQuoteQueryService;
@@ -119,6 +120,7 @@ public class DevDataSeeder {
     private final TechnicianQueryService technicianQueryService;
     private final com.spottrack.platform.monitoring.application.commandServices.MotionSensorCommandService motionSensorCommandService;
     private final com.spottrack.platform.monitoring.domain.repositories.MotionSensorRepository motionSensorRepository;
+    private final com.spottrack.platform.monitoring.application.commandServices.AnomalyCommandService anomalyCommandService;
 
     public DevDataSeeder(
             RoleCommandService roleCommandService,
@@ -145,7 +147,8 @@ public class DevDataSeeder {
             TechnicalTicketJpaRepository technicalTicketJpaRepository,
             TechnicianQueryService technicianQueryService,
             com.spottrack.platform.monitoring.application.commandServices.MotionSensorCommandService motionSensorCommandService,
-            com.spottrack.platform.monitoring.domain.repositories.MotionSensorRepository motionSensorRepository) {
+            com.spottrack.platform.monitoring.domain.repositories.MotionSensorRepository motionSensorRepository,
+            com.spottrack.platform.monitoring.application.commandServices.AnomalyCommandService anomalyCommandService) {
         this.roleCommandService = roleCommandService;
         this.userCommandService = userCommandService;
         this.userRepository = userRepository;
@@ -171,6 +174,7 @@ public class DevDataSeeder {
         this.technicianQueryService = technicianQueryService;
         this.motionSensorCommandService = motionSensorCommandService;
         this.motionSensorRepository = motionSensorRepository;
+        this.anomalyCommandService = anomalyCommandService;
     }
 
     private record GymSeedResult(String gymId, String equipmentId) {}
@@ -194,8 +198,141 @@ public class DevDataSeeder {
         var technicianId = seedTechnician();
         seedMaintenanceLog(gymSeed.equipmentId(), technicianId);
         seedMaintenanceThreshold(gymSeed.equipmentId());
+        seedMonthOfUsage(gymSeed.equipmentId());
 
         log.info("[DevDataSeeder] Dev seed complete.");
+    }
+
+    /** Adds a second and third piece of equipment with a month's worth of usage history, tickets in every
+     *  kanban state, and a second, anomaly-triggered alert — so the app doesn't look like it was seeded five minutes ago. */
+    private void seedMonthOfUsage(String primaryEquipmentId) {
+        if (equipmentPersistenceRepository.findByEquipmentName("Bicicleta Seed").isPresent()) {
+            log.info("[DevDataSeeder] Month-of-usage data already seeded, skipping.");
+            return;
+        }
+        var zoneId = equipmentPersistenceRepository.findByEquipmentId(primaryEquipmentId)
+                .map(e -> e.getZoneId())
+                .orElse(null);
+        if (zoneId == null) {
+            log.warn("[DevDataSeeder] Could not resolve zone for primary equipment, skipping month-of-usage seed.");
+            return;
+        }
+
+        var bikeId = seedNamedEquipment("Bicicleta Seed", zoneId);
+        var benchId = seedNamedEquipment("Press Banca Seed", zoneId);
+
+        seedActivityReport(bikeId, 220, 25, "Uso intensivo durante el mes", 12.0);
+        seedActivityReport(benchId, 90, 8, "Uso ligero durante el mes", -3.0);
+
+        var secondTechnicianId = seedSecondTechnician();
+
+        seedInProgressTicket(bikeId, secondTechnicianId);
+        seedOpenTicket(benchId);
+
+        seedMaintenanceThreshold(bikeId);
+        seedAnomalyAlert(benchId, zoneId);
+
+        log.info("[DevDataSeeder] Month-of-usage data seeded.");
+    }
+
+    private String seedNamedEquipment(String name, String zoneId) {
+        var existing = equipmentPersistenceRepository.findByEquipmentName(name);
+        if (existing.isPresent()) {
+            return existing.get().getEquipmentId();
+        }
+        var result = equipmentCommandService.handle(new RegisterEquipment(
+                name,
+                EquipmentStatus.AVAILABLE,
+                "Model-X",
+                new ManufacturerId(MANUFACTURER_ID),
+                new ZoneId(zoneId),
+                new Money(BigDecimal.valueOf(500), "USD"),
+                null
+        ));
+        if (result instanceof Result.Failure<?, ?> f) {
+            log.error("[DevDataSeeder] Failed to create equipment {}: {}", name, f.error());
+            throw new IllegalStateException("Dev seed failed at equipment creation: " + name);
+        }
+        var equipmentId = ((Result.Success<com.spottrack.platform.gym.domain.model.aggregates.Equipment, ?>) result).value().getId().uuid();
+        log.info("[DevDataSeeder] Equipment {} created, equipmentId={}", name, equipmentId);
+        return equipmentId;
+    }
+
+    private String seedSecondTechnician() {
+        var existing = technicianQueryService.handle(new GetAllTechniciansQuery()).stream()
+                .filter(t -> "Maria Seed".equals(t.getName()))
+                .findFirst();
+        if (existing.isPresent()) {
+            return existing.get().getTechnicianId().uuid();
+        }
+        var result = maintenanceCommandService.handle(new CreateTechnician("Maria Seed"));
+        if (result instanceof Result.Failure<?, ?> f) {
+            log.error("[DevDataSeeder] Failed to create second technician: {}", f.error());
+            throw new IllegalStateException("Dev seed failed at second technician creation");
+        }
+        var technicianId = ((Result.Success<com.spottrack.platform.maintenance.domain.model.aggregates.Technician, ?>) result).value().getTechnicianId().uuid();
+        log.info("[DevDataSeeder] Second technician created, technicianId={}", technicianId);
+        return technicianId;
+    }
+
+    /** A ticket that's assigned but not yet completed, so the "in progress" kanban column has real data. */
+    private void seedInProgressTicket(String equipmentId, String technicianId) {
+        var maintenanceResult = maintenanceCommandService.handle(new RequestMaintenance(
+                new EquipmentId(equipmentId), "SYSTEM", "Ruido inusual durante el uso"));
+        if (maintenanceResult instanceof Result.Failure<?, ?> f) {
+            log.error("[DevDataSeeder] Failed to request maintenance for in-progress ticket: {}", f.error());
+            return;
+        }
+        var maintenanceId = ((Result.Success<com.spottrack.platform.maintenance.domain.model.aggregates.Maintenance, ?>) maintenanceResult).value().getId().uuid();
+
+        var ticketResult = maintenanceCommandService.handle(new CreateTechnicalTicketCommand(
+                maintenanceId, TicketPriority.MEDIUM, TicketType.CORRECTIVE));
+        if (ticketResult instanceof Result.Failure<?, ?> f) {
+            log.error("[DevDataSeeder] Failed to create in-progress ticket: {}", f.error());
+            return;
+        }
+        var ticket = ((Result.Success<com.spottrack.platform.maintenance.domain.model.aggregates.TechnicalTicket, ?>) ticketResult).value();
+
+        var assignResult = maintenanceCommandService.handle(new AssignTechnicalTicket(ticket.getTicketId(), technicianId));
+        if (assignResult instanceof Result.Failure<?, ?> f) {
+            log.error("[DevDataSeeder] Failed to assign in-progress ticket: {}", f.error());
+            return;
+        }
+        log.info("[DevDataSeeder] In-progress ticket seeded for equipment {}.", equipmentId);
+    }
+
+    /** A ticket that's just been opened, unassigned, so the "pending" kanban column has real data. */
+    private void seedOpenTicket(String equipmentId) {
+        var maintenanceResult = maintenanceCommandService.handle(new RequestMaintenance(
+                new EquipmentId(equipmentId), "SYSTEM", "Revisión programada mensual"));
+        if (maintenanceResult instanceof Result.Failure<?, ?> f) {
+            log.error("[DevDataSeeder] Failed to request maintenance for open ticket: {}", f.error());
+            return;
+        }
+        var maintenanceId = ((Result.Success<com.spottrack.platform.maintenance.domain.model.aggregates.Maintenance, ?>) maintenanceResult).value().getId().uuid();
+
+        var ticketResult = maintenanceCommandService.handle(new CreateTechnicalTicketCommand(
+                maintenanceId, TicketPriority.LOW, TicketType.PREVENTIVE));
+        if (ticketResult instanceof Result.Failure<?, ?> f) {
+            log.error("[DevDataSeeder] Failed to create open ticket: {}", f.error());
+            return;
+        }
+        log.info("[DevDataSeeder] Open ticket seeded for equipment {}.", equipmentId);
+    }
+
+    /** Triggers a real CRITICAL alert via the anomaly-report event chain, distinct from the WARNING alerts raised by maintenance thresholds. */
+    private void seedAnomalyAlert(String equipmentId, String zoneId) {
+        var result = anomalyCommandService.handle(new com.spottrack.platform.monitoring.domain.model.commands.ReportAnomalyCommand(
+                "SEED-RESERVATION-" + equipmentId,
+                equipmentId,
+                zoneId,
+                "Vibración inusual detectada durante el uso"
+        ));
+        if (result instanceof Result.Failure<?, ?> f) {
+            log.warn("[DevDataSeeder] Failed to seed anomaly alert: {}", f.error());
+            return;
+        }
+        log.info("[DevDataSeeder] Anomaly reported for equipment {}; a CRITICAL alert should follow shortly.", equipmentId);
     }
 
     /** Sets a past-due threshold so the scheduler raises a real alert on its next tick, instead of leaving the seeded admin's alert inbox empty. */
@@ -418,6 +555,10 @@ public class DevDataSeeder {
     }
 
     private void seedActivityReport(String equipmentId) {
+        seedActivityReport(equipmentId, 45, 10, "Cinta atascada", 8.0);
+    }
+
+    private void seedActivityReport(String equipmentId, int minutesActive, int minutesInactive, String downtimeReason, double percentageChange) {
         if (equipmentId == null) {
             log.warn("[DevDataSeeder] Equipment ID not available, skipping activity report seeding.");
             return;
@@ -427,7 +568,7 @@ public class DevDataSeeder {
             return;
         }
         activityReportCommandService.handle(new RequestActivityAnalysisCommand(
-                equipmentId, 45, 10, "Cinta atascada", 8.0));
+                equipmentId, minutesActive, minutesInactive, downtimeReason, percentageChange));
         log.info("[DevDataSeeder] Activity report seeded for equipment {}.", equipmentId);
     }
 
