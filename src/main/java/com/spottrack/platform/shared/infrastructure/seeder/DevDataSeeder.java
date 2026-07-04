@@ -143,7 +143,7 @@ public class DevDataSeeder {
             ROIProjectionQueryService roiProjectionQueryService,
             MaintenanceCommandService maintenanceCommandService,
             TechnicalTicketJpaRepository technicalTicketJpaRepository,
-            TechnicianQueryService technicianQueryService) {
+            TechnicianQueryService technicianQueryService,
             com.spottrack.platform.monitoring.application.commandServices.MotionSensorCommandService motionSensorCommandService,
             com.spottrack.platform.monitoring.domain.repositories.MotionSensorRepository motionSensorRepository) {
         this.roleCommandService = roleCommandService;
