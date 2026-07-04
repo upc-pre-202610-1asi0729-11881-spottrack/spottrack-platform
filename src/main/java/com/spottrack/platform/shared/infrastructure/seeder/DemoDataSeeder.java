@@ -52,8 +52,11 @@ import com.spottrack.platform.reservation.domain.model.commands.StartReservation
 import com.spottrack.platform.reservation.domain.model.valueobjects.TimeInterval;
 import com.spottrack.platform.reservation.domain.repositories.ReservationRepository;
 import com.spottrack.platform.routine.application.commandservices.RoutineCommandService;
+import com.spottrack.platform.routine.application.commandservices.RoutineSessionCommandService;
 import com.spottrack.platform.routine.domain.model.commands.AddExerciseBlockCommand;
+import com.spottrack.platform.routine.domain.model.commands.CompleteRoutineCommand;
 import com.spottrack.platform.routine.domain.model.commands.CreateRoutineCommand;
+import com.spottrack.platform.routine.domain.model.commands.StartRoutineCommand;
 import com.spottrack.platform.routine.domain.model.valueobjects.ExerciseName;
 import com.spottrack.platform.routine.domain.model.valueobjects.ExerciseType;
 import com.spottrack.platform.routine.domain.model.valueobjects.RoutineName;
@@ -114,6 +117,7 @@ public class DemoDataSeeder {
     private final ReservationRepository reservationRepository;
     private final RoutineCommandService routineCommandService;
     private final RoutineRepository routineRepository;
+    private final RoutineSessionCommandService routineSessionCommandService;
     private final MaintenanceCommandService maintenanceCommandService;
     private final TechnicalTicketJpaRepository technicalTicketJpaRepository;
     private final com.spottrack.platform.monitoring.application.commandServices.MotionSensorCommandService motionSensorCommandService;
@@ -138,6 +142,7 @@ public class DemoDataSeeder {
             ReservationRepository reservationRepository,
             RoutineCommandService routineCommandService,
             RoutineRepository routineRepository,
+            RoutineSessionCommandService routineSessionCommandService,
             MaintenanceCommandService maintenanceCommandService,
             TechnicalTicketJpaRepository technicalTicketJpaRepository,
             com.spottrack.platform.monitoring.application.commandServices.MotionSensorCommandService motionSensorCommandService,
@@ -160,6 +165,7 @@ public class DemoDataSeeder {
         this.reservationRepository = reservationRepository;
         this.routineCommandService = routineCommandService;
         this.routineRepository = routineRepository;
+        this.routineSessionCommandService = routineSessionCommandService;
         this.maintenanceCommandService = maintenanceCommandService;
         this.technicalTicketJpaRepository = technicalTicketJpaRepository;
         this.motionSensorCommandService = motionSensorCommandService;
@@ -252,7 +258,7 @@ public class DemoDataSeeder {
         var pesasId  = addZone("Pesas", 20, branch1);
         addEquipment("Mancuernas Ajustables 30kg", EquipmentStatus.AVAILABLE,      "Dumbbell-Adj-30",     pesasId, 250.00);
         addEquipment("Barra Olímpica 20kg",        EquipmentStatus.AVAILABLE,      "Barbell-Olympic-20",  pesasId, 180.00);
-        addEquipment("Rack Multiuso",              EquipmentStatus.OUT_OF_SERVICE, "Rack-Multi-500",      pesasId, 800.00);
+        addEquipment("Rack Multiuso",              EquipmentStatus.AVAILABLE,      "Rack-Multi-500",      pesasId, 800.00);
 
         // Branch 2 – San Isidro
         var branch2     = addBranch(gymId, "Sede San Isidro", "Av. República de Panamá 3500, San Isidro");
@@ -261,7 +267,7 @@ public class DemoDataSeeder {
         addEquipment("Kettlebell 16kg",    EquipmentStatus.AVAILABLE, "Kettlebell-16kg",   funcionalId, 120.00);
         var maquinasId = addZone("Máquinas", 18, branch2);
         addEquipment("Prensa de Piernas", EquipmentStatus.AVAILABLE,      "Leg-Press-X3",      maquinasId, 1500.00);
-        addEquipment("Polea Cable",       EquipmentStatus.OUT_OF_SERVICE, "Cable-Pulley-200",  maquinasId,  700.00);
+        addEquipment("Polea Cable",       EquipmentStatus.AVAILABLE,      "Cable-Pulley-200",  maquinasId,  700.00);
 
         log.info("[DemoDataSeeder] Gym structure seeded: 2 branches, 4 zones, 10 equipment.");
         return new GymSeedResult(gymId, equipA, equipB, equipOOS);
@@ -455,6 +461,15 @@ public class DemoDataSeeder {
         routineCommandService.handle(new AddExerciseBlockCommand(routineId, new ExerciseName("Sentadillas"),       ExerciseType.STRENGTH,    2, 3, 12));
         routineCommandService.handle(new AddExerciseBlockCommand(routineId, new ExerciseName("Estiramientos"),     ExerciseType.FLEXIBILITY, 3, 1, 1));
         log.info("[DemoDataSeeder] Routine 'Rutina de Iniciación' created with 3 exercise blocks, routineId={}.", routineId);
+
+        var sessionResult = routineSessionCommandService.handle(new StartRoutineCommand(routineId, routineClientId));
+        if (sessionResult instanceof Result.Failure<?, ?> f) {
+            log.warn("[DemoDataSeeder] Failed to start routine session: {}", f.error());
+            return;
+        }
+        var session = ((Result.Success<com.spottrack.platform.routine.domain.model.aggregates.RoutineSession, ?>) sessionResult).value();
+        routineSessionCommandService.handle(new CompleteRoutineCommand(session.getId()));
+        log.info("[DemoDataSeeder] Routine session completed for clientProfileId={}.", clientProfileId);
     }
 
     // ─── Maintenance ticket ──────────────────────────────────────────────────
