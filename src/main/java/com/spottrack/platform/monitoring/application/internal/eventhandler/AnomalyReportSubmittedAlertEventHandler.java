@@ -6,6 +6,7 @@ import com.spottrack.platform.monitoring.interfaces.events.AnomalyReportSubmitte
 import com.spottrack.platform.shared.application.commandservices.AlertCommandService;
 import com.spottrack.platform.shared.domain.model.commands.CreateAlertCommand;
 import com.spottrack.platform.shared.domain.model.valueobjects.AlertSeverity;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
  * for the admin who owns the affected equipment.
  */
 @Service
+@Slf4j
 public class AnomalyReportSubmittedAlertEventHandler {
 
     private final GymContextFacade gymContextFacade;
@@ -30,15 +32,26 @@ public class AnomalyReportSubmittedAlertEventHandler {
 
     @EventListener
     public void on(AnomalyReportSubmittedIntegrationEvent event) {
-        gymContextFacade.resolveGymIdForEquipment(event.equipmentId())
-                .map(gymContextFacade::fetchAdminUserIdByGymId)
-                .filter(adminUserId -> adminUserId != 0L)
-                .filter(adminUserId -> iamContextFacade.shouldNotify(adminUserId, AlertSeverity.CRITICAL))
-                .ifPresent(adminUserId -> alertCommandService.handle(new CreateAlertCommand(
-                        adminUserId,
-                        event.equipmentId(),
-                        AlertSeverity.CRITICAL,
-                        "Anomaly reported: " + event.anomalyDescription()
-                )));
+        var gymId = gymContextFacade.resolveGymIdForEquipment(event.equipmentId());
+        if (gymId.isEmpty()) {
+            log.warn("No gym could be resolved for equipment {}; anomaly alert was not created.", event.equipmentId());
+            return;
+        }
+        var adminUserId = gymContextFacade.fetchAdminUserIdByGymId(gymId.get());
+        if (adminUserId == 0L) {
+            log.warn("Gym {} has no admin user; anomaly alert for equipment {} was not created.", gymId.get(), event.equipmentId());
+            return;
+        }
+        if (!iamContextFacade.shouldNotify(adminUserId, AlertSeverity.CRITICAL)) {
+            log.info("Admin {} has muted CRITICAL alerts; anomaly alert for equipment {} was suppressed.", adminUserId, event.equipmentId());
+            return;
+        }
+        alertCommandService.handle(new CreateAlertCommand(
+                adminUserId,
+                event.equipmentId(),
+                AlertSeverity.CRITICAL,
+                "Anomaly reported: " + event.anomalyDescription()
+        ));
+        log.info("Anomaly alert created for admin {} on equipment {}.", adminUserId, event.equipmentId());
     }
 }
