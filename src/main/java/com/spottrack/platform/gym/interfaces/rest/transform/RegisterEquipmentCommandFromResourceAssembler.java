@@ -14,7 +14,8 @@ public class RegisterEquipmentCommandFromResourceAssembler {
                 resource.model(),
                 new ManufacturerId(resource.manufacturerId()),
                 new ZoneId(resource.zoneId()),
-                new Money(resource.purchaseAmount(), resource.purchaseCurrency())
+                new Money(resource.purchaseAmount(), resource.purchaseCurrency()),
+                resource.maintenanceThreshold()
         );
     }
 }

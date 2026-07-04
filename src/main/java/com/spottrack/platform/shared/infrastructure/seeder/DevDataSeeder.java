@@ -170,8 +170,8 @@ public class DevDataSeeder {
         roleCommandService.handle(new SeedRolesCommand());
 
         var adminUserId = seedAdminUser();
-        var gymSeed = seedGym(adminUserId);
         seedMembership(adminUserId);
+        var gymSeed = seedGym(adminUserId);
         seedWhitelist(gymSeed.gymId());
         seedClientUser(gymSeed.gymId());
         seedActivityReport(gymSeed.equipmentId());
@@ -220,8 +220,12 @@ public class DevDataSeeder {
             var gymId = existing.get(0).getGymId();
             var equipmentId = equipmentPersistenceRepository.findByEquipmentName("Cinta Seed")
                     .map(e -> e.getEquipmentId()).orElse(null);
-            log.info("[DevDataSeeder] Gym already exists gymId={}, skipping creation.", gymId);
-            return new GymSeedResult(gymId, equipmentId);
+            if (equipmentId != null) {
+                log.info("[DevDataSeeder] Gym already exists gymId={}, skipping creation.", gymId);
+                return new GymSeedResult(gymId, equipmentId);
+            }
+            log.warn("[DevDataSeeder] Gym exists gymId={} but seed equipment is missing, recreating it.", gymId);
+            return new GymSeedResult(gymId, seedEquipment(gymId));
         }
 
         var gymResult = gymCommandService.handle(new CreateGym(SEED_GYM_NAME, adminUserId));
@@ -233,6 +237,10 @@ public class DevDataSeeder {
         var gymId = gym.getId().uuid();
         log.info("[DevDataSeeder] Gym created gymId={}", gymId);
 
+        return new GymSeedResult(gymId, seedEquipment(gymId));
+    }
+
+    private String seedEquipment(String gymId) {
         var branchResult = gymCommandService.handle(new AddBranchCommand(gymId, "Sede Central", "Av. Seed 123"));
         if (branchResult instanceof Result.Failure<?, ?> f) {
             log.error("[DevDataSeeder] Failed to create branch: {}", f.error());
@@ -257,7 +265,8 @@ public class DevDataSeeder {
                 "Model-X",
                 new ManufacturerId(MANUFACTURER_ID),
                 new ZoneId(zoneId),
-                new Money(BigDecimal.valueOf(500), "USD")
+                new Money(BigDecimal.valueOf(500), "USD"),
+                null
         ));
         if (equipResult instanceof Result.Failure<?, ?> f) {
             log.error("[DevDataSeeder] Failed to create equipment: {}", f.error());
@@ -265,8 +274,7 @@ public class DevDataSeeder {
         }
         var equipmentId = ((Result.Success<com.spottrack.platform.gym.domain.model.aggregates.Equipment, ?>) equipResult).value().getId().uuid();
         log.info("[DevDataSeeder] Equipment created equipmentId={}", equipmentId);
-
-        return new GymSeedResult(gymId, equipmentId);
+        return equipmentId;
     }
 
     private void seedMembership(Long adminUserId) {

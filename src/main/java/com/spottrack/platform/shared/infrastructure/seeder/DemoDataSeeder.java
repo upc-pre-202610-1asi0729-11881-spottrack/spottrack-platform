@@ -170,8 +170,8 @@ public class DemoDataSeeder {
         roleCommandService.handle(new SeedRolesCommand());
 
         var adminUserId   = seedAdminUser();
-        var gymSeed       = seedGym(adminUserId);
         seedMembership(adminUserId);
+        var gymSeed       = seedGym(adminUserId);
         seedWhitelist(gymSeed.gymId());
         var clientProfileId = seedClientUser(gymSeed.gymId());
         seedAdditionalClients(gymSeed.gymId());
@@ -279,7 +279,8 @@ public class DemoDataSeeder {
                 name, status, model,
                 new ManufacturerId(MANUFACTURER_ID),
                 new ZoneId(zoneId),
-                new Money(BigDecimal.valueOf(price), "USD")
+                new Money(BigDecimal.valueOf(price), "USD"),
+                null
         ));
         if (result instanceof Result.Failure<?, ?> f)
             throw new IllegalStateException("Demo seed failed at equipment '" + name + "': " + f.error());

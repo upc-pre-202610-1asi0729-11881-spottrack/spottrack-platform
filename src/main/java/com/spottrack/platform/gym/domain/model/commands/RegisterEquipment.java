@@ -5,13 +5,16 @@ import com.spottrack.platform.gym.domain.model.valueobjects.ManufacturerId;
 import com.spottrack.platform.gym.domain.model.valueobjects.ZoneId;
 import com.spottrack.platform.shared.domain.model.valueobjects.Money;
 
+import java.time.LocalDate;
+
 public record RegisterEquipment(
         String equipmentName,
         EquipmentStatus status,
         String model,
         ManufacturerId manufacturerId,
         ZoneId zoneId,
-        Money purchasePrice
+        Money purchasePrice,
+        LocalDate maintenanceThreshold
 ) {
     public RegisterEquipment {
         if (equipmentName == null || equipmentName.isBlank()) {

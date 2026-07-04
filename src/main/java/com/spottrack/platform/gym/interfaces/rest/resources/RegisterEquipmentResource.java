@@ -6,6 +6,7 @@ import com.spottrack.platform.gym.domain.model.valueobjects.ManufacturerId;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 public record RegisterEquipmentResource(
         @Schema
@@ -21,6 +22,8 @@ public record RegisterEquipmentResource(
         @Schema
         String purchaseCurrency,
         @Schema
-        BigDecimal purchaseAmount
+        BigDecimal purchaseAmount,
+        @Schema(description = "Optional maintenance threshold date; defaults to today if not provided")
+        LocalDate maintenanceThreshold
 ) {
 }
