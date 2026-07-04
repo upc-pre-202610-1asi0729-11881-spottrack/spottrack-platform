@@ -22,6 +22,7 @@ public final class AlertPersistenceAssembler {
     public static AlertPersistenceEntity toPersistenceFromDomain(Alert alert) {
         var entity = new AlertPersistenceEntity();
         entity.setId(alert.getId());
+        entity.setCreatedAt(alert.getCreatedAt());
         entity.setAdminUserId(alert.getAdminUserId());
         entity.setEquipmentId(alert.getEquipmentId());
         entity.setSeverity(alert.getSeverity());
