@@ -16,11 +16,14 @@ public class UserPersistenceEntity extends AuditableAbstractPersistenceEntity {
     private String password;
     private boolean active = true;
 
+    // Boxed rather than primitive: ddl-auto=update adds this column with NULL for
+    // rows that existed before this field was introduced, and a primitive boolean
+    // can't hold that during hydration — Hibernate throws on every read of an old row.
     @Column(name = "notify_on_critical")
-    private boolean notifyOnCritical = true;
+    private Boolean notifyOnCritical = true;
 
     @Column(name = "notify_on_warning")
-    private boolean notifyOnWarning = true;
+    private Boolean notifyOnWarning = true;
 
     @Column(name = "notification_email")
     private String notificationEmail;
@@ -69,7 +72,7 @@ public class UserPersistenceEntity extends AuditableAbstractPersistenceEntity {
     }
 
     public boolean isNotifyOnCritical() {
-        return notifyOnCritical;
+        return notifyOnCritical == null || notifyOnCritical;
     }
 
     public void setNotifyOnCritical(boolean notifyOnCritical) {
@@ -77,7 +80,7 @@ public class UserPersistenceEntity extends AuditableAbstractPersistenceEntity {
     }
 
     public boolean isNotifyOnWarning() {
-        return notifyOnWarning;
+        return notifyOnWarning == null || notifyOnWarning;
     }
 
     public void setNotifyOnWarning(boolean notifyOnWarning) {
