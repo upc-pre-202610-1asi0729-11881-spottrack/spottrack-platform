@@ -215,10 +215,7 @@ public class DevDataSeeder {
         seedMaintenanceLog(gymSeed.equipmentId(), technicianId);
         seedMaintenanceThreshold(gymSeed.equipmentId());
         seedMonthOfUsage(gymSeed.equipmentId());
-
-        var bikeId = equipmentPersistenceRepository.findByEquipmentName("Bicicleta Seed")
-                .map(e -> e.getEquipmentId()).orElse(gymSeed.equipmentId());
-        seedReservations(gymSeed.equipmentId(), bikeId, firstClientId, secondClientId);
+        seedReservableEquipment(gymSeed.equipmentId(), firstClientId, secondClientId);
 
         log.info("[DevDataSeeder] Dev seed complete.");
     }
@@ -253,6 +250,23 @@ public class DevDataSeeder {
         seedAnomalyAlert(benchId, zoneId);
 
         log.info("[DevDataSeeder] Month-of-usage data seeded.");
+    }
+
+    /** Two pieces of equipment that no maintenance ticket ever touches, kept AVAILABLE at all times,
+     *  dedicated to the seeded reservations — so a client testing the app doesn't land on gear
+     *  that's already tied up in the kanban/maintenance demo data. */
+    private void seedReservableEquipment(String primaryEquipmentId, Long firstClientId, Long secondClientId) {
+        var zoneId = equipmentPersistenceRepository.findByEquipmentId(primaryEquipmentId)
+                .map(e -> e.getZoneId())
+                .orElse(null);
+        if (zoneId == null) {
+            log.warn("[DevDataSeeder] Could not resolve zone for primary equipment, skipping reservation seeding.");
+            return;
+        }
+
+        var reservableEquipmentId1 = seedNamedEquipment("Elíptica Seed", zoneId);
+        var reservableEquipmentId2 = seedNamedEquipment("Multigimnasio Seed", zoneId);
+        seedReservations(reservableEquipmentId1, reservableEquipmentId2, firstClientId, secondClientId);
     }
 
     private String seedNamedEquipment(String name, String zoneId) {
