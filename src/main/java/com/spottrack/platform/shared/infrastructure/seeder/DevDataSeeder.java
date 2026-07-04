@@ -37,9 +37,13 @@ import com.spottrack.platform.iam.domain.model.valueobjects.Roles;
 import com.spottrack.platform.iam.domain.repositories.RoleRepository;
 import com.spottrack.platform.iam.domain.repositories.UserRepository;
 import com.spottrack.platform.maintenance.application.commandServices.MaintenanceCommandService;
+import com.spottrack.platform.maintenance.application.queryservices.TechnicianQueryService;
+import com.spottrack.platform.maintenance.domain.model.commands.AssignTechnicalTicket;
+import com.spottrack.platform.maintenance.domain.model.commands.CreateTechnician;
 import com.spottrack.platform.maintenance.domain.model.commands.CreateTechnicalTicketCommand;
 import com.spottrack.platform.maintenance.domain.model.commands.RegisterMaintenanceCompletion;
 import com.spottrack.platform.maintenance.domain.model.commands.RequestMaintenance;
+import com.spottrack.platform.maintenance.domain.model.queries.GetAllTechniciansQuery;
 import com.spottrack.platform.maintenance.domain.model.valueobjects.EquipmentId;
 import com.spottrack.platform.maintenance.domain.model.valueobjects.MaintenanceId;
 import com.spottrack.platform.maintenance.domain.model.valueobjects.TechnicalTicketId;
@@ -112,6 +116,7 @@ public class DevDataSeeder {
     private final ROIProjectionQueryService roiProjectionQueryService;
     private final MaintenanceCommandService maintenanceCommandService;
     private final TechnicalTicketJpaRepository technicalTicketJpaRepository;
+    private final TechnicianQueryService technicianQueryService;
 
     public DevDataSeeder(
             RoleCommandService roleCommandService,
@@ -135,7 +140,8 @@ public class DevDataSeeder {
             ROIProjectionCommandService roiProjectionCommandService,
             ROIProjectionQueryService roiProjectionQueryService,
             MaintenanceCommandService maintenanceCommandService,
-            TechnicalTicketJpaRepository technicalTicketJpaRepository) {
+            TechnicalTicketJpaRepository technicalTicketJpaRepository,
+            TechnicianQueryService technicianQueryService) {
         this.roleCommandService = roleCommandService;
         this.userCommandService = userCommandService;
         this.userRepository = userRepository;
@@ -158,6 +164,7 @@ public class DevDataSeeder {
         this.roiProjectionQueryService = roiProjectionQueryService;
         this.maintenanceCommandService = maintenanceCommandService;
         this.technicalTicketJpaRepository = technicalTicketJpaRepository;
+        this.technicianQueryService = technicianQueryService;
     }
 
     private record GymSeedResult(String gymId, String equipmentId) {}
@@ -177,9 +184,27 @@ public class DevDataSeeder {
         seedActivityReport(gymSeed.equipmentId());
         seedMaintenanceQuote(gymSeed.equipmentId());
         seedRoiProjection();
-        seedMaintenanceLog(gymSeed.equipmentId());
+        var technicianId = seedTechnician();
+
+        seedMaintenanceLog(gymSeed.equipmentId(), technicianId);
 
         log.info("[DevDataSeeder] Dev seed complete.");
+    }
+
+    private String seedTechnician() {
+        var existing = technicianQueryService.handle(new GetAllTechniciansQuery());
+        if (!existing.isEmpty()) {
+            log.info("[DevDataSeeder] Technician already exists, skipping creation.");
+            return existing.get(0).getTechnicianId().uuid();
+        }
+        var result = maintenanceCommandService.handle(new CreateTechnician("Carlos Seed"));
+        if (result instanceof Result.Failure<?, ?> f) {
+            log.error("[DevDataSeeder] Failed to create technician: {}", f.error());
+            throw new IllegalStateException("Dev seed failed at technician creation");
+        }
+        var technicianId = ((Result.Success<com.spottrack.platform.maintenance.domain.model.aggregates.Technician, ?>) result).value().getTechnicianId().uuid();
+        log.info("[DevDataSeeder] Technician created, technicianId={}", technicianId);
+        return technicianId;
     }
 
     private Long seedAdminUser() {
@@ -411,7 +436,7 @@ public class DevDataSeeder {
         log.info("[DevDataSeeder] ROI projection seeded, id={}.", roiId);
     }
 
-    private void seedMaintenanceLog(String equipmentId) {
+    private void seedMaintenanceLog(String equipmentId, String technicianId) {
         if (equipmentId == null) {
             log.warn("[DevDataSeeder] Equipment ID not available, skipping maintenance log seeding.");
             return;
@@ -440,6 +465,13 @@ public class DevDataSeeder {
             return;
         }
         var ticket = ((Result.Success<com.spottrack.platform.maintenance.domain.model.aggregates.TechnicalTicket, ?>) ticketResult).value();
+
+        var assignResult = maintenanceCommandService.handle(new AssignTechnicalTicket(ticket.getTicketId(), technicianId));
+        if (assignResult instanceof Result.Failure<?, ?> f) {
+            log.error("[DevDataSeeder] Failed to assign technician to ticket: {}", f.error());
+            return;
+        }
+        log.info("[DevDataSeeder] Technician {} assigned to ticket {}.", technicianId, ticket.getTicketId().uuid());
 
         var completionResult = maintenanceCommandService.handle(new RegisterMaintenanceCompletion(
                 new TechnicalTicketId(ticket.getTicketId().uuid()),
