@@ -593,15 +593,18 @@ public class DevDataSeeder {
         return client.getId();
     }
 
-    /** A few express reservations tying both seed clients to real equipment, so a reservation dropdown has data to show. */
+    /**
+     * One express reservation per client, so a reservation dropdown has real data to show.
+     * A client can only hold one ACTIVE reservation at a time, so each seed client gets a
+     * different piece of equipment rather than competing for the same one.
+     */
     private void seedReservations(String equipmentId1, String equipmentId2, Long firstClientId, Long secondClientId) {
         if (!reservationQueryService.handle(new GetReservationsByClientIdQuery(firstClientId)).isEmpty()) {
             log.info("[DevDataSeeder] Reservations already seeded, skipping.");
             return;
         }
         seedReservation(firstClientId, equipmentId1, "08:00:00", "09:00:00");
-        seedReservation(firstClientId, equipmentId2, "17:00:00", "18:00:00");
-        seedReservation(secondClientId, equipmentId1, "10:00:00", "11:00:00");
+        seedReservation(secondClientId, equipmentId2, "10:00:00", "11:00:00");
         log.info("[DevDataSeeder] Reservations seeded.");
     }
 
