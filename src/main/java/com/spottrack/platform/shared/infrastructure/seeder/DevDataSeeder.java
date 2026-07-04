@@ -367,6 +367,10 @@ public class DevDataSeeder {
     }
 
     private void seedMaintenanceQuote(String equipmentId) {
+        if (equipmentId == null) {
+            log.warn("[DevDataSeeder] Equipment ID not available, skipping maintenance quote seeding.");
+            return;
+        }
         if (!maintenanceQuoteQueryService.handle(new GetAllMaintenanceQuotesQuery()).isEmpty()) {
             log.info("[DevDataSeeder] Maintenance quote already seeded, skipping.");
             return;
