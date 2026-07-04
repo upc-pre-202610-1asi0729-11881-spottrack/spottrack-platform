@@ -141,4 +141,11 @@ public class ProfilesContextFacadeImpl implements ProfilesContextFacade {
                 new com.spottrack.platform.profiles.domain.model.queries.GetClientByIdQuery(new ClientId(clientId)));
         return clientOpt.filter(c -> c.isProfileComplete()).map(c -> c.getFullName()).orElse(null);
     }
+
+    @Override
+    public boolean hasActiveAssociationWithGym(Long clientId, String gymId) {
+        return associationRepository.findByClientIdAndActiveTrue(clientId)
+                .filter(a -> gymId.equals(a.getGymId()))
+                .isPresent();
+    }
 }
