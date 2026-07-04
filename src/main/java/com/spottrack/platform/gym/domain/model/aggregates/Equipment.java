@@ -64,7 +64,7 @@ public class Equipment extends AbstractDomainAggregateRoot<Equipment> {
         this.manufacturerId = command.manufacturerId();
         this.zoneId = command.zoneId();
         this.purchasePrice = command.purchasePrice();
-        this.maintenanceThreshold = LocalDate.now();
+        this.maintenanceThreshold = command.maintenanceThreshold() != null ? command.maintenanceThreshold() : LocalDate.now();
     }
 
 
