@@ -16,6 +16,15 @@ public class UserPersistenceEntity extends AuditableAbstractPersistenceEntity {
     private String password;
     private boolean active = true;
 
+    @Column(name = "notify_on_critical")
+    private boolean notifyOnCritical = true;
+
+    @Column(name = "notify_on_warning")
+    private boolean notifyOnWarning = true;
+
+    @Column(name = "notification_email")
+    private String notificationEmail;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_roles",
@@ -57,5 +66,29 @@ public class UserPersistenceEntity extends AuditableAbstractPersistenceEntity {
 
     public void setActive(boolean active) {
         this.active = active;
+    }
+
+    public boolean isNotifyOnCritical() {
+        return notifyOnCritical;
+    }
+
+    public void setNotifyOnCritical(boolean notifyOnCritical) {
+        this.notifyOnCritical = notifyOnCritical;
+    }
+
+    public boolean isNotifyOnWarning() {
+        return notifyOnWarning;
+    }
+
+    public void setNotifyOnWarning(boolean notifyOnWarning) {
+        this.notifyOnWarning = notifyOnWarning;
+    }
+
+    public String getNotificationEmail() {
+        return notificationEmail;
+    }
+
+    public void setNotificationEmail(String notificationEmail) {
+        this.notificationEmail = notificationEmail;
     }
 }

@@ -16,6 +16,9 @@ public class UserPersistenceAssembler {
         User user = new User(entity.getUsername(), entity.getPassword(), roles);
         user.setId(entity.getId());
         user.setActive(entity.isActive());
+        user.setNotifyOnCritical(entity.isNotifyOnCritical());
+        user.setNotifyOnWarning(entity.isNotifyOnWarning());
+        user.setNotificationEmail(entity.getNotificationEmail());
         return user;
     }
 
@@ -31,6 +34,9 @@ public class UserPersistenceAssembler {
                 .toList();
         entity.setRoles(roleEntities);
         entity.setActive(user.isActive());
+        entity.setNotifyOnCritical(user.isNotifyOnCritical());
+        entity.setNotifyOnWarning(user.isNotifyOnWarning());
+        entity.setNotificationEmail(user.getNotificationEmail());
         return entity;
     }
 }
