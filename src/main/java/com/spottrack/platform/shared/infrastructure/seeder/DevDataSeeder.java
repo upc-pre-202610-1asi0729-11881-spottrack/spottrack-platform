@@ -69,6 +69,11 @@ import com.spottrack.platform.profiles.domain.model.queries.GetClientByUserIdQue
 import com.spottrack.platform.profiles.domain.model.valueobjects.AdminId;
 import com.spottrack.platform.profiles.domain.model.valueobjects.ClientId;
 import com.spottrack.platform.profiles.domain.model.valueobjects.PhoneNumber;
+import com.spottrack.platform.reservation.application.commandServices.ReservationCommandService;
+import com.spottrack.platform.reservation.application.queryservices.ReservationQueryService;
+import com.spottrack.platform.reservation.domain.model.commands.InitiateExpressReservation;
+import com.spottrack.platform.reservation.domain.model.queries.GetReservationsByClientIdQuery;
+import com.spottrack.platform.reservation.domain.model.valueobjects.TimeInterval;
 import com.spottrack.platform.shared.application.result.Result;
 import com.spottrack.platform.shared.domain.model.valueobjects.Money;
 import lombok.extern.slf4j.Slf4j;
@@ -79,6 +84,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.sql.Time;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -94,6 +100,8 @@ public class DevDataSeeder {
     private static final String ADMIN_DNI = "12345678";
     private static final String SEED_GYM_NAME = "Seed Gym";
     private static final String MANUFACTURER_ID = "00000000-0000-0000-0000-000000000001";
+    private static final String DEBUG_CLIENT_EMAIL = "debugclient@spottrack.com";
+    private static final String DEBUG_CLIENT_DNI = "11223344";
 
     private final RoleCommandService roleCommandService;
     private final UserCommandService userCommandService;
@@ -121,6 +129,8 @@ public class DevDataSeeder {
     private final com.spottrack.platform.monitoring.application.commandServices.MotionSensorCommandService motionSensorCommandService;
     private final com.spottrack.platform.monitoring.domain.repositories.MotionSensorRepository motionSensorRepository;
     private final com.spottrack.platform.monitoring.application.commandServices.AnomalyCommandService anomalyCommandService;
+    private final ReservationCommandService reservationCommandService;
+    private final ReservationQueryService reservationQueryService;
 
     public DevDataSeeder(
             RoleCommandService roleCommandService,
@@ -148,7 +158,9 @@ public class DevDataSeeder {
             TechnicianQueryService technicianQueryService,
             com.spottrack.platform.monitoring.application.commandServices.MotionSensorCommandService motionSensorCommandService,
             com.spottrack.platform.monitoring.domain.repositories.MotionSensorRepository motionSensorRepository,
-            com.spottrack.platform.monitoring.application.commandServices.AnomalyCommandService anomalyCommandService) {
+            com.spottrack.platform.monitoring.application.commandServices.AnomalyCommandService anomalyCommandService,
+            ReservationCommandService reservationCommandService,
+            ReservationQueryService reservationQueryService) {
         this.roleCommandService = roleCommandService;
         this.userCommandService = userCommandService;
         this.userRepository = userRepository;
@@ -175,6 +187,9 @@ public class DevDataSeeder {
         this.motionSensorCommandService = motionSensorCommandService;
         this.motionSensorRepository = motionSensorRepository;
         this.anomalyCommandService = anomalyCommandService;
+
+        this.reservationCommandService = reservationCommandService;
+        this.reservationQueryService = reservationQueryService;
     }
 
     private record GymSeedResult(String gymId, String equipmentId) {}
@@ -190,7 +205,8 @@ public class DevDataSeeder {
         seedMembership(adminUserId);
         var gymSeed = seedGym(adminUserId);
         seedWhitelist(gymSeed.gymId());
-        seedClientUser(gymSeed.gymId());
+        var firstClientId = seedClientUser(gymSeed.gymId());
+        var secondClientId = seedSecondClient(gymSeed.gymId());
         seedActivityReport(gymSeed.equipmentId());
         seedMaintenanceQuote(gymSeed.equipmentId());
         seedMotionSensor(gymSeed.equipmentId());
@@ -199,6 +215,10 @@ public class DevDataSeeder {
         seedMaintenanceLog(gymSeed.equipmentId(), technicianId);
         seedMaintenanceThreshold(gymSeed.equipmentId());
         seedMonthOfUsage(gymSeed.equipmentId());
+
+        var bikeId = equipmentPersistenceRepository.findByEquipmentName("Bicicleta Seed")
+                .map(e -> e.getEquipmentId()).orElse(gymSeed.equipmentId());
+        seedReservations(gymSeed.equipmentId(), bikeId, firstClientId, secondClientId);
 
         log.info("[DevDataSeeder] Dev seed complete.");
     }
@@ -514,21 +534,39 @@ public class DevDataSeeder {
         }
     }
 
-    private void seedClientUser(String gymId) {
+    private Long seedClientUser(String gymId) {
+        return seedClient(gymId, CLIENT_EMAIL, SEED_DNI, "Seed", "Client", "999222222");
+    }
+
+    /** A second, distinct client account for debugging the client-facing app, separate from the primary seed client. */
+    private Long seedSecondClient(String gymId) {
+        var dniResult = gymCommandService.handle(new AddDniToWhitelistCommand(
+                gymId,
+                new com.spottrack.platform.gym.domain.model.valueobjects.Dni(DEBUG_CLIENT_DNI)
+        ));
+        if (dniResult instanceof Result.Failure<?, ?> f) {
+            log.info("[DevDataSeeder] DNI {} already in whitelist ({}), skipping.", DEBUG_CLIENT_DNI, f.error());
+        } else {
+            log.info("[DevDataSeeder] DNI {} added to whitelist.", DEBUG_CLIENT_DNI);
+        }
+        return seedClient(gymId, DEBUG_CLIENT_EMAIL, DEBUG_CLIENT_DNI, "Debug", "Client", "999333333");
+    }
+
+    private Long seedClient(String gymId, String email, String dni, String firstName, String lastName, String phone) {
         Long clientUserId;
-        if (userRepository.existsByUsername(CLIENT_EMAIL)) {
-            log.info("[DevDataSeeder] Client user already exists, skipping creation.");
-            clientUserId = userRepository.findByUsername(CLIENT_EMAIL).orElseThrow().getId();
+        if (userRepository.existsByUsername(email)) {
+            log.info("[DevDataSeeder] Client user {} already exists, skipping creation.", email);
+            clientUserId = userRepository.findByUsername(email).orElseThrow().getId();
         } else {
             var clientRole = roleRepository.findByName(Roles.ROLE_CLIENT)
                     .orElseGet(() -> new Role(Roles.ROLE_CLIENT));
-            var result = userCommandService.handle(new SignUpCommand(CLIENT_EMAIL, SEED_PASSWORD, List.of(clientRole)));
+            var result = userCommandService.handle(new SignUpCommand(email, SEED_PASSWORD, List.of(clientRole)));
             if (result instanceof Result.Failure<?, ?> f) {
-                log.error("[DevDataSeeder] Failed to create client user: {}", f.error());
-                throw new IllegalStateException("Dev seed failed at client user creation");
+                log.error("[DevDataSeeder] Failed to create client user {}: {}", email, f.error());
+                throw new IllegalStateException("Dev seed failed at client user creation: " + email);
             }
             clientUserId = ((Result.Success<com.spottrack.platform.iam.domain.model.aggregates.User, ?>) result).value().getId();
-            log.info("[DevDataSeeder] Client user created, userId={}", clientUserId);
+            log.info("[DevDataSeeder] Client user {} created, userId={}", email, clientUserId);
         }
 
         var client = clientQueryService.handle(new GetClientByUserIdQuery(clientUserId))
@@ -537,12 +575,12 @@ public class DevDataSeeder {
         if (!client.isProfileComplete()) {
             clientCommandService.handle(new UpdateClientProfileCommand(
                     new ClientId(client.getId()),
-                    "Seed",
-                    "Client",
-                    new PhoneNumber("999222222"),
-                    new com.spottrack.platform.profiles.domain.model.valueobjects.Dni(SEED_DNI)
+                    firstName,
+                    lastName,
+                    new PhoneNumber(phone),
+                    new com.spottrack.platform.profiles.domain.model.valueobjects.Dni(dni)
             ));
-            log.info("[DevDataSeeder] Client profile updated.");
+            log.info("[DevDataSeeder] Client profile updated for {}.", email);
         }
 
         var assocResult = clientCommandService.handle(
@@ -551,6 +589,30 @@ public class DevDataSeeder {
             log.info("[DevDataSeeder] Client-gym association already exists ({}), skipping.", f.error());
         } else {
             log.info("[DevDataSeeder] Client associated with gym gymId={}.", gymId);
+        }
+        return client.getId();
+    }
+
+    /** A few express reservations tying both seed clients to real equipment, so a reservation dropdown has data to show. */
+    private void seedReservations(String equipmentId1, String equipmentId2, Long firstClientId, Long secondClientId) {
+        if (!reservationQueryService.handle(new GetReservationsByClientIdQuery(firstClientId)).isEmpty()) {
+            log.info("[DevDataSeeder] Reservations already seeded, skipping.");
+            return;
+        }
+        seedReservation(firstClientId, equipmentId1, "08:00:00", "09:00:00");
+        seedReservation(firstClientId, equipmentId2, "17:00:00", "18:00:00");
+        seedReservation(secondClientId, equipmentId1, "10:00:00", "11:00:00");
+        log.info("[DevDataSeeder] Reservations seeded.");
+    }
+
+    private void seedReservation(Long clientId, String equipmentId, String start, String end) {
+        var result = reservationCommandService.handle(new InitiateExpressReservation(
+                new com.spottrack.platform.reservation.domain.model.valueobjects.ClientId(clientId),
+                new com.spottrack.platform.reservation.domain.model.valueobjects.EquipmentId(equipmentId),
+                new TimeInterval(Time.valueOf(start), Time.valueOf(end))
+        ));
+        if (result instanceof Result.Failure<?, ?> f) {
+            log.warn("[DevDataSeeder] Failed to seed reservation for client {} on equipment {}: {}", clientId, equipmentId, f.error());
         }
     }
 
