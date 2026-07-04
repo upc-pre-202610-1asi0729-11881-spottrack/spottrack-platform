@@ -31,4 +31,10 @@ public interface ProfilesContextFacade {
      * or their profile is incomplete.
      */
     String fetchClientNameById(Long clientId);
+
+    /**
+     * Returns true if the client identified by clientId has an active association
+     * with the gym identified by gymId.
+     */
+    boolean hasActiveAssociationWithGym(Long clientId, String gymId);
 }
