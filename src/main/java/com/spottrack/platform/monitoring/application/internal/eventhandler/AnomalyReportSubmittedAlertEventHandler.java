@@ -1,6 +1,7 @@
 package com.spottrack.platform.monitoring.application.internal.eventhandler;
 
 import com.spottrack.platform.gym.interfaces.acl.GymContextFacade;
+import com.spottrack.platform.iam.interfaces.acl.IamContextFacade;
 import com.spottrack.platform.monitoring.interfaces.events.AnomalyReportSubmittedIntegrationEvent;
 import com.spottrack.platform.shared.application.commandservices.AlertCommandService;
 import com.spottrack.platform.shared.domain.model.commands.CreateAlertCommand;
@@ -16,11 +17,14 @@ import org.springframework.stereotype.Service;
 public class AnomalyReportSubmittedAlertEventHandler {
 
     private final GymContextFacade gymContextFacade;
+    private final IamContextFacade iamContextFacade;
     private final AlertCommandService alertCommandService;
 
     public AnomalyReportSubmittedAlertEventHandler(GymContextFacade gymContextFacade,
+                                                    IamContextFacade iamContextFacade,
                                                     AlertCommandService alertCommandService) {
         this.gymContextFacade = gymContextFacade;
+        this.iamContextFacade = iamContextFacade;
         this.alertCommandService = alertCommandService;
     }
 
@@ -29,6 +33,7 @@ public class AnomalyReportSubmittedAlertEventHandler {
         gymContextFacade.resolveGymIdForEquipment(event.equipmentId())
                 .map(gymContextFacade::fetchAdminUserIdByGymId)
                 .filter(adminUserId -> adminUserId != 0L)
+                .filter(adminUserId -> iamContextFacade.shouldNotify(adminUserId, AlertSeverity.CRITICAL))
                 .ifPresent(adminUserId -> alertCommandService.handle(new CreateAlertCommand(
                         adminUserId,
                         event.equipmentId(),
