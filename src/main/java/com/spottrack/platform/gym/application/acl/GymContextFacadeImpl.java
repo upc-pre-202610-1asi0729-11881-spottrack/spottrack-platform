@@ -107,4 +107,13 @@ public class GymContextFacadeImpl implements GymContextFacade {
                 .map(EquipmentPersistenceAssembler::toDomainFromPersistence)
                 .toList();
     }
+
+    @Override
+    public List<Equipment> findEquipmentsByGymId(String gymId) {
+        return branchPersistenceRepository.findByGymId(gymId).stream()
+                .flatMap(branch -> zonePersistenceRepository.findByBranchId(branch.getBranchId()).stream())
+                .flatMap(zone -> equipmentPersistenceRepository.findByZoneId(zone.getZoneId()).stream())
+                .map(EquipmentPersistenceAssembler::toDomainFromPersistence)
+                .toList();
+    }
 }
