@@ -117,6 +117,8 @@ public class DevDataSeeder {
     private final MaintenanceCommandService maintenanceCommandService;
     private final TechnicalTicketJpaRepository technicalTicketJpaRepository;
     private final TechnicianQueryService technicianQueryService;
+    private final com.spottrack.platform.monitoring.application.commandServices.MotionSensorCommandService motionSensorCommandService;
+    private final com.spottrack.platform.monitoring.domain.repositories.MotionSensorRepository motionSensorRepository;
 
     public DevDataSeeder(
             RoleCommandService roleCommandService,
@@ -142,6 +144,8 @@ public class DevDataSeeder {
             MaintenanceCommandService maintenanceCommandService,
             TechnicalTicketJpaRepository technicalTicketJpaRepository,
             TechnicianQueryService technicianQueryService) {
+            com.spottrack.platform.monitoring.application.commandServices.MotionSensorCommandService motionSensorCommandService,
+            com.spottrack.platform.monitoring.domain.repositories.MotionSensorRepository motionSensorRepository) {
         this.roleCommandService = roleCommandService;
         this.userCommandService = userCommandService;
         this.userRepository = userRepository;
@@ -165,6 +169,8 @@ public class DevDataSeeder {
         this.maintenanceCommandService = maintenanceCommandService;
         this.technicalTicketJpaRepository = technicalTicketJpaRepository;
         this.technicianQueryService = technicianQueryService;
+        this.motionSensorCommandService = motionSensorCommandService;
+        this.motionSensorRepository = motionSensorRepository;
     }
 
     private record GymSeedResult(String gymId, String equipmentId) {}
@@ -183,6 +189,7 @@ public class DevDataSeeder {
         seedClientUser(gymSeed.gymId());
         seedActivityReport(gymSeed.equipmentId());
         seedMaintenanceQuote(gymSeed.equipmentId());
+        seedMotionSensor(gymSeed.equipmentId());
         seedRoiProjection();
         var technicianId = seedTechnician();
         seedMaintenanceLog(gymSeed.equipmentId(), technicianId);
@@ -443,6 +450,24 @@ public class DevDataSeeder {
         maintenanceQuoteCommandService.handle(quoteId, new RequestSparePartsCommand("Belt", 3, 25.0));
         maintenanceQuoteCommandService.handle(quoteId, new RequestPreventiveCostCommand(40.0, "USD"));
         log.info("[DevDataSeeder] Maintenance quote seeded, id={}.", quoteId);
+    }
+
+    private void seedMotionSensor(String equipmentId) {
+        if (equipmentId == null) {
+            log.warn("[DevDataSeeder] Equipment ID not available, skipping motion sensor seeding.");
+            return;
+        }
+        if (motionSensorRepository.existsByEquipmentId(new com.spottrack.platform.monitoring.domain.model.valueobjects.EquipmentId(equipmentId))) {
+            log.info("[DevDataSeeder] Motion sensor already exists for equipment {}, skipping.", equipmentId);
+            return;
+        }
+        var result = motionSensorCommandService.handle(
+                new com.spottrack.platform.monitoring.domain.model.commands.RegisterMotionSensorCommand(equipmentId));
+        if (result instanceof Result.Failure<?, ?> f) {
+            log.warn("[DevDataSeeder] Failed to seed motion sensor: {}", f.error());
+            return;
+        }
+        log.info("[DevDataSeeder] Motion sensor seeded for equipment {}.", equipmentId);
     }
 
     private void seedRoiProjection() {
