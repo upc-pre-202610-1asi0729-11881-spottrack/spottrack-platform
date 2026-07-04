@@ -12,6 +12,7 @@ import com.spottrack.platform.iam.domain.model.commands.SignInCommand;
 import com.spottrack.platform.profiles.interfaces.acl.ProfilesContextFacade;
 import com.spottrack.platform.iam.domain.model.commands.SignOutCommand;
 import com.spottrack.platform.iam.domain.model.commands.SignUpCommand;
+import com.spottrack.platform.iam.domain.model.commands.UpdateNotificationPreferencesCommand;
 import com.spottrack.platform.iam.domain.model.entities.Role;
 import com.spottrack.platform.iam.domain.repositories.PendingRegistrationRepository;
 import com.spottrack.platform.iam.domain.repositories.RoleRepository;
@@ -122,6 +123,19 @@ public class UserCommandServiceImpl implements UserCommandService {
             return Result.failure(ApplicationError.validationError("password", "Current password is incorrect."));
         }
         user.setPassword(hashingService.encode(command.newPassword()));
+        return Result.success(userRepository.save(user));
+    }
+
+    @Override
+    public Result<User, ApplicationError> handle(UpdateNotificationPreferencesCommand command) {
+        var userOptional = userRepository.findByUsername(command.username());
+        if (userOptional.isEmpty()) {
+            return Result.failure(ApplicationError.notFound("USER", command.username()));
+        }
+        var user = userOptional.get();
+        user.setNotifyOnCritical(command.notifyOnCritical());
+        user.setNotifyOnWarning(command.notifyOnWarning());
+        user.setNotificationEmail(command.notificationEmail());
         return Result.success(userRepository.save(user));
     }
 
