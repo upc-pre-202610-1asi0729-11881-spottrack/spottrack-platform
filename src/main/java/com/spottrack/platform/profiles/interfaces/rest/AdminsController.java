@@ -146,6 +146,7 @@ public class AdminsController {
     }
 
     @PutMapping("/{adminId}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(
             summary = "Update admin profile",
             description = "Updates personal data (name, phone number, DNI) for an existing admin profile."
@@ -175,6 +176,7 @@ public class AdminsController {
     }
 
     @GetMapping("/{adminId}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(
             summary = "Get admin by ID",
             description = "Retrieves an admin profile by unique identifier."
