@@ -8,6 +8,7 @@ import com.spottrack.platform.reservation.application.queryservices.ReservationQ
 import com.spottrack.platform.reservation.domain.model.aggregates.Reservation;
 import com.spottrack.platform.reservation.domain.model.commands.CancelReservation;
 import com.spottrack.platform.reservation.domain.model.commands.StartReservationTimer;
+import com.spottrack.platform.reservation.domain.model.queries.GetAllReservationsQuery;
 import com.spottrack.platform.reservation.domain.model.queries.GetReservationByUuidQuery;
 import com.spottrack.platform.reservation.domain.model.queries.GetReservationsByClientIdQuery;
 import com.spottrack.platform.reservation.domain.model.valueobjects.ReservationId;
@@ -24,6 +25,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -165,6 +167,21 @@ public class ReservationsController {
                     ApplicationError.notFound("Client", authentication.getName()));
         }
         var list = reservationQueryService.handle(new GetReservationsByClientIdQuery(clientId));
+        var resources = list.stream()
+                .map(ReservationResourceFromEntityAssembler::toResourceFromEntity)
+                .toList();
+        return ResponseEntity.ok(resources);
+    }
+
+    @GetMapping("/all")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(
+            summary = "Get all reservations",
+            description = "Admin-only: returns every reservation, so an admin can look one up without knowing its id.",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    public ResponseEntity<?> getAllReservations() {
+        var list = reservationQueryService.handle(new GetAllReservationsQuery());
         var resources = list.stream()
                 .map(ReservationResourceFromEntityAssembler::toResourceFromEntity)
                 .toList();
