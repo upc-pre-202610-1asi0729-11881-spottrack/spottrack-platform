@@ -23,6 +23,7 @@ import com.spottrack.platform.gym.interfaces.rest.resources.CreateGymResource;
 import com.spottrack.platform.gym.interfaces.rest.resources.GymSummaryResource;
 import com.spottrack.platform.gym.interfaces.rest.resources.WhitelistEntryResource;
 import com.spottrack.platform.gym.interfaces.rest.resources.ZoneResource;
+import com.spottrack.platform.gym.interfaces.acl.GymContextFacade;
 import com.spottrack.platform.gym.interfaces.rest.transform.*;
 import com.spottrack.platform.iam.interfaces.acl.IamContextFacade;
 import com.spottrack.platform.profiles.interfaces.acl.ProfilesContextFacade;
@@ -48,15 +49,18 @@ public class GymController {
     private final GymQueryService gymQueryService;
     private final IamContextFacade iamContextFacade;
     private final ProfilesContextFacade profilesContextFacade;
+    private final GymContextFacade gymContextFacade;
 
     public GymController(GymCommandService commandService,
                          GymQueryService gymQueryService,
                          IamContextFacade iamContextFacade,
-                         ProfilesContextFacade profilesContextFacade) {
+                         ProfilesContextFacade profilesContextFacade,
+                         GymContextFacade gymContextFacade) {
         this.commandService = commandService;
         this.gymQueryService = gymQueryService;
         this.iamContextFacade = iamContextFacade;
         this.profilesContextFacade = profilesContextFacade;
+        this.gymContextFacade = gymContextFacade;
     }
 
     @PostMapping
@@ -144,6 +148,18 @@ public class GymController {
         var zones = gymQueryService.handle(new GetZonesByGymIdQuery(gymId));
         List<ZoneResource> resources = zones.stream()
                 .map(ZoneResourceFromEntityAssembler::toResourceFromEntity)
+                .toList();
+        return ResponseEntity.ok(resources);
+    }
+
+    @GetMapping("/{gymId}/equipments")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CLIENT')")
+    public ResponseEntity<?> getEquipmentsByGymId(Authentication authentication,
+                                                  @PathVariable String gymId) {
+        var accessError = checkGymAccess(authentication, gymId);
+        if (accessError.isPresent()) return accessError.get();
+        var resources = gymContextFacade.findEquipmentsByGymId(gymId).stream()
+                .map(EquipmentResourceFromEntityAssembler::toResourceFromEntity)
                 .toList();
         return ResponseEntity.ok(resources);
     }

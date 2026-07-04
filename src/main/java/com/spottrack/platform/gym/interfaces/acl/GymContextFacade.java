@@ -37,4 +37,7 @@ public interface GymContextFacade {
 
     // Returns all Equipment aggregates belonging to any gym owned by the given admin.
     List<Equipment> findEquipmentsByAdminUserId(Long adminUserId);
+
+    // Returns all Equipment aggregates belonging to the given gym (across its branches and zones).
+    List<Equipment> findEquipmentsByGymId(String gymId);
 }
