@@ -5,10 +5,13 @@ import com.spottrack.platform.shared.interfaces.rest.transform.ErrorResponseAsse
 import org.jspecify.annotations.NullMarked;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.text.MessageFormat;
 import java.util.MissingResourceException;
@@ -62,6 +65,55 @@ public class GlobalExceptionHandler {
         var applicationError = ApplicationError.validationError(
                 resolveMessageOrDefault("validation.request.argument", "request-argument"),
                 ex.getMessage() != null ? ex.getMessage() : resolveMessageOrDefault("validation.request.failed", "Request validation failed")
+        );
+        return ErrorResponseAssembler.toErrorResponseFromApplicationError(applicationError);
+    }
+
+    /**
+     * Handles malformed or unparsable request bodies (bad JSON, invalid enum values,
+     * value objects rejecting a field in their compact constructor, etc.). Without this,
+     * these fall through to the generic RuntimeException handler as a 500 that leaks the
+     * raw Jackson/validation exception message.
+     *
+     * @param ex the message conversion exception
+     * @return error response with BAD_REQUEST status
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<?> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
+        var applicationError = ApplicationError.validationError(
+                resolveMessageOrDefault("validation.request.body", "request-body"),
+                resolveMessageOrDefault("validation.request.malformed", "Request body is malformed or contains an invalid value")
+        );
+        return ErrorResponseAssembler.toErrorResponseFromApplicationError(applicationError);
+    }
+
+    /**
+     * Handles a path variable or request parameter that can't be converted to its
+     * declared type (e.g. a non-numeric id where a Long is expected).
+     *
+     * @param ex the type mismatch exception
+     * @return error response with BAD_REQUEST status
+     */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<?> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException ex) {
+        var applicationError = ApplicationError.validationError(
+                ex.getName(),
+                "Invalid value for parameter: %s".formatted(ex.getName())
+        );
+        return ErrorResponseAssembler.toErrorResponseFromApplicationError(applicationError);
+    }
+
+    /**
+     * Handles a required request header that the caller didn't send.
+     *
+     * @param ex the missing header exception
+     * @return error response with BAD_REQUEST status
+     */
+    @ExceptionHandler(MissingRequestHeaderException.class)
+    public ResponseEntity<?> handleMissingRequestHeaderException(MissingRequestHeaderException ex) {
+        var applicationError = ApplicationError.validationError(
+                ex.getHeaderName(),
+                "Required header is missing: %s".formatted(ex.getHeaderName())
         );
         return ErrorResponseAssembler.toErrorResponseFromApplicationError(applicationError);
     }
