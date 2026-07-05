@@ -10,7 +10,8 @@ public class MaintenancePersistenceAssembler {
                 entity.getMaintenanceId(),
                 entity.getEquipmentId(),
                 entity.getRequestedBy(),
-                entity.getDescription());
+                entity.getDescription(),
+                entity.getStatus());
     }
 
     public static MaintenancePersistenceEntity toPersistenceFromDomain(Maintenance entity) {
@@ -19,6 +20,7 @@ public class MaintenancePersistenceAssembler {
         persistenceEntity.setEquipmentId(entity.getEquipmentId().uuid());
         persistenceEntity.setRequestedBy(entity.getRequestedBy());
         persistenceEntity.setDescription(entity.getDescription());
+        persistenceEntity.setStatus(entity.getStatus());
         return persistenceEntity;
     }
 }

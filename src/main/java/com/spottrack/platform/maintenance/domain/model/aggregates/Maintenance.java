@@ -4,6 +4,7 @@ import com.spottrack.platform.maintenance.domain.model.valueobjects.EquipmentId;
 import com.spottrack.platform.maintenance.domain.model.commands.RequestMaintenance;
 import com.spottrack.platform.maintenance.domain.model.events.MaintenanceRequestedEvent;
 import com.spottrack.platform.maintenance.domain.model.valueobjects.MaintenanceId;
+import com.spottrack.platform.maintenance.domain.model.valueobjects.MaintenanceStatus;
 import com.spottrack.platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
@@ -27,6 +28,8 @@ public class Maintenance extends AbstractDomainAggregateRoot<Maintenance> {
 
     private String description;
 
+    private MaintenanceStatus status;
+
     protected Maintenance() {}
 
     public Maintenance(RequestMaintenance command) {
@@ -34,13 +37,15 @@ public class Maintenance extends AbstractDomainAggregateRoot<Maintenance> {
         this.equipmentId = command.equipmentId();
         this.requestedBy = command.requestedBy();
         this.description = command.description();
+        this.status = MaintenanceStatus.REQUESTED;
         registerDomainEvent(new MaintenanceRequestedEvent(this.id.uuid(), this.equipmentId, this.requestedBy));
     }
 
-    public Maintenance(String maintenanceId, String equipmentId, String requestedBy, String description){
+    public Maintenance(String maintenanceId, String equipmentId, String requestedBy, String description, MaintenanceStatus status) {
         this.id = new MaintenanceId(maintenanceId);
         this.equipmentId = new EquipmentId(equipmentId);
         this.requestedBy = requestedBy;
         this.description = description;
+        this.status = status != null ? status : MaintenanceStatus.REQUESTED;
     }
 }
