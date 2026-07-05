@@ -102,10 +102,14 @@ public class MaintenanceCommandServiceImpl implements MaintenanceCommandService 
         if (found.isEmpty()) {
             return Result.failure(ApplicationError.notFound("TechnicalTicket", command.ticketId().uuid()));
         }
-        var ticket = found.get();
-        ticket.assign(command);
-        var saved = technicalTicketRepository.save(ticket);
-        return Result.success(saved);
+        try {
+            var ticket = found.get();
+            ticket.assign(command);
+            var saved = technicalTicketRepository.save(ticket);
+            return Result.success(saved);
+        } catch (IllegalStateException e) {
+            return Result.failure(ApplicationError.validationError("TechnicalTicket", e.getMessage()));
+        }
     }
 
     @Transactional
