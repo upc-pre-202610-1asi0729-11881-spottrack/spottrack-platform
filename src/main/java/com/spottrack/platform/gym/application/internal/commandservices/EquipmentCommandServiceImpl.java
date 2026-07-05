@@ -48,6 +48,8 @@ public class EquipmentCommandServiceImpl implements EquipmentCommandService {
             return Result.success(equipment);
         } catch (IllegalArgumentException e) {
             return Result.failure(ApplicationError.validationError("Equipment", e.getMessage()));
+        } catch (IllegalStateException e) {
+            return Result.failure(ApplicationError.conflict("Equipment", e.getMessage()));
         } catch (Exception e) {
             return Result.failure(ApplicationError.unexpected("Equipment mark out of service", e.getMessage()));
         }
@@ -75,6 +77,8 @@ public class EquipmentCommandServiceImpl implements EquipmentCommandService {
             return Result.success(equipment);
         } catch (IllegalArgumentException e) {
             return Result.failure(ApplicationError.validationError("Equipment", e.getMessage()));
+        } catch (IllegalStateException e) {
+            return Result.failure(ApplicationError.conflict("Equipment", e.getMessage()));
         } catch (Exception e) {
             return Result.failure(ApplicationError.unexpected("Equipment status update", e.getMessage()));
         }
@@ -113,6 +117,8 @@ public class EquipmentCommandServiceImpl implements EquipmentCommandService {
             return Result.success(equipment);
         } catch (IllegalArgumentException e) {
             return Result.failure(ApplicationError.validationError("Equipment", e.getMessage()));
+        } catch (IllegalStateException e) {
+            return Result.failure(ApplicationError.conflict("Equipment", e.getMessage()));
         } catch (Exception e) {
             return Result.failure(ApplicationError.unexpected("Equipment decommission", e.getMessage()));
         }
