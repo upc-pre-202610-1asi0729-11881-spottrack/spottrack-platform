@@ -177,7 +177,12 @@ public class GymController {
         }
         var ownershipError = checkOwnership(gymId, adminUserId);
         if (ownershipError.isPresent()) return ownershipError.get();
-        var command = AddZoneCommandFromResourceAssembler.toCommandFromResource(resource);
+        var branches = gymQueryService.handle(new GetBranchesByGymIdQuery(gymId));
+        if (branches.stream().noneMatch(b -> b.getId().uuid().equals(branchId))) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.notFound("Branch", branchId));
+        }
+        var command = AddZoneCommandFromResourceAssembler.toCommandFromResource(branchId, resource);
         var result = commandService.handle(command);
         return switch (result) {
             case Result.Success<Zone, ApplicationError> s ->
