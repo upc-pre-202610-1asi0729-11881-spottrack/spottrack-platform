@@ -7,5 +7,8 @@ public record AddZoneCommand(String zoneName, int maximumOccupancy, BranchId bra
         if (zoneName == null || zoneName.isBlank()) {
             throw new IllegalArgumentException("zoneName must not be null or blank");
         }
+        if (maximumOccupancy <= 0) {
+            throw new IllegalArgumentException("maximumOccupancy must be greater than zero");
+        }
     }
 }

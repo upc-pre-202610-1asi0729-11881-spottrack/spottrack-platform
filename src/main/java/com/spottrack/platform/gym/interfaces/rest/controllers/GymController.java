@@ -177,7 +177,12 @@ public class GymController {
         }
         var ownershipError = checkOwnership(gymId, adminUserId);
         if (ownershipError.isPresent()) return ownershipError.get();
-        var command = AddZoneCommandFromResourceAssembler.toCommandFromResource(resource);
+        var branches = gymQueryService.handle(new GetBranchesByGymIdQuery(gymId));
+        if (branches.stream().noneMatch(b -> b.getId().uuid().equals(branchId))) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.notFound("Branch", branchId));
+        }
+        var command = AddZoneCommandFromResourceAssembler.toCommandFromResource(branchId, resource);
         var result = commandService.handle(command);
         return switch (result) {
             case Result.Success<Zone, ApplicationError> s ->
@@ -285,7 +290,8 @@ public class GymController {
     private Optional<ResponseEntity<?>> checkOwnership(String gymId, Long callerAdminUserId) {
         var gym = gymQueryService.handle(new GetGymById(new GymId(gymId)));
         if (gym.isEmpty()) {
-            return Optional.of(ResponseEntity.notFound().build());
+            return Optional.of(ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.notFound("Gym", gymId)));
         }
         var storedAdminUserId = gym.get().getAdminUserId();
         if (storedAdminUserId == null || !storedAdminUserId.equals(callerAdminUserId)) {

@@ -1,4 +1,4 @@
 package com.spottrack.platform.gym.interfaces.rest.resources;
 
-public record AddZoneResource(String zoneName, int maximumOccupancy, String branchId) {
+public record AddZoneResource(String zoneName, int maximumOccupancy) {
 }
