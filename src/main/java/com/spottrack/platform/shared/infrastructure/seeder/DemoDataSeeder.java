@@ -99,6 +99,9 @@ public class DemoDataSeeder {
     private static final String GYM_NAME        = "SpotTrack Demo";
     private static final String MANUFACTURER_ID = "00000000-0000-0000-0000-000000000001";
 
+    private static final String ADMIN2_EMAIL = "admin2@fitzone.pe";
+    private static final String ADMIN2_DNI   = "00000005";
+
     // Stable names used to recover IDs on idempotent restarts
     private static final String EQUIP_A_NAME   = "Cinta de Correr Pro";   // used for ACTIVE reservation
     private static final String EQUIP_B_NAME   = "Elíptica X200";          // used for ENDED reservation
@@ -206,6 +209,9 @@ public class DemoDataSeeder {
         seedRoutines(clientProfileId);
         seedMaintenanceTicket(gymSeed.equipOOS());
         seedMotionSensor(gymSeed.equipA());
+
+        var admin2UserId = seedSecondAdmin();
+        seedMembership(admin2UserId);
 
         log.info("[DemoDataSeeder] Demo seed complete.");
     }
@@ -540,6 +546,39 @@ public class DemoDataSeeder {
             log.error("[DemoDataSeeder] Failed to create maintenance ticket: {}", f.error());
         else
             log.info("[DemoDataSeeder] Maintenance ticket (HIGH/CORRECTIVE) created for equipment {}.", outOfServiceEquipmentId);
+    }
+
+    // ─── Second admin (FitZone Lima) ─────────────────────────────────────────
+
+    private Long seedSecondAdmin() {
+        if (userRepository.existsByUsername(ADMIN2_EMAIL)) {
+            log.info("[DemoDataSeeder] Second admin user already exists, skipping.");
+            return userRepository.findByUsername(ADMIN2_EMAIL).orElseThrow().getId();
+        }
+        var adminRole = roleRepository.findByName(Roles.ROLE_ADMIN)
+                .orElseGet(() -> new Role(Roles.ROLE_ADMIN));
+        var result = userCommandService.handle(new SignUpCommand(ADMIN2_EMAIL, DEMO_PASSWORD, List.of(adminRole)));
+        if (result instanceof Result.Failure<?, ?> f)
+            throw new IllegalStateException("Demo seed failed at second admin user creation: " + f.error());
+        var admin2UserId = ((Result.Success<com.spottrack.platform.iam.domain.model.aggregates.User, ?>) result).value().getId();
+
+        var admin = adminQueryService.handle(new GetAdminByUserIdQuery(admin2UserId))
+                .orElseThrow(() -> new IllegalStateException("Second admin profile not found after sign-up"));
+        if (!admin.isProfileComplete()) {
+            adminCommandService.handle(new UpdateAdminProfileCommand(
+                    new AdminId(admin.getId()),
+                    "Marco",
+                    "Quispe",
+                    new PhoneNumber("999000006"),
+                    new com.spottrack.platform.profiles.domain.model.valueobjects.Dni(ADMIN2_DNI)
+            ));
+        }
+        seedBusinessProfile(admin2UserId,
+                "FitZone Lima S.A.C.", "20987654321",
+                "Av. El Sol 567", "Lima", "Barranco",
+                "999000006", ADMIN2_EMAIL);
+        log.info("[DemoDataSeeder] Second admin (Marco Quispe) created, userId={}.", admin2UserId);
+        return admin2UserId;
     }
 
     private void seedMotionSensor(String equipmentId) {
