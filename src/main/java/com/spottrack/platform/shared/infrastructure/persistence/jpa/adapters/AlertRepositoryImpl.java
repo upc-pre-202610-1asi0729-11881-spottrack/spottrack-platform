@@ -27,7 +27,7 @@ public class AlertRepositoryImpl implements AlertRepository {
 
     @Override
     public List<Alert> findAllByAdminUserId(Long adminUserId) {
-        return alertPersistenceRepository.findAllByAdminUserId(adminUserId).stream()
+        return alertPersistenceRepository.findAllByAdminUserIdAndResolvedFalse(adminUserId).stream()
                 .map(AlertPersistenceAssembler::toDomainFromPersistence)
                 .collect(Collectors.toList());
     }

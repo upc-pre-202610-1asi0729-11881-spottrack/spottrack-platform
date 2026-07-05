@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface AlertPersistenceRepository extends JpaRepository<AlertPersistenceEntity, Long> {
-    List<AlertPersistenceEntity> findAllByAdminUserId(Long adminUserId);
+    List<AlertPersistenceEntity> findAllByAdminUserIdAndResolvedFalse(Long adminUserId);
 }
