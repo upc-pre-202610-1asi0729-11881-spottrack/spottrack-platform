@@ -167,7 +167,7 @@ public class MaintenanceController {
             case Result.Success<TechnicalTicket, ApplicationError> s ->
                     ResponseEntity.ok(TechnicalTicketResourceFromEntityAssembler.toResourceFromEntity(s.value()));
             case Result.Failure<TechnicalTicket, ApplicationError> f ->
-                    ResponseEntity.status(HttpStatus.NOT_FOUND).body(f.error());
+                    ErrorResponseAssembler.toErrorResponseFromApplicationError(f.error());
         };
     }
 
@@ -189,7 +189,7 @@ public class MaintenanceController {
             case Result.Success<MaintenanceJob, ApplicationError> s ->
                     ResponseEntity.ok(MaintenanceJobResourceFromEntityAssembler.toResourceFromEntity(s.value()));
             case Result.Failure<MaintenanceJob, ApplicationError> f ->
-                    ResponseEntity.status(HttpStatus.NOT_FOUND).body(f.error());
+                    ErrorResponseAssembler.toErrorResponseFromApplicationError(f.error());
         };
     }
 
@@ -234,7 +234,7 @@ public class MaintenanceController {
             case Result.Success<TechnicalTicket, ApplicationError> s ->
                     ResponseEntity.ok(TechnicalTicketResourceFromEntityAssembler.toResourceFromEntity(s.value()));
             case Result.Failure<TechnicalTicket, ApplicationError> f ->
-                    ResponseEntity.status(HttpStatus.NOT_FOUND).body(f.error());
+                    ErrorResponseAssembler.toErrorResponseFromApplicationError(f.error());
         };
     }
 
@@ -257,7 +257,7 @@ public class MaintenanceController {
             case Result.Success<TechnicalTicket, ApplicationError> s ->
                     ResponseEntity.ok(TechnicalTicketResourceFromEntityAssembler.toResourceFromEntity(s.value()));
             case Result.Failure<TechnicalTicket, ApplicationError> f ->
-                    ResponseEntity.status(HttpStatus.NOT_FOUND).body(f.error());
+                    ErrorResponseAssembler.toErrorResponseFromApplicationError(f.error());
         };
     }
 
@@ -340,7 +340,7 @@ public class MaintenanceController {
             case Result.Success<TechnicalTicket, ApplicationError> s ->
                     ResponseEntity.ok(TechnicalTicketResourceFromEntityAssembler.toResourceFromEntity(s.value()));
             case Result.Failure<TechnicalTicket, ApplicationError> f ->
-                    ResponseEntity.status(HttpStatus.NOT_FOUND).body(f.error());
+                    ErrorResponseAssembler.toErrorResponseFromApplicationError(f.error());
         };
     }
 
@@ -362,7 +362,7 @@ public class MaintenanceController {
             case Result.Success<TechnicalTicket, ApplicationError> s ->
                     ResponseEntity.ok(TechnicalTicketResourceFromEntityAssembler.toResourceFromEntity(s.value()));
             case Result.Failure<TechnicalTicket, ApplicationError> f ->
-                    ResponseEntity.status(HttpStatus.NOT_FOUND).body(f.error());
+                    ErrorResponseAssembler.toErrorResponseFromApplicationError(f.error());
         };
     }
 
