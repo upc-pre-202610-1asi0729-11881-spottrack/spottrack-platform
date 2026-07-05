@@ -72,7 +72,7 @@ public class UsersController {
     }
 
     @GetMapping("/{userId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or #userId == authentication.principal.id")
     public ResponseEntity<?> getUserById(@PathVariable Long userId) {
         var userOptional = userQueryService.handle(new GetUserByIdQuery(userId));
         if (userOptional.isEmpty()) {
