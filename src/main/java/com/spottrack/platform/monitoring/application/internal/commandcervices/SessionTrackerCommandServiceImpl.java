@@ -1,5 +1,6 @@
 package com.spottrack.platform.monitoring.application.internal.commandcervices;
 
+import com.spottrack.platform.gym.interfaces.acl.GymContextFacade;
 import com.spottrack.platform.monitoring.application.commandServices.SessionTrackerCommandService;
 import com.spottrack.platform.monitoring.domain.model.aggregates.SessionTracker;
 import com.spottrack.platform.monitoring.domain.model.commands.*;
@@ -19,9 +20,11 @@ import java.util.UUID;
 @Service
 public class SessionTrackerCommandServiceImpl implements SessionTrackerCommandService {
     private final SessionTrackerRepository sessionTrackerRepository;
+    private final GymContextFacade gymContextFacade;
 
-    public SessionTrackerCommandServiceImpl(SessionTrackerRepository sessionTrackerRepository){
+    public SessionTrackerCommandServiceImpl(SessionTrackerRepository sessionTrackerRepository, GymContextFacade gymContextFacade){
         this.sessionTrackerRepository = sessionTrackerRepository;
+        this.gymContextFacade = gymContextFacade;
     }
 
     /**
@@ -78,6 +81,9 @@ public class SessionTrackerCommandServiceImpl implements SessionTrackerCommandSe
 
     @Override
     public Result<SessionTracker, ApplicationError> handle(MotionSensorCaptureCommand command) {
+        if (gymContextFacade.findEquipmentById(command.equipmentId().uuid()).isEmpty()) {
+            return Result.failure(ApplicationError.notFound("Equipment", command.equipmentId().uuid()));
+        }
         try {
             var tracker = findOrCreateActiveTrackerForEquipment(command.equipmentId());
             tracker.captureMotionSensorReading(command.movementDetectedViaSensor());
@@ -92,6 +98,9 @@ public class SessionTrackerCommandServiceImpl implements SessionTrackerCommandSe
 
     @Override
     public Result<SessionTracker, ApplicationError> handle(CameraCaptureMotionCommand command) {
+        if (gymContextFacade.findEquipmentById(command.equipmentId().uuid()).isEmpty()) {
+            return Result.failure(ApplicationError.notFound("Equipment", command.equipmentId().uuid()));
+        }
         try {
             var tracker = findOrCreateActiveTrackerForEquipment(command.equipmentId());
             tracker.captureCameraMotion(command.movementDetectedViaVideo());
