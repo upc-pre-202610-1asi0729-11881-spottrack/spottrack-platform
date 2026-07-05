@@ -101,6 +101,7 @@ public class DemoDataSeeder {
 
     private static final String ADMIN2_EMAIL = "admin2@fitzone.pe";
     private static final String ADMIN2_DNI   = "00000005";
+    private static final String GYM2_NAME    = "FitZone Lima";
 
     // Stable names used to recover IDs on idempotent restarts
     private static final String EQUIP_A_NAME   = "Cinta de Correr Pro";   // used for ACTIVE reservation
@@ -212,6 +213,7 @@ public class DemoDataSeeder {
 
         var admin2UserId = seedSecondAdmin();
         seedMembership(admin2UserId);
+        var gym2Id = seedSecondGym(admin2UserId);
 
         log.info("[DemoDataSeeder] Demo seed complete.");
     }
@@ -546,6 +548,43 @@ public class DemoDataSeeder {
             log.error("[DemoDataSeeder] Failed to create maintenance ticket: {}", f.error());
         else
             log.info("[DemoDataSeeder] Maintenance ticket (HIGH/CORRECTIVE) created for equipment {}.", outOfServiceEquipmentId);
+    }
+
+    // ─── Second gym (FitZone Lima) ───────────────────────────────────────────
+
+    private String seedSecondGym(Long admin2UserId) {
+        var existing = gymPersistenceRepository.findByAdminUserId(admin2UserId);
+        if (!existing.isEmpty()) {
+            log.info("[DemoDataSeeder] FitZone Lima gym already exists gymId={}, skipping.", existing.get(0).getGymId());
+            return existing.get(0).getGymId();
+        }
+
+        var gymResult = gymCommandService.handle(new CreateGym(GYM2_NAME, admin2UserId));
+        if (gymResult instanceof Result.Failure<?, ?> f)
+            throw new IllegalStateException("Demo seed failed at second gym creation: " + f.error());
+        var gym2Id = ((Result.Success<com.spottrack.platform.gym.domain.model.aggregates.Gym, ?>) gymResult).value().getId().uuid();
+        log.info("[DemoDataSeeder] FitZone Lima gym created gymId={}.", gym2Id);
+
+        // Branch 1 — Barranco
+        var branch1  = addBranch(gym2Id, "Sede Barranco", "Av. Grau 345, Barranco");
+        var cardio2  = addZone("Cardio", 10, branch1);
+        addEquipment("Cinta Pro FZ",       EquipmentStatus.AVAILABLE, "FZ-Treadmill-500",  cardio2, 1100.00);
+        addEquipment("Bicicleta Spinner",  EquipmentStatus.AVAILABLE, "FZ-Spinner-200",    cardio2,  750.00);
+        var pesas2   = addZone("Pesas Libres", 15, branch1);
+        addEquipment("Mancuernas 20kg",   EquipmentStatus.AVAILABLE, "FZ-Dumbbell-20",    pesas2,  200.00);
+        addEquipment("Barra Curl",        EquipmentStatus.AVAILABLE, "FZ-CurlBar-15",     pesas2,  130.00);
+
+        // Branch 2 — Surco
+        var branch2  = addBranch(gym2Id, "Sede Surco", "Av. Caminos del Inca 890, Surco");
+        var funcFZ   = addZone("Funcional", 12, branch2);
+        addEquipment("TRX Profesional",  EquipmentStatus.AVAILABLE, "FZ-TRX-Pro",        funcFZ,  300.00);
+        addEquipment("Cuerda Battle",    EquipmentStatus.AVAILABLE, "FZ-BattleRope-15m", funcFZ,  180.00);
+        var maqFZ    = addZone("Máquinas", 16, branch2);
+        addEquipment("Extensora de Piernas", EquipmentStatus.AVAILABLE, "FZ-LegExt-X1",  maqFZ,  900.00);
+        addEquipment("Chest Press",          EquipmentStatus.AVAILABLE, "FZ-ChestP-500",  maqFZ, 1050.00);
+
+        log.info("[DemoDataSeeder] FitZone Lima seeded: 2 branches, 4 zones, 8 equipment.");
+        return gym2Id;
     }
 
     // ─── Second admin (FitZone Lima) ─────────────────────────────────────────
