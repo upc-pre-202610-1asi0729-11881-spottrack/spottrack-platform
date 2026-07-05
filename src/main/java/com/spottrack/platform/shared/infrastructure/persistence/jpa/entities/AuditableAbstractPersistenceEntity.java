@@ -43,4 +43,17 @@ public abstract class AuditableAbstractPersistenceEntity {
     public void setId(Long id) {
         this.id = id;
     }
+
+    /**
+     * Sets the creation timestamp. Used by assemblers when reconstructing a persistence
+     * entity from an existing domain object that already carries a {@code createdAt} — without
+     * this, a freshly built entity used to update an existing row would carry {@code null} here,
+     * and since the column is {@code updatable = false}, Hibernate's merge still overwrites this
+     * field on the in-memory managed entity even though the underlying DB value is left untouched.
+     *
+     * @param createdAt the original creation timestamp to preserve
+     */
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
 }

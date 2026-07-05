@@ -4,6 +4,7 @@ import com.spottrack.platform.maintenance.domain.model.aggregates.TechnicalTicke
 import com.spottrack.platform.maintenance.infrastructure.persistence.jpa.entities.TechnicalTicketPersistenceEntity;
 
 import java.time.ZoneId;
+import java.util.Date;
 
 public class TechnicalTicketPersistenceAssembler {
 
@@ -26,6 +27,9 @@ public class TechnicalTicketPersistenceAssembler {
 
     public static TechnicalTicketPersistenceEntity toPersistenceFromDomain(TechnicalTicket ticket) {
         var entity = new TechnicalTicketPersistenceEntity();
+        if (ticket.getCreatedAt() != null) {
+            entity.setCreatedAt(Date.from(ticket.getCreatedAt().atZone(ZoneId.systemDefault()).toInstant()));
+        }
         entity.setTicketId(ticket.getTicketId().uuid());
         entity.setMaintenanceId(ticket.getMaintenanceId());
         entity.setEquipmentId(ticket.getEquipmentId());
