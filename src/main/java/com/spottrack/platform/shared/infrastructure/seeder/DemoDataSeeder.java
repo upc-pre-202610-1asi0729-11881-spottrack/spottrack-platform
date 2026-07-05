@@ -214,6 +214,8 @@ public class DemoDataSeeder {
         var admin2UserId = seedSecondAdmin();
         seedMembership(admin2UserId);
         var gym2Id = seedSecondGym(admin2UserId);
+        seedWhitelistForClient(gym2Id);
+        associateClientWithSecondGym(clientProfileId, gym2Id);
 
         log.info("[DemoDataSeeder] Demo seed complete.");
     }
@@ -548,6 +550,25 @@ public class DemoDataSeeder {
             log.error("[DemoDataSeeder] Failed to create maintenance ticket: {}", f.error());
         else
             log.info("[DemoDataSeeder] Maintenance ticket (HIGH/CORRECTIVE) created for equipment {}.", outOfServiceEquipmentId);
+    }
+
+    // ─── Client association with second gym ──────────────────────────────────
+
+    private void seedWhitelistForClient(String gymId) {
+        var result = gymCommandService.handle(new AddDniToWhitelistCommand(
+                gymId, new com.spottrack.platform.gym.domain.model.valueobjects.Dni(CLIENT_DNI)));
+        if (result instanceof Result.Failure<?, ?> f)
+            log.info("[DemoDataSeeder] CLIENT_DNI already in whitelist for gym2 ({}), skipping.", f.error());
+        else
+            log.info("[DemoDataSeeder] CLIENT_DNI added to whitelist of gym2={}.", gymId);
+    }
+
+    private void associateClientWithSecondGym(Long clientProfileId, String gym2Id) {
+        var result = clientCommandService.handle(new AssociateClientWithGymCommand(clientProfileId, gym2Id));
+        if (result instanceof Result.Failure<?, ?> f)
+            log.info("[DemoDataSeeder] Client already associated with gym2 ({}), skipping.", f.error());
+        else
+            log.info("[DemoDataSeeder] Client {} associated with FitZone Lima gymId={}.", clientProfileId, gym2Id);
     }
 
     // ─── Second gym (FitZone Lima) ───────────────────────────────────────────
