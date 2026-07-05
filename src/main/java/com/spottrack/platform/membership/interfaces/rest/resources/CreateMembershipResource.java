@@ -8,7 +8,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public record CreateMembershipResource(
-        @NotNull Long clientId,
         @NotBlank String membershipTier,
         @NotNull @Positive BigDecimal priceAmount,
         @NotBlank String priceCurrency,
