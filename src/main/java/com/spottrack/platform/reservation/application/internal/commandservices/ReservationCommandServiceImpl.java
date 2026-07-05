@@ -1,5 +1,7 @@
 package com.spottrack.platform.reservation.application.internal.commandservices;
 
+import com.spottrack.platform.gym.domain.model.valueobjects.EquipmentStatus;
+import com.spottrack.platform.gym.interfaces.acl.GymContextFacade;
 import com.spottrack.platform.reservation.application.commandServices.ReservationCommandService;
 import com.spottrack.platform.reservation.domain.model.aggregates.Reservation;
 import com.spottrack.platform.reservation.domain.model.commands.CancelReservation;
@@ -17,14 +19,23 @@ import org.springframework.stereotype.Service;
 public class ReservationCommandServiceImpl implements ReservationCommandService {
 
     private final ReservationRepository reservationRepository;
+    private final GymContextFacade gymContextFacade;
 
-    public ReservationCommandServiceImpl(ReservationRepository reservationRepository) {
+    public ReservationCommandServiceImpl(ReservationRepository reservationRepository, GymContextFacade gymContextFacade) {
         this.reservationRepository = reservationRepository;
+        this.gymContextFacade = gymContextFacade;
     }
 
     @Override
     public Result<Reservation, ApplicationError> handle(InitiateExpressReservation command) {
         try {
+            var equipmentAvailabilityError = checkEquipmentAvailable(command.equipmentId().uuid());
+            if (equipmentAvailabilityError.isPresent()) {
+                return Result.failure(equipmentAvailabilityError.get());
+            }
+            if (reservationRepository.existsByEquipmentIdAndStatus(command.equipmentId().uuid(), ReservationStatus.ACTIVE)) {
+                return Result.failure(ApplicationError.validationError("Reservation", "Equipment already has an active reservation"));
+            }
             var reservation = new Reservation(command);
             var alreadyReserved = reservationRepository.existsByClientIdAndStatus(reservation.getClientId().clientId(), ReservationStatus.ACTIVE);
             if (alreadyReserved == true) {
@@ -42,6 +53,10 @@ public class ReservationCommandServiceImpl implements ReservationCommandService 
     @Override
     public Result<Reservation, ApplicationError> handle(CreateReservationFromRequest command) {
         try {
+            var equipmentAvailabilityError = checkEquipmentAvailable(command.equipmentId().uuid());
+            if (equipmentAvailabilityError.isPresent()) {
+                return Result.failure(equipmentAvailabilityError.get());
+            }
             // Guard against the Express path double-firing this: express already
             // creates its own Reservation, then auto-submits a ReservationRequest as
             // a side effect (see ExpressReservationInitiatedEventHandler), whose
@@ -57,6 +72,17 @@ public class ReservationCommandServiceImpl implements ReservationCommandService 
         } catch (Exception e) {
             return Result.failure(ApplicationError.unexpected("Reservation creation", e.getMessage()));
         }
+    }
+
+    private java.util.Optional<ApplicationError> checkEquipmentAvailable(String equipmentId) {
+        var equipmentOpt = gymContextFacade.findEquipmentById(equipmentId);
+        if (equipmentOpt.isEmpty()) {
+            return java.util.Optional.of(ApplicationError.notFound("Equipment", equipmentId));
+        }
+        if (equipmentOpt.get().getStatus() != EquipmentStatus.AVAILABLE) {
+            return java.util.Optional.of(ApplicationError.validationError("Reservation", "Equipment is not available for reservation"));
+        }
+        return java.util.Optional.empty();
     }
 
     @Override
