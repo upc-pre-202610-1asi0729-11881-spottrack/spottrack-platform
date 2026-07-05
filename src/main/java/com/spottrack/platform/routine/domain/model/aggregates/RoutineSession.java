@@ -49,16 +49,25 @@ public class RoutineSession extends AbstractDomainAggregateRoot<RoutineSession> 
     }
 
     public void complete() {
+        if (this.status != RoutineSessionStatus.STARTED) {
+            throw new IllegalStateException("routine.error.session.notStarted");
+        }
         this.status = RoutineSessionStatus.COMPLETED;
         registerDomainEvent(RoutineCompletedEvent.from(this));
     }
 
     public void markMissed() {
+        if (this.status != RoutineSessionStatus.STARTED) {
+            throw new IllegalStateException("routine.error.session.notStarted");
+        }
         this.status = RoutineSessionStatus.MISSED;
         registerDomainEvent(RoutineMissedEvent.from(this));
     }
 
     public void setExerciseCompletion(Long exerciseBlockId, boolean completed) {
+        if (this.status != RoutineSessionStatus.STARTED) {
+            throw new IllegalStateException("routine.error.session.notStarted");
+        }
         boolean alreadyCompleted = completedExercises.stream()
                 .anyMatch(c -> c.getExerciseBlockId().equals(exerciseBlockId));
         if (completed && !alreadyCompleted) {

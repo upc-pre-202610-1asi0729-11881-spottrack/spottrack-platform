@@ -27,6 +27,13 @@ public class RoutineSessionCommandServiceImpl implements RoutineSessionCommandSe
     @Override
     public Result<RoutineSession, ApplicationError> handle(StartRoutineCommand command) {
         try {
+            var routineOpt = routineRepository.findById(command.routineId());
+            if (routineOpt.isEmpty()) {
+                return Result.failure(ApplicationError.notFound("Routine", command.routineId().toString()));
+            }
+            if (!routineOpt.get().getClientId().equals(command.clientId())) {
+                return Result.failure(ApplicationError.forbidden("Routine", "routineId:" + command.routineId()));
+            }
             var session = new RoutineSession(command);
             var savedSession = routineSessionRepository.save(session);
             return Result.success(savedSession);
@@ -49,6 +56,8 @@ public class RoutineSessionCommandServiceImpl implements RoutineSessionCommandSe
             return Result.success(savedSession);
         } catch (IllegalArgumentException e) {
             return Result.failure(ApplicationError.validationError("RoutineSession", e.getMessage()));
+        } catch (IllegalStateException e) {
+            return Result.failure(ApplicationError.conflict("RoutineSession", e.getMessage()));
         } catch (Exception e) {
             return Result.failure(ApplicationError.unexpected("RoutineSession completion", e.getMessage()));
         }
@@ -66,6 +75,8 @@ public class RoutineSessionCommandServiceImpl implements RoutineSessionCommandSe
             return Result.success(savedSession);
         } catch (IllegalArgumentException e) {
             return Result.failure(ApplicationError.validationError("RoutineSession", e.getMessage()));
+        } catch (IllegalStateException e) {
+            return Result.failure(ApplicationError.conflict("RoutineSession", e.getMessage()));
         } catch (Exception e) {
             return Result.failure(ApplicationError.unexpected("RoutineSession missed marking", e.getMessage()));
         }
@@ -94,6 +105,8 @@ public class RoutineSessionCommandServiceImpl implements RoutineSessionCommandSe
             return Result.success(savedSession);
         } catch (IllegalArgumentException e) {
             return Result.failure(ApplicationError.validationError("RoutineSession", e.getMessage()));
+        } catch (IllegalStateException e) {
+            return Result.failure(ApplicationError.conflict("RoutineSession", e.getMessage()));
         } catch (Exception e) {
             return Result.failure(ApplicationError.unexpected("Exercise completion update", e.getMessage()));
         }
