@@ -285,7 +285,8 @@ public class GymController {
     private Optional<ResponseEntity<?>> checkOwnership(String gymId, Long callerAdminUserId) {
         var gym = gymQueryService.handle(new GetGymById(new GymId(gymId)));
         if (gym.isEmpty()) {
-            return Optional.of(ResponseEntity.notFound().build());
+            return Optional.of(ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.notFound("Gym", gymId)));
         }
         var storedAdminUserId = gym.get().getAdminUserId();
         if (storedAdminUserId == null || !storedAdminUserId.equals(callerAdminUserId)) {
