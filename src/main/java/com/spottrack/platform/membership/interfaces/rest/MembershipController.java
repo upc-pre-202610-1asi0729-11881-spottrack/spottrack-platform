@@ -59,9 +59,14 @@ public class MembershipController {
     }
 
     @PostMapping
-    @Schema(description = "Create a new membership")
-    public ResponseEntity<?> createMembership(@RequestBody @Valid CreateMembershipResource resource) {
-        var command = CreateMembershipCommandFromResourceAssembler.toCommandFromResource(resource);
+    @Schema(description = "Create a new membership for the authenticated caller")
+    public ResponseEntity<?> createMembership(Authentication authentication, @RequestBody @Valid CreateMembershipResource resource) {
+        var clientId = resolveClientId(authentication);
+        if (clientId == 0L) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.notFound("Client", authentication.getName()));
+        }
+        var command = CreateMembershipCommandFromResourceAssembler.toCommandFromResource(clientId, resource);
         var result = membershipCommandService.handle(command);
         return ResponseEntityAssembler.toResponseEntityFromResult(
                 result,
