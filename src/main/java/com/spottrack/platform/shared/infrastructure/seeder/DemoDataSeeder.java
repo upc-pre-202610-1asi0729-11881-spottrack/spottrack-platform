@@ -43,8 +43,13 @@ import com.spottrack.platform.profiles.domain.model.commands.UpdateAdminProfileC
 import com.spottrack.platform.profiles.domain.model.commands.UpdateClientProfileCommand;
 import com.spottrack.platform.profiles.domain.model.queries.GetAdminByUserIdQuery;
 import com.spottrack.platform.profiles.domain.model.queries.GetClientByUserIdQuery;
+import com.spottrack.platform.profiles.application.commandservices.BusinessProfileCommandService;
+import com.spottrack.platform.profiles.domain.model.commands.CreateBusinessProfileCommand;
 import com.spottrack.platform.profiles.domain.model.valueobjects.AdminId;
+import com.spottrack.platform.profiles.domain.model.valueobjects.BusinessInfo;
+import com.spottrack.platform.profiles.domain.model.valueobjects.EmailAddress;
 import com.spottrack.platform.profiles.domain.model.valueobjects.PhoneNumber;
+import com.spottrack.platform.profiles.domain.repositories.BusinessProfileRepository;
 import com.spottrack.platform.reservation.application.commandServices.ReservationCommandService;
 import com.spottrack.platform.reservation.domain.model.commands.EndReservation;
 import com.spottrack.platform.reservation.domain.model.commands.InitiateExpressReservation;
@@ -94,6 +99,10 @@ public class DemoDataSeeder {
     private static final String GYM_NAME        = "SpotTrack Demo";
     private static final String MANUFACTURER_ID = "00000000-0000-0000-0000-000000000001";
 
+    private static final String ADMIN2_EMAIL = "admin2@fitzone.pe";
+    private static final String ADMIN2_DNI   = "00000005";
+    private static final String GYM2_NAME    = "FitZone Lima";
+
     // Stable names used to recover IDs on idempotent restarts
     private static final String EQUIP_A_NAME   = "Cinta de Correr Pro";   // used for ACTIVE reservation
     private static final String EQUIP_B_NAME   = "Elíptica X200";          // used for ENDED reservation
@@ -120,6 +129,8 @@ public class DemoDataSeeder {
     private final RoutineSessionCommandService routineSessionCommandService;
     private final MaintenanceCommandService maintenanceCommandService;
     private final TechnicalTicketJpaRepository technicalTicketJpaRepository;
+    private final BusinessProfileCommandService businessProfileCommandService;
+    private final BusinessProfileRepository businessProfileRepository;
     private final com.spottrack.platform.monitoring.application.commandServices.MotionSensorCommandService motionSensorCommandService;
     private final com.spottrack.platform.monitoring.domain.repositories.MotionSensorRepository motionSensorRepository;
 
@@ -145,6 +156,8 @@ public class DemoDataSeeder {
             RoutineSessionCommandService routineSessionCommandService,
             MaintenanceCommandService maintenanceCommandService,
             TechnicalTicketJpaRepository technicalTicketJpaRepository,
+            BusinessProfileCommandService businessProfileCommandService,
+            BusinessProfileRepository businessProfileRepository,
             com.spottrack.platform.monitoring.application.commandServices.MotionSensorCommandService motionSensorCommandService,
             com.spottrack.platform.monitoring.domain.repositories.MotionSensorRepository motionSensorRepository) {
         this.roleCommandService = roleCommandService;
@@ -168,6 +181,8 @@ public class DemoDataSeeder {
         this.routineSessionCommandService = routineSessionCommandService;
         this.maintenanceCommandService = maintenanceCommandService;
         this.technicalTicketJpaRepository = technicalTicketJpaRepository;
+        this.businessProfileCommandService = businessProfileCommandService;
+        this.businessProfileRepository = businessProfileRepository;
         this.motionSensorCommandService = motionSensorCommandService;
         this.motionSensorRepository = motionSensorRepository;
     }
@@ -182,6 +197,10 @@ public class DemoDataSeeder {
         roleCommandService.handle(new SeedRolesCommand());
 
         var adminUserId   = seedAdminUser();
+        seedBusinessProfile(adminUserId,
+                "SpotTrack Fitness S.A.C.", "20123456781",
+                "Av. Larco 1234", "Lima", "Miraflores",
+                "999000001", ADMIN_EMAIL);
         seedMembership(adminUserId);
         var gymSeed       = seedGym(adminUserId);
         seedWhitelist(gymSeed.gymId());
@@ -192,7 +211,35 @@ public class DemoDataSeeder {
         seedMaintenanceTicket(gymSeed.equipOOS());
         seedMotionSensor(gymSeed.equipA());
 
+        var admin2UserId = seedSecondAdmin();
+        seedMembership(admin2UserId);
+        var gym2Id = seedSecondGym(admin2UserId);
+        seedWhitelistForClient(gym2Id);
+        associateClientWithSecondGym(clientProfileId, gym2Id);
+
         log.info("[DemoDataSeeder] Demo seed complete.");
+    }
+
+    // ─── Business profile ────────────────────────────────────────────────────
+
+    private void seedBusinessProfile(Long userId, String companyName, String ruc,
+                                     String streetAddress, String city, String district,
+                                     String phone, String email) {
+        if (businessProfileRepository.existsByUserId(userId)) {
+            log.info("[DemoDataSeeder] BusinessProfile already exists for userId={}, skipping.", userId);
+            return;
+        }
+        var businessInfo = new BusinessInfo(
+                companyName, ruc, "S.A.C.",
+                new PhoneNumber(phone),
+                new EmailAddress(email),
+                streetAddress, city, district
+        );
+        var result = businessProfileCommandService.handle(new CreateBusinessProfileCommand(userId, businessInfo));
+        if (result instanceof Result.Failure<?, ?> f)
+            log.error("[DemoDataSeeder] Failed to create BusinessProfile for userId={}: {}", userId, f.error());
+        else
+            log.info("[DemoDataSeeder] BusinessProfile created for userId={}.", userId);
     }
 
     // ─── Admin ───────────────────────────────────────────────────────────────
@@ -503,6 +550,95 @@ public class DemoDataSeeder {
             log.error("[DemoDataSeeder] Failed to create maintenance ticket: {}", f.error());
         else
             log.info("[DemoDataSeeder] Maintenance ticket (HIGH/CORRECTIVE) created for equipment {}.", outOfServiceEquipmentId);
+    }
+
+    // ─── Client association with second gym ──────────────────────────────────
+
+    private void seedWhitelistForClient(String gymId) {
+        var result = gymCommandService.handle(new AddDniToWhitelistCommand(
+                gymId, new com.spottrack.platform.gym.domain.model.valueobjects.Dni(CLIENT_DNI)));
+        if (result instanceof Result.Failure<?, ?> f)
+            log.info("[DemoDataSeeder] CLIENT_DNI already in whitelist for gym2 ({}), skipping.", f.error());
+        else
+            log.info("[DemoDataSeeder] CLIENT_DNI added to whitelist of gym2={}.", gymId);
+    }
+
+    private void associateClientWithSecondGym(Long clientProfileId, String gym2Id) {
+        var result = clientCommandService.handle(new AssociateClientWithGymCommand(clientProfileId, gym2Id));
+        if (result instanceof Result.Failure<?, ?> f)
+            log.info("[DemoDataSeeder] Client already associated with gym2 ({}), skipping.", f.error());
+        else
+            log.info("[DemoDataSeeder] Client {} associated with FitZone Lima gymId={}.", clientProfileId, gym2Id);
+    }
+
+    // ─── Second gym (FitZone Lima) ───────────────────────────────────────────
+
+    private String seedSecondGym(Long admin2UserId) {
+        var existing = gymPersistenceRepository.findByAdminUserId(admin2UserId);
+        if (!existing.isEmpty()) {
+            log.info("[DemoDataSeeder] FitZone Lima gym already exists gymId={}, skipping.", existing.get(0).getGymId());
+            return existing.get(0).getGymId();
+        }
+
+        var gymResult = gymCommandService.handle(new CreateGym(GYM2_NAME, admin2UserId));
+        if (gymResult instanceof Result.Failure<?, ?> f)
+            throw new IllegalStateException("Demo seed failed at second gym creation: " + f.error());
+        var gym2Id = ((Result.Success<com.spottrack.platform.gym.domain.model.aggregates.Gym, ?>) gymResult).value().getId().uuid();
+        log.info("[DemoDataSeeder] FitZone Lima gym created gymId={}.", gym2Id);
+
+        // Branch 1 — Barranco
+        var branch1  = addBranch(gym2Id, "Sede Barranco", "Av. Grau 345, Barranco");
+        var cardio2  = addZone("Cardio", 10, branch1);
+        addEquipment("Cinta Pro FZ",       EquipmentStatus.AVAILABLE, "FZ-Treadmill-500",  cardio2, 1100.00);
+        addEquipment("Bicicleta Spinner",  EquipmentStatus.AVAILABLE, "FZ-Spinner-200",    cardio2,  750.00);
+        var pesas2   = addZone("Pesas Libres", 15, branch1);
+        addEquipment("Mancuernas 20kg",   EquipmentStatus.AVAILABLE, "FZ-Dumbbell-20",    pesas2,  200.00);
+        addEquipment("Barra Curl",        EquipmentStatus.AVAILABLE, "FZ-CurlBar-15",     pesas2,  130.00);
+
+        // Branch 2 — Surco
+        var branch2  = addBranch(gym2Id, "Sede Surco", "Av. Caminos del Inca 890, Surco");
+        var funcFZ   = addZone("Funcional", 12, branch2);
+        addEquipment("TRX Profesional",  EquipmentStatus.AVAILABLE, "FZ-TRX-Pro",        funcFZ,  300.00);
+        addEquipment("Cuerda Battle",    EquipmentStatus.AVAILABLE, "FZ-BattleRope-15m", funcFZ,  180.00);
+        var maqFZ    = addZone("Máquinas", 16, branch2);
+        addEquipment("Extensora de Piernas", EquipmentStatus.AVAILABLE, "FZ-LegExt-X1",  maqFZ,  900.00);
+        addEquipment("Chest Press",          EquipmentStatus.AVAILABLE, "FZ-ChestP-500",  maqFZ, 1050.00);
+
+        log.info("[DemoDataSeeder] FitZone Lima seeded: 2 branches, 4 zones, 8 equipment.");
+        return gym2Id;
+    }
+
+    // ─── Second admin (FitZone Lima) ─────────────────────────────────────────
+
+    private Long seedSecondAdmin() {
+        if (userRepository.existsByUsername(ADMIN2_EMAIL)) {
+            log.info("[DemoDataSeeder] Second admin user already exists, skipping.");
+            return userRepository.findByUsername(ADMIN2_EMAIL).orElseThrow().getId();
+        }
+        var adminRole = roleRepository.findByName(Roles.ROLE_ADMIN)
+                .orElseGet(() -> new Role(Roles.ROLE_ADMIN));
+        var result = userCommandService.handle(new SignUpCommand(ADMIN2_EMAIL, DEMO_PASSWORD, List.of(adminRole)));
+        if (result instanceof Result.Failure<?, ?> f)
+            throw new IllegalStateException("Demo seed failed at second admin user creation: " + f.error());
+        var admin2UserId = ((Result.Success<com.spottrack.platform.iam.domain.model.aggregates.User, ?>) result).value().getId();
+
+        var admin = adminQueryService.handle(new GetAdminByUserIdQuery(admin2UserId))
+                .orElseThrow(() -> new IllegalStateException("Second admin profile not found after sign-up"));
+        if (!admin.isProfileComplete()) {
+            adminCommandService.handle(new UpdateAdminProfileCommand(
+                    new AdminId(admin.getId()),
+                    "Marco",
+                    "Quispe",
+                    new PhoneNumber("999000006"),
+                    new com.spottrack.platform.profiles.domain.model.valueobjects.Dni(ADMIN2_DNI)
+            ));
+        }
+        seedBusinessProfile(admin2UserId,
+                "FitZone Lima S.A.C.", "20987654321",
+                "Av. El Sol 567", "Lima", "Barranco",
+                "999000006", ADMIN2_EMAIL);
+        log.info("[DemoDataSeeder] Second admin (Marco Quispe) created, userId={}.", admin2UserId);
+        return admin2UserId;
     }
 
     private void seedMotionSensor(String equipmentId) {
