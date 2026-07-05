@@ -49,6 +49,7 @@ public class UsersController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<?>> getAllUsers() {
         var users = userQueryService.handle(new GetAllUsersQuery());
         var resources = users.stream()
@@ -71,6 +72,7 @@ public class UsersController {
     }
 
     @GetMapping("/{userId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getUserById(@PathVariable Long userId) {
         var userOptional = userQueryService.handle(new GetUserByIdQuery(userId));
         if (userOptional.isEmpty()) {
