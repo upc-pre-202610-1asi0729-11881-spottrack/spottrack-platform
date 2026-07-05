@@ -66,6 +66,9 @@ public class TechnicalTicket extends AbstractDomainAggregateRoot<TechnicalTicket
     }
 
     public void assign(AssignTechnicalTicket command) {
+        if (this.ticketStatus == TicketStatus.IN_PROGRESS) {
+            throw new IllegalStateException("maintenance.error.ticket.alreadyAssigned");
+        }
         this.technicianId = command.technicianId();
         this.ticketStatus = TicketStatus.IN_PROGRESS;
         registerDomainEvent(new TechnicalTicketAssignedEvent(this.ticketId.uuid(), this.technicianId, this.equipmentId));
