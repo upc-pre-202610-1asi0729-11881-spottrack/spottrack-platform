@@ -1,19 +1,17 @@
 package com.spottrack.platform.iam.interfaces.rest;
 
 import com.spottrack.platform.iam.application.commandservices.UserCommandService;
+import com.spottrack.platform.iam.domain.model.commands.DeactivateAccountCommand;
+import com.spottrack.platform.iam.domain.model.commands.SignOutCommand;
 import com.spottrack.platform.iam.domain.model.commands.SignUpCommand;
-import com.spottrack.platform.iam.interfaces.rest.resources.DeactivateAccountResource;
 import com.spottrack.platform.iam.interfaces.rest.resources.ForgotPasswordResource;
 import com.spottrack.platform.iam.interfaces.rest.resources.ForgotPasswordVerifyResource;
 import com.spottrack.platform.iam.interfaces.rest.resources.PublicSignUpResource;
 import com.spottrack.platform.iam.interfaces.rest.resources.SignInResource;
-import com.spottrack.platform.iam.interfaces.rest.resources.SignOutResource;
 import com.spottrack.platform.iam.interfaces.rest.resources.SignUpResource;
 import com.spottrack.platform.iam.interfaces.rest.transform.AuthenticatedUserResourceFromEntityAssembler;
-import com.spottrack.platform.iam.interfaces.rest.transform.DeactivateAccountCommandFromResourceAssembler;
 import com.spottrack.platform.iam.interfaces.rest.transform.ForgotPasswordVerifyCommandFromResourceAssembler;
 import com.spottrack.platform.iam.interfaces.rest.transform.SignInCommandFromResourceAssembler;
-import com.spottrack.platform.iam.interfaces.rest.transform.SignOutCommandFromResourceAssembler;
 import com.spottrack.platform.iam.interfaces.rest.transform.SignUpCommandFromResourceAssembler;
 import com.spottrack.platform.iam.interfaces.rest.transform.UserResourceFromEntityAssembler;
 import com.spottrack.platform.shared.interfaces.rest.transform.ResponseEntityAssembler;
@@ -22,6 +20,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -95,8 +94,8 @@ public class AuthenticationController {
     }
 
     @PostMapping("/sign-out")
-    public ResponseEntity<?> signOut(@Valid @RequestBody SignOutResource resource) {
-        var command = SignOutCommandFromResourceAssembler.toCommandFromResource(resource);
+    public ResponseEntity<?> signOut(Authentication authentication) {
+        var command = new SignOutCommand(authentication.getName());
         var result = userCommandService.handle(command);
         return ResponseEntityAssembler.toResponseEntityFromResult(
                 result,
@@ -106,8 +105,8 @@ public class AuthenticationController {
     }
 
     @PostMapping("/deactivate")
-    public ResponseEntity<?> deactivate(@Valid @RequestBody DeactivateAccountResource resource) {
-        var command = DeactivateAccountCommandFromResourceAssembler.toCommandFromResource(resource);
+    public ResponseEntity<?> deactivate(Authentication authentication) {
+        var command = new DeactivateAccountCommand(authentication.getName());
         var result = userCommandService.handle(command);
         return ResponseEntityAssembler.toResponseEntityFromResult(
                 result,
