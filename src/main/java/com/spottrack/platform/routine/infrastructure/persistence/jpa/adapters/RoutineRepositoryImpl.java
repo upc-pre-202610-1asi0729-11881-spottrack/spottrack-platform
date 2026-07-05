@@ -7,6 +7,7 @@ import com.spottrack.platform.routine.infrastructure.persistence.jpa.assemblers.
 import com.spottrack.platform.routine.infrastructure.persistence.jpa.repositories.RoutinePersistenceRepository;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -26,12 +27,14 @@ public class RoutineRepositoryImpl implements RoutineRepository {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<Routine> findById(Long id) {
         return routinePersistenceRepository.findById(id)
                 .map(RoutinePersistenceAssembler::toDomainFromPersistence);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Routine> findAllByClientId(ClientId clientId) {
         return routinePersistenceRepository.findAllByClientId(clientId.clientId())
                 .stream()
