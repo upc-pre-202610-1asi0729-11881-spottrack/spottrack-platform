@@ -43,8 +43,13 @@ import com.spottrack.platform.profiles.domain.model.commands.UpdateAdminProfileC
 import com.spottrack.platform.profiles.domain.model.commands.UpdateClientProfileCommand;
 import com.spottrack.platform.profiles.domain.model.queries.GetAdminByUserIdQuery;
 import com.spottrack.platform.profiles.domain.model.queries.GetClientByUserIdQuery;
+import com.spottrack.platform.profiles.application.commandservices.BusinessProfileCommandService;
+import com.spottrack.platform.profiles.domain.model.commands.CreateBusinessProfileCommand;
 import com.spottrack.platform.profiles.domain.model.valueobjects.AdminId;
+import com.spottrack.platform.profiles.domain.model.valueobjects.BusinessInfo;
+import com.spottrack.platform.profiles.domain.model.valueobjects.EmailAddress;
 import com.spottrack.platform.profiles.domain.model.valueobjects.PhoneNumber;
+import com.spottrack.platform.profiles.domain.repositories.BusinessProfileRepository;
 import com.spottrack.platform.reservation.application.commandServices.ReservationCommandService;
 import com.spottrack.platform.reservation.domain.model.commands.EndReservation;
 import com.spottrack.platform.reservation.domain.model.commands.InitiateExpressReservation;
@@ -120,6 +125,8 @@ public class DemoDataSeeder {
     private final RoutineSessionCommandService routineSessionCommandService;
     private final MaintenanceCommandService maintenanceCommandService;
     private final TechnicalTicketJpaRepository technicalTicketJpaRepository;
+    private final BusinessProfileCommandService businessProfileCommandService;
+    private final BusinessProfileRepository businessProfileRepository;
     private final com.spottrack.platform.monitoring.application.commandServices.MotionSensorCommandService motionSensorCommandService;
     private final com.spottrack.platform.monitoring.domain.repositories.MotionSensorRepository motionSensorRepository;
 
@@ -145,6 +152,8 @@ public class DemoDataSeeder {
             RoutineSessionCommandService routineSessionCommandService,
             MaintenanceCommandService maintenanceCommandService,
             TechnicalTicketJpaRepository technicalTicketJpaRepository,
+            BusinessProfileCommandService businessProfileCommandService,
+            BusinessProfileRepository businessProfileRepository,
             com.spottrack.platform.monitoring.application.commandServices.MotionSensorCommandService motionSensorCommandService,
             com.spottrack.platform.monitoring.domain.repositories.MotionSensorRepository motionSensorRepository) {
         this.roleCommandService = roleCommandService;
@@ -168,6 +177,8 @@ public class DemoDataSeeder {
         this.routineSessionCommandService = routineSessionCommandService;
         this.maintenanceCommandService = maintenanceCommandService;
         this.technicalTicketJpaRepository = technicalTicketJpaRepository;
+        this.businessProfileCommandService = businessProfileCommandService;
+        this.businessProfileRepository = businessProfileRepository;
         this.motionSensorCommandService = motionSensorCommandService;
         this.motionSensorRepository = motionSensorRepository;
     }
@@ -182,6 +193,10 @@ public class DemoDataSeeder {
         roleCommandService.handle(new SeedRolesCommand());
 
         var adminUserId   = seedAdminUser();
+        seedBusinessProfile(adminUserId,
+                "SpotTrack Fitness S.A.C.", "20123456781",
+                "Av. Larco 1234", "Lima", "Miraflores",
+                "999000001", ADMIN_EMAIL);
         seedMembership(adminUserId);
         var gymSeed       = seedGym(adminUserId);
         seedWhitelist(gymSeed.gymId());
@@ -193,6 +208,28 @@ public class DemoDataSeeder {
         seedMotionSensor(gymSeed.equipA());
 
         log.info("[DemoDataSeeder] Demo seed complete.");
+    }
+
+    // ─── Business profile ────────────────────────────────────────────────────
+
+    private void seedBusinessProfile(Long userId, String companyName, String ruc,
+                                     String streetAddress, String city, String district,
+                                     String phone, String email) {
+        if (businessProfileRepository.existsByUserId(userId)) {
+            log.info("[DemoDataSeeder] BusinessProfile already exists for userId={}, skipping.", userId);
+            return;
+        }
+        var businessInfo = new BusinessInfo(
+                companyName, ruc, "S.A.C.",
+                new PhoneNumber(phone),
+                new EmailAddress(email),
+                streetAddress, city, district
+        );
+        var result = businessProfileCommandService.handle(new CreateBusinessProfileCommand(userId, businessInfo));
+        if (result instanceof Result.Failure<?, ?> f)
+            log.error("[DemoDataSeeder] Failed to create BusinessProfile for userId={}: {}", userId, f.error());
+        else
+            log.info("[DemoDataSeeder] BusinessProfile created for userId={}.", userId);
     }
 
     // ─── Admin ───────────────────────────────────────────────────────────────
