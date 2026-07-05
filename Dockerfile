@@ -1,8 +1,7 @@
 # Dockerfile for SpotTrack Platform
 # Multi-stage build: Maven + OpenJDK 26 para build, eclipse-temurin 26 JRE en runtime.
 # Variables de entorno requeridas en prod: DATABASE_URL, DATABASE_PORT, DATABASE_NAME,
-# DATABASE_USER, DATABASE_PASSWORD, JWT_SECRET, PORT, SPRING_PROFILES_ACTIVE=prod,
-# STRIPE_SECRET_API_KEY, STRIPE_WEBHOOK_SECRET.
+# DATABASE_USER, DATABASE_PASSWORD, JWT_SECRET, PORT, SPRING_PROFILES_ACTIVE=prod.
 
 FROM maven:3.9.16-eclipse-temurin-26 AS build
 WORKDIR /app
