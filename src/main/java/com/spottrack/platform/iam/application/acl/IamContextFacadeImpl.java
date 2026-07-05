@@ -54,6 +54,11 @@ public class IamContextFacadeImpl implements IamContextFacade {
     }
 
     @Override
+    public boolean existsUserById(Long userId) {
+        return userQueryService.handle(new com.spottrack.platform.iam.domain.model.queries.GetUserByIdQuery(userId)).isPresent();
+    }
+
+    @Override
     public boolean shouldNotify(Long userId, AlertSeverity severity) {
         return userQueryService.handle(new com.spottrack.platform.iam.domain.model.queries.GetUserByIdQuery(userId))
                 .map(user -> severity == AlertSeverity.CRITICAL ? user.isNotifyOnCritical() : user.isNotifyOnWarning())

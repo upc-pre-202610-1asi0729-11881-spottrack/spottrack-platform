@@ -1,6 +1,7 @@
 package com.spottrack.platform.profiles.application.internal.commandservices;
 
 import com.spottrack.platform.gym.interfaces.acl.GymContextFacade;
+import com.spottrack.platform.iam.interfaces.acl.IamContextFacade;
 import com.spottrack.platform.profiles.application.commandservices.ClientCommandService;
 import com.spottrack.platform.profiles.domain.model.aggregates.Client;
 import com.spottrack.platform.profiles.domain.model.commands.AssociateClientWithGymCommand;
@@ -21,18 +22,25 @@ public class ClientCommandServiceImpl implements ClientCommandService {
     private final ClientRepository clientRepository;
     private final ClientGymAssociationPersistenceRepository associationRepository;
     private final GymContextFacade gymContextFacade;
+    private final IamContextFacade iamContextFacade;
 
     public ClientCommandServiceImpl(ClientRepository clientRepository,
                                     ClientGymAssociationPersistenceRepository associationRepository,
-                                    GymContextFacade gymContextFacade) {
+                                    GymContextFacade gymContextFacade,
+                                    IamContextFacade iamContextFacade) {
         this.clientRepository = clientRepository;
         this.associationRepository = associationRepository;
         this.gymContextFacade = gymContextFacade;
+        this.iamContextFacade = iamContextFacade;
     }
 
     @Override
     public Result<Client, ApplicationError> handle(CreateClientCommand command){
         try {
+            if (!iamContextFacade.existsUserById(command.userId())) {
+                return Result.failure(ApplicationError.notFound("User", command.userId().toString()));
+            }
+
             if (clientRepository.existsByEmailAddress(command.emailAddress())){
                 return Result.failure(ApplicationError.conflict(
                         "Client",
