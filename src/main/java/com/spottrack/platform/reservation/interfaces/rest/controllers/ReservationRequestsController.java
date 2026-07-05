@@ -72,7 +72,7 @@ public class ReservationRequestsController {
                     ResponseEntity.status(HttpStatus.CREATED)
                             .body(ReservationRequestResourceFromEntityAssembler.toResourceFromEntity(s.value()));
             case Result.Failure<ReservationRequest, ApplicationError> f ->
-                    ResponseEntity.badRequest().body(f.error());
+                    ErrorResponseAssembler.toErrorResponseFromApplicationError(f.error());
         };
     }
 
@@ -101,7 +101,7 @@ public class ReservationRequestsController {
             case Result.Success<ReservationRequest, ApplicationError> s ->
                     ResponseEntity.ok(ReservationRequestResourceFromEntityAssembler.toResourceFromEntity(s.value()));
             case Result.Failure<ReservationRequest, ApplicationError> f ->
-                    ResponseEntity.status(HttpStatus.NOT_FOUND).body(f.error());
+                    ErrorResponseAssembler.toErrorResponseFromApplicationError(f.error());
         };
     }
 
@@ -155,7 +155,7 @@ public class ReservationRequestsController {
             case Result.Success<ReservationRequest, ApplicationError> s ->
                     ResponseEntity.ok(ReservationRequestResourceFromEntityAssembler.toResourceFromEntity(s.value()));
             case Result.Failure<ReservationRequest, ApplicationError> f ->
-                    ResponseEntity.status(HttpStatus.NOT_FOUND).body(f.error());
+                    ErrorResponseAssembler.toErrorResponseFromApplicationError(f.error());
         };
     }
 
