@@ -116,15 +116,14 @@ public class SessionTrackerCommandServiceImpl implements SessionTrackerCommandSe
         /**
          * This command will retrieve a sessiontracker, and access its attributes and set one of the booleans to true
          */
-        try {
-            var entity = sessionTrackerRepository.findSessionByUuid(command.sessionTrackerId());
-            var session = entity.get();
-            session.endSession();
-            var patchedEntity = sessionTrackerRepository.save(session);
-            return Result.success(patchedEntity);
-        } catch (RuntimeException e) {
-            throw new IllegalArgumentException(e.getMessage());
+        var entity = sessionTrackerRepository.findSessionByUuid(command.sessionTrackerId());
+        if (entity.isEmpty()) {
+            return Result.failure(ApplicationError.notFound("sessionTracker", command.sessionTrackerId().uuid()));
         }
+        var session = entity.get();
+        session.endSession();
+        var patchedEntity = sessionTrackerRepository.save(session);
+        return Result.success(patchedEntity);
     }
 
     @Transactional(Transactional.TxType.REQUIRES_NEW)

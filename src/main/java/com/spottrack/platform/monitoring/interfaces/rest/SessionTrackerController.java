@@ -98,7 +98,7 @@ public class SessionTrackerController {
             case Result.Success<SessionTracker, ApplicationError> s ->
                 ResponseEntity.ok(toEnrichedResource(s.value()));
             case Result.Failure<SessionTracker, ApplicationError> f ->
-                ResponseEntity.badRequest().body(f.error());
+                ErrorResponseAssembler.toErrorResponseFromApplicationError(f.error());
         };
     }
 
@@ -110,7 +110,7 @@ public class SessionTrackerController {
              case Result.Success<SessionTracker, ApplicationError> s ->
                  ResponseEntity.ok(toEnrichedResource(s.value()));
              case Result.Failure<SessionTracker, ApplicationError> f ->
-                 ResponseEntity.badRequest().body(f.error());
+                 ErrorResponseAssembler.toErrorResponseFromApplicationError(f.error());
          };
     }
 
