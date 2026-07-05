@@ -3,8 +3,11 @@ package com.spottrack.platform.gym.interfaces.rest.controllers;
 import com.spottrack.platform.gym.application.commandServices.EquipmentCommandService;
 import com.spottrack.platform.gym.application.queryservices.EquipmentQueryService;
 import com.spottrack.platform.gym.domain.model.aggregates.Equipment;
+import com.spottrack.platform.gym.domain.model.commands.DecomissionEquipment;
+import com.spottrack.platform.gym.domain.model.commands.MarkEquipmentOutOfService;
 import com.spottrack.platform.gym.domain.model.queries.GetEquipmentById;
 import com.spottrack.platform.gym.domain.model.valueobjects.EquipmentId;
+import com.spottrack.platform.gym.domain.model.valueobjects.EquipmentStatus;
 import com.spottrack.platform.gym.interfaces.acl.GymContextFacade;
 import com.spottrack.platform.gym.interfaces.rest.resources.*;
 import com.spottrack.platform.gym.interfaces.rest.transform.*;
@@ -82,8 +85,7 @@ public class EquipmentsController {
     @PatchMapping("/{equipmentId}/out-of-service")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> markEquipmentOutOfService(Authentication authentication,
-                                                       @PathVariable String equipmentId,
-                                                       @RequestBody MarkEquipmentOutOfServiceResource resource) {
+                                                       @PathVariable String equipmentId) {
         var adminUserId = resolveAdminUserId(authentication);
         if (adminUserId == 0L) {
             return ErrorResponseAssembler.toErrorResponseFromApplicationError(
@@ -91,7 +93,7 @@ public class EquipmentsController {
         }
         var ownershipError = checkEquipmentOwnership(equipmentId, adminUserId);
         if (ownershipError.isPresent()) return ownershipError.get();
-        var command = EquipmentMarkOutOfServiceFromResourceAssembler.toCommandFromResource(resource);
+        var command = new MarkEquipmentOutOfService(new EquipmentId(equipmentId));
         var result = commandService.handle(command);
         return switch (result) {
             case Result.Success<Equipment, ApplicationError> s ->
@@ -153,8 +155,7 @@ public class EquipmentsController {
     @PatchMapping("/{equipmentId}/decomission")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> decomissionEquipment(Authentication authentication,
-                                                  @PathVariable String equipmentId,
-                                                  @RequestBody DecomissionEquipmentResource resource) {
+                                                  @PathVariable String equipmentId) {
         var adminUserId = resolveAdminUserId(authentication);
         if (adminUserId == 0L) {
             return ErrorResponseAssembler.toErrorResponseFromApplicationError(
@@ -162,7 +163,7 @@ public class EquipmentsController {
         }
         var ownershipError = checkEquipmentOwnership(equipmentId, adminUserId);
         if (ownershipError.isPresent()) return ownershipError.get();
-        var command = DecomissionEquipmentCommandFromResourceAssembler.toCommandFromResource(resource);
+        var command = new DecomissionEquipment(new EquipmentId(equipmentId), EquipmentStatus.DECOMMISSIONED);
         var result = commandService.handle(command);
         return switch (result) {
             case Result.Success<Equipment, ApplicationError> s ->
@@ -185,7 +186,7 @@ public class EquipmentsController {
         }
         var ownershipError = checkEquipmentOwnership(equipmentId, adminUserId);
         if (ownershipError.isPresent()) return ownershipError.get();
-        var command = DefineMaintenanceThresholdCommandFromResourceAssembler.toCommandFromResource(resource);
+        var command = DefineMaintenanceThresholdCommandFromResourceAssembler.toCommandFromResource(equipmentId, resource);
         var result = commandService.handle(command);
         return switch (result) {
             case Result.Success<Equipment, ApplicationError> s ->
