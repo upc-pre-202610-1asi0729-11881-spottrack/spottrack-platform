@@ -8,5 +8,9 @@ import com.spottrack.platform.reservation.domain.model.valueobjects.ReservationI
  * When the timer expires, the policy triggers RequestEquipmentStatusChangeToAvailable.
  */
 public record StartReservationTimer(ReservationId reservationId, int durationMinutes) {
-
+    public StartReservationTimer {
+        if (durationMinutes <= 0) {
+            throw new IllegalArgumentException("durationMinutes must be greater than zero");
+        }
+    }
 }

@@ -65,6 +65,10 @@ public class ReservationRequestsController {
         }
         var membershipError = gymMembershipAccessGuard.check(clientId);
         if (membershipError.isPresent()) return membershipError.get();
+        if (gymContextFacade.findEquipmentById(resource.equipmentId()).isEmpty()) {
+            return ErrorResponseAssembler.toErrorResponseFromApplicationError(
+                    ApplicationError.notFound("Equipment", resource.equipmentId()));
+        }
         var command = SubmitRequestOccupyEquipmentCommandFromResourceAssembler.toCommandFromResource(resource, clientId);
         var result = commandService.handle(command);
         return switch (result) {
