@@ -31,11 +31,25 @@ public class ReservationTimerExpiryScheduler {
         this.reservationCommandService = reservationCommandService;
     }
 
+    // Client must check in (start the timer via QR) within this window after
+    // reserving, matching the activation window the web UI shows. Otherwise the
+    // never-activated reservation would stay ACTIVE forever and block the client
+    // from reserving anything else.
+    private static final long ACTIVATION_WINDOW_MINUTES = 5;
+
     @Scheduled(fixedRate = 60000)
     public void checkReservationStatus(){
         List<ReservationPersistenceEntity> expiredReservations = reservationPersistenceRepository.findAllByStatusAndTimerExpiryIsNotNullAndTimerExpiryBefore(ReservationStatus.ACTIVE, LocalDateTime.now());
 
         expiredReservations.forEach(reservation ->
+                reservationCommandService.handle(new EndReservation(new ReservationId(reservation.getUuid()))));
+
+        // Reservations never checked in (no timer) past their activation window:
+        // release them the same way so they stop blocking new reservations.
+        LocalDateTime activationCutoff = LocalDateTime.now().minusMinutes(ACTIVATION_WINDOW_MINUTES);
+        List<ReservationPersistenceEntity> unactivatedReservations = reservationPersistenceRepository.findAllByStatusAndTimerExpiryIsNullAndStartedAtBefore(ReservationStatus.ACTIVE, activationCutoff);
+
+        unactivatedReservations.forEach(reservation ->
                 reservationCommandService.handle(new EndReservation(new ReservationId(reservation.getUuid()))));
     }
 
