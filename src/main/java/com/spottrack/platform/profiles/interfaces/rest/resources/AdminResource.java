@@ -16,6 +16,18 @@ public record AdminResource(
         String fullName,
 
         @Schema(description = "Admin email address", example = "john.smith@example.com")
-        String email
+        String email,
+
+        @Schema(description = "Admin phone number, null if the profile is incomplete", example = "123456789")
+        String phoneNumber,
+
+        @Schema(description = "Admin first name, null if the profile is incomplete", example = "John")
+        String firstName,
+
+        @Schema(description = "Admin last name, null if the profile is incomplete", example = "Smith")
+        String lastName,
+
+        @Schema(description = "Admin DNI, null if the profile is incomplete", example = "87654321")
+        String dni
 ) {
 }

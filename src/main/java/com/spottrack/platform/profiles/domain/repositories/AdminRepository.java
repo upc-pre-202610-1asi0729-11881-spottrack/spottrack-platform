@@ -9,6 +9,8 @@ import java.util.Optional;
 public interface AdminRepository {
     Optional<Admin> findById(AdminId adminId);
 
+    Optional<Admin> findByUserId(Long userId);
+
     Optional<Admin> findByEmailAddress(EmailAddress emailAddress);
 
     Admin save(Admin admin);

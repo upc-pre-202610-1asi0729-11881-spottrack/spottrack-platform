@@ -9,9 +9,24 @@ import java.util.List;
 @Table(name = "users")
 public class UserPersistenceEntity extends AuditableAbstractPersistenceEntity {
 
+    // unique=true adds a DB-level UNIQUE KEY on top of the application-level existsByUsername check,
+    // closing the race-condition window that existed when only the application layer guarded uniqueness.
+    @Column(name = "username", unique = true)
     private String username;
     private String password;
     private boolean active = true;
+
+    // Boxed rather than primitive: ddl-auto=update adds this column with NULL for
+    // rows that existed before this field was introduced, and a primitive boolean
+    // can't hold that during hydration — Hibernate throws on every read of an old row.
+    @Column(name = "notify_on_critical")
+    private Boolean notifyOnCritical = true;
+
+    @Column(name = "notify_on_warning")
+    private Boolean notifyOnWarning = true;
+
+    @Column(name = "notification_email")
+    private String notificationEmail;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
@@ -54,5 +69,29 @@ public class UserPersistenceEntity extends AuditableAbstractPersistenceEntity {
 
     public void setActive(boolean active) {
         this.active = active;
+    }
+
+    public boolean isNotifyOnCritical() {
+        return notifyOnCritical == null || notifyOnCritical;
+    }
+
+    public void setNotifyOnCritical(boolean notifyOnCritical) {
+        this.notifyOnCritical = notifyOnCritical;
+    }
+
+    public boolean isNotifyOnWarning() {
+        return notifyOnWarning == null || notifyOnWarning;
+    }
+
+    public void setNotifyOnWarning(boolean notifyOnWarning) {
+        this.notifyOnWarning = notifyOnWarning;
+    }
+
+    public String getNotificationEmail() {
+        return notificationEmail;
+    }
+
+    public void setNotificationEmail(String notificationEmail) {
+        this.notificationEmail = notificationEmail;
     }
 }

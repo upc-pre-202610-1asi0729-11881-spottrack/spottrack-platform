@@ -44,6 +44,9 @@ public class EquipmentPersistenceEntity extends AuditableAbstractPersistenceEnti
     @Column(nullable = true)
     private LocalDate maintenanceThreshold;
 
+    @Column(nullable = false)
+    private boolean maintenanceAlertSent;
+
     @Column(nullable = true)
     private String zoneId;
 }

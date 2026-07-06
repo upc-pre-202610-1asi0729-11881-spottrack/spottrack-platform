@@ -2,6 +2,8 @@ package com.spottrack.platform.gym.domain.model.aggregates;
 
 import com.spottrack.platform.gym.domain.model.commands.RegisterEquipment;
 import com.spottrack.platform.gym.domain.model.events.EquipmentStatusUpdatedEvent;
+import com.spottrack.platform.gym.domain.model.events.MaintenanceThresholdDefinedEvent;
+import com.spottrack.platform.gym.domain.model.events.MaintenanceThresholdReachedEvent;
 import com.spottrack.platform.gym.domain.model.entities.Manufacturer;
 import com.spottrack.platform.gym.domain.model.valueobjects.EquipmentId;
 import com.spottrack.platform.gym.domain.model.valueobjects.EquipmentStatus;
@@ -34,6 +36,7 @@ public class Equipment extends AbstractDomainAggregateRoot<Equipment> {
 
     private ManufacturerId manufacturerId;
     private LocalDate maintenanceThreshold;
+    private boolean maintenanceAlertSent;
     private ZoneId zoneId;
 
 
@@ -61,16 +64,22 @@ public class Equipment extends AbstractDomainAggregateRoot<Equipment> {
         this.manufacturerId = command.manufacturerId();
         this.zoneId = command.zoneId();
         this.purchasePrice = command.purchasePrice();
-        this.maintenanceThreshold = LocalDate.now();
+        this.maintenanceThreshold = command.maintenanceThreshold() != null ? command.maintenanceThreshold() : LocalDate.now();
     }
 
 
     public void markEquipmentOutOfService(){
+        if (this.status == EquipmentStatus.DECOMMISSIONED) {
+            throw new IllegalStateException("gym.error.equipment.decommissionedIsTerminal");
+        }
         this.status = EquipmentStatus.OUT_OF_SERVICE;
         registerDomainEvent(new EquipmentStatusUpdatedEvent(this.id.uuid(), this.status));
     }
 
     public void updateStatus(EquipmentStatus status){
+        if (this.status == EquipmentStatus.DECOMMISSIONED) {
+            throw new IllegalStateException("gym.error.equipment.decommissionedIsTerminal");
+        }
         this.status = status;
         registerDomainEvent(new EquipmentStatusUpdatedEvent(this.id.uuid(), this.status));
     }
@@ -83,7 +92,26 @@ public class Equipment extends AbstractDomainAggregateRoot<Equipment> {
         }
     }
 
-    public void setMaintenanceThreshold(LocalDate date){
+    /**
+     * Named distinctly from the Lombok-generated setMaintenanceThreshold(...) —
+     * that plain setter is what the persistence assembler uses to reconstruct an
+     * Equipment from a DB row, and must stay a no-side-effect field assignment.
+     * This method is the actual DefineMaintenanceThreshold command behavior.
+     */
+    public void defineMaintenanceThreshold(LocalDate date){
         this.maintenanceThreshold = date;
+        // A newly-defined threshold hasn't been reached yet — clear the flag so the
+        // threshold-reached policy can fire again against the new date.
+        this.maintenanceAlertSent = false;
+        registerDomainEvent(new MaintenanceThresholdDefinedEvent(this.id.uuid(), date));
+    }
+
+    /**
+     * Called by EquipmentMaintenanceThresholdScheduler once maintenanceThreshold has passed.
+     * maintenanceAlertSent guards against re-firing every scheduler tick.
+     */
+    public void markMaintenanceThresholdReached(){
+        this.maintenanceAlertSent = true;
+        registerDomainEvent(new MaintenanceThresholdReachedEvent(this.id.uuid(), this.maintenanceThreshold));
     }
 }

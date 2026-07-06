@@ -20,7 +20,7 @@ public class MaintenancePersistenceAssembler {
         persistenceEntity.setEquipmentId(entity.getEquipmentId().uuid());
         persistenceEntity.setRequestedBy(entity.getRequestedBy());
         persistenceEntity.setDescription(entity.getDescription());
-        persistenceEntity.setStatus(entity.getStatus().name());
+        persistenceEntity.setStatus(entity.getStatus());
         return persistenceEntity;
     }
 }

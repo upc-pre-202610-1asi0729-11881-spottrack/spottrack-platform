@@ -1,6 +1,5 @@
 package com.spottrack.platform.gym.domain.model.aggregates;
 
-import com.spottrack.platform.gym.domain.model.commands.AddBranchCommand;
 import com.spottrack.platform.gym.domain.model.entities.Branch;
 import com.spottrack.platform.gym.domain.model.valueobjects.EquipmentId;
 import com.spottrack.platform.gym.domain.model.valueobjects.GymId;
@@ -24,20 +23,22 @@ public class Gym extends AbstractDomainAggregateRoot<Gym> {
     private List<Branch> branchList;
     private GymId id;
     private String name;
-
+    private Long adminUserId;
 
     protected Gym() {}
 
-    public Gym(String name) {
+    public Gym(String name, Long adminUserId) {
         this.id = new GymId(UUID.randomUUID().toString());
         this.name = name;
+        this.adminUserId = adminUserId;
         this.branchList = new ArrayList<Branch>();
     }
 
-    public Branch addBranch(AddBranchCommand command) {
-        var branch = new Branch(command.name(), command.address());
-        branchList.add(branch);
-        return branch;
+    public Gym(GymId id, String name, Long adminUserId) {
+        this.id = id;
+        this.name = name;
+        this.adminUserId = adminUserId;
+        this.branchList = new ArrayList<>();
     }
 
     public void validateIfzoneExists(ZoneId zoneId){

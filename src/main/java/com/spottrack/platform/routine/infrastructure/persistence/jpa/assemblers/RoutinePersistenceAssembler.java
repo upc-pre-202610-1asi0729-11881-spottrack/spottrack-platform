@@ -42,7 +42,9 @@ public final class RoutinePersistenceAssembler {
                         e.getId(),
                         new ExerciseName(e.getExerciseName()),
                         ExerciseType.valueOf(e.getExerciseType()),
-                        e.getOrder()))
+                        e.getOrder(),
+                        e.getSets(),
+                        e.getReps()))
                 .collect(Collectors.toList());
     }
 
@@ -56,6 +58,8 @@ public final class RoutinePersistenceAssembler {
                     blockEntity.setExerciseName(b.getExerciseName().exerciseName());
                     blockEntity.setExerciseType(b.getExerciseType().name());
                     blockEntity.setOrder(b.getOrder());
+                    blockEntity.setSets(b.getSets());
+                    blockEntity.setReps(b.getReps());
                     return blockEntity;
                 })
                 .collect(Collectors.toList());

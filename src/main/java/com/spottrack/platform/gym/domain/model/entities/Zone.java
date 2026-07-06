@@ -34,4 +34,12 @@ public class Zone {
         this.branchId = branchId;
     }
 
+    public Zone(String zoneId, String name, int maximumOccupancy, BranchId branchId) {
+        this.id = new ZoneId(zoneId);
+        this.name = name;
+        this.maximumOccupancy = maximumOccupancy;
+        this.equipmentList = new ArrayList<EquipmentId>();
+        this.branchId = branchId;
+    }
+
 }

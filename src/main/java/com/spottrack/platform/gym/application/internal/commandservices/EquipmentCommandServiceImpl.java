@@ -7,8 +7,9 @@ import com.spottrack.platform.gym.domain.model.valueobjects.EquipmentId;
 import com.spottrack.platform.gym.domain.repositories.EquipmentRepository;
 import com.spottrack.platform.shared.application.result.ApplicationError;
 import com.spottrack.platform.shared.application.result.Result;
-import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class EquipmentCommandServiceImpl implements EquipmentCommandService {
@@ -47,12 +48,22 @@ public class EquipmentCommandServiceImpl implements EquipmentCommandService {
             return Result.success(equipment);
         } catch (IllegalArgumentException e) {
             return Result.failure(ApplicationError.validationError("Equipment", e.getMessage()));
+        } catch (IllegalStateException e) {
+            return Result.failure(ApplicationError.conflict("Equipment", e.getMessage()));
         } catch (Exception e) {
             return Result.failure(ApplicationError.unexpected("Equipment mark out of service", e.getMessage()));
         }
     }
 
-    @Transactional
+    /**
+     * REQUIRES_NEW: this command is invoked (via the various cross-context
+     * integration event handlers) from @TransactionalEventListener(AFTER_COMMIT)
+     * callbacks, i.e. after the triggering transaction has already committed.
+     * Joining that transaction's (already-completing) context instead of
+     * starting a fresh one means the write can end up not being flushed
+     * until some unrelated later transaction happens to touch the session.
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
     public Result<Equipment, ApplicationError> handle(UpdateEquipmentStatus command) {
         try {
@@ -66,6 +77,8 @@ public class EquipmentCommandServiceImpl implements EquipmentCommandService {
             return Result.success(equipment);
         } catch (IllegalArgumentException e) {
             return Result.failure(ApplicationError.validationError("Equipment", e.getMessage()));
+        } catch (IllegalStateException e) {
+            return Result.failure(ApplicationError.conflict("Equipment", e.getMessage()));
         } catch (Exception e) {
             return Result.failure(ApplicationError.unexpected("Equipment status update", e.getMessage()));
         }
@@ -104,6 +117,8 @@ public class EquipmentCommandServiceImpl implements EquipmentCommandService {
             return Result.success(equipment);
         } catch (IllegalArgumentException e) {
             return Result.failure(ApplicationError.validationError("Equipment", e.getMessage()));
+        } catch (IllegalStateException e) {
+            return Result.failure(ApplicationError.conflict("Equipment", e.getMessage()));
         } catch (Exception e) {
             return Result.failure(ApplicationError.unexpected("Equipment decommission", e.getMessage()));
         }
@@ -118,13 +133,32 @@ public class EquipmentCommandServiceImpl implements EquipmentCommandService {
                 return Result.failure(ApplicationError.notFound("Equipment", command.equipmentId().uuid()));
             }
             var equipment = found.get();
-            equipment.setMaintenanceThreshold(command.threshold());
+            equipment.defineMaintenanceThreshold(command.threshold());
             equipmentRepository.save(equipment);
             return Result.success(equipment);
         } catch (IllegalArgumentException e) {
             return Result.failure(ApplicationError.validationError("Equipment", e.getMessage()));
         } catch (Exception e) {
             return Result.failure(ApplicationError.unexpected("Equipment maintenance threshold", e.getMessage()));
+        }
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Override
+    public Result<Equipment, ApplicationError> handle(MarkMaintenanceThresholdReached command) {
+        try {
+            var found = equipmentRepository.findById(command.equipmentId());
+            if (found.isEmpty()) {
+                return Result.failure(ApplicationError.notFound("Equipment", command.equipmentId().uuid()));
+            }
+            var equipment = found.get();
+            equipment.markMaintenanceThresholdReached();
+            equipmentRepository.save(equipment);
+            return Result.success(equipment);
+        } catch (IllegalArgumentException e) {
+            return Result.failure(ApplicationError.validationError("Equipment", e.getMessage()));
+        } catch (Exception e) {
+            return Result.failure(ApplicationError.unexpected("Equipment maintenance threshold reached", e.getMessage()));
         }
     }
 }

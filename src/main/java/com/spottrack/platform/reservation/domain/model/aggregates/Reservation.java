@@ -1,5 +1,6 @@
 package com.spottrack.platform.reservation.domain.model.aggregates;
 
+import com.spottrack.platform.reservation.domain.model.commands.CreateReservationFromRequest;
 import com.spottrack.platform.reservation.domain.model.commands.InitiateExpressReservation;
 import com.spottrack.platform.reservation.domain.model.events.ExpressReservationInitiatedEvent;
 import com.spottrack.platform.reservation.domain.model.events.ReservationCancelledEvent;
@@ -43,6 +44,12 @@ public class Reservation extends AbstractDomainAggregateRoot<Reservation> {
 
     private TimeInterval timeInterval;
 
+    // Not persisted — only meaningful during the initial save() that follows
+    // construction, to decide whether onInitiated() should fire. Reservations
+    // reconstructed from persistence default this to false, which is correct:
+    // onInitiated() is only ever invoked on the isNew branch of save().
+    private boolean expressInitiated;
+
     protected Reservation() {}
 
     /**
@@ -56,10 +63,36 @@ public class Reservation extends AbstractDomainAggregateRoot<Reservation> {
         this.status = ReservationStatus.ACTIVE;
         this.startedAt = LocalDateTime.now();
         this.timeInterval = command.timeInterval();
+        this.expressInitiated = true;
     }
 
+    /**
+     * Called by the repository's save() for every brand-new Reservation, regardless
+     * of which constructor built it — expressInitiated guards this so only the
+     * express path raises ExpressReservationInitiatedEvent. Reservations created via
+     * CreateReservationFromRequest raise nothing here (see that constructor's note).
+     */
     public void onInitiated() {
-        registerDomainEvent(new ExpressReservationInitiatedEvent(this.id.uuid(), this.equipmentId.uuid(), this.clientId.clientId()));
+        if (this.expressInitiated) {
+            registerDomainEvent(new ExpressReservationInitiatedEvent(this.id.uuid(), this.equipmentId.uuid(), this.clientId.clientId()));
+        }
+    }
+
+    /**
+     * Created by the policy reacting to RequestOccupyEquipmentSubmittedEvent —
+     * the "normal" (non-express) path from the event-storming board. No time
+     * window is collected at request time, so it gets a full-day placeholder;
+     * the real usage window is governed by the timer (StartReservationTimer),
+     * not this interval. No domain event here — the board shows the next
+     * client-facing step as Start Reservation Timer, not a creation event.
+     */
+    public Reservation(CreateReservationFromRequest command) {
+        this.id = new ReservationId(UUID.randomUUID().toString());
+        this.clientId = command.clientId();
+        this.equipmentId = command.equipmentId();
+        this.status = ReservationStatus.ACTIVE;
+        this.startedAt = LocalDateTime.now();
+        this.timeInterval = new TimeInterval(Time.valueOf("00:00:00"), Time.valueOf("23:59:00"));
     }
 
 

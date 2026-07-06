@@ -25,4 +25,10 @@ public class ExerciseBlockPersistenceEntity extends AuditableAbstractPersistence
 
     @Column(name = "exercise_order")
     private int order;
+
+    @Column(name = "`sets`")
+    private int sets;
+
+    @Column(name = "reps")
+    private int reps;
 }

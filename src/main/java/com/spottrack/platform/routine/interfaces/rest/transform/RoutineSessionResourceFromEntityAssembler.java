@@ -11,7 +11,8 @@ public class RoutineSessionResourceFromEntityAssembler {
                 session.getRoutineId(),
                 session.getClientId().clientId(),
                 session.getStatus().name(),
-                session.getStartedAt()
+                session.getStartedAt(),
+                session.getCompletedExerciseBlockIds()
         );
     }
 }

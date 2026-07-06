@@ -4,6 +4,7 @@ import com.spottrack.platform.profiles.application.queryservices.AdminQueryServi
 import com.spottrack.platform.profiles.domain.model.aggregates.Admin;
 import com.spottrack.platform.profiles.domain.model.queries.GetAdminByEmailQuery;
 import com.spottrack.platform.profiles.domain.model.queries.GetAdminByIdQuery;
+import com.spottrack.platform.profiles.domain.model.queries.GetAdminByUserIdQuery;
 import com.spottrack.platform.profiles.domain.repositories.AdminRepository;
 import org.springframework.stereotype.Service;
 
@@ -25,5 +26,10 @@ public class AdminQueryServiceImpl implements AdminQueryService {
     @Override
     public Optional<Admin> handle(GetAdminByEmailQuery query) {
         return adminRepository.findByEmailAddress(query.emailAddress());
+    }
+
+    @Override
+    public Optional<Admin> handle(GetAdminByUserIdQuery query) {
+        return adminRepository.findByUserId(query.userId());
     }
 }

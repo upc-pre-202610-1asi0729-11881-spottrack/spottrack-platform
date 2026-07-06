@@ -10,11 +10,15 @@ public class ExerciseBlock {
     private ExerciseName exerciseName;
     private ExerciseType exerciseType;
     private int order;
+    private int sets;
+    private int reps;
 
-    public ExerciseBlock(Long id, ExerciseName exerciseName, ExerciseType exerciseType, int order) {
+    public ExerciseBlock(Long id, ExerciseName exerciseName, ExerciseType exerciseType, int order, int sets, int reps) {
         this.id = id;
         this.exerciseName = exerciseName;
         this.exerciseType = exerciseType;
         this.order = order;
+        this.sets = sets;
+        this.reps = reps;
     }
 }

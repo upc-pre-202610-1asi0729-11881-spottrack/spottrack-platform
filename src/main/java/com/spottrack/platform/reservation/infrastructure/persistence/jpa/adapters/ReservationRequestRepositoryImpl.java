@@ -2,7 +2,7 @@ package com.spottrack.platform.reservation.infrastructure.persistence.jpa.adapte
 
 import com.spottrack.platform.reservation.domain.model.aggregates.ReservationRequest;
 import com.spottrack.platform.reservation.domain.repositories.ReservationRequestRepository;
-import com.spottrack.platform.reservation.infrastructure.persistence.jpa.ReservationRequestPersistenceRepository;
+import com.spottrack.platform.reservation.infrastructure.persistence.jpa.repositories.ReservationRequestPersistenceRepository;
 import com.spottrack.platform.reservation.infrastructure.persistence.jpa.assemblers.ReservationRequestPersistenceAssembler;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Repository;

@@ -11,6 +11,7 @@ public class MaintenanceLogPersistenceAssembler {
                 entity.getTicketId(),
                 entity.getMaintenanceId(),
                 entity.getNotes(),
+                entity.getCost(),
                 entity.getCompletedAt()
         );
     }
@@ -21,6 +22,7 @@ public class MaintenanceLogPersistenceAssembler {
         entity.setTicketId(log.getTicketId());
         entity.setMaintenanceId(log.getMaintenanceId());
         entity.setNotes(log.getNotes());
+        entity.setCost(log.getCost());
         entity.setCompletedAt(log.getCompletedAt());
         return entity;
     }

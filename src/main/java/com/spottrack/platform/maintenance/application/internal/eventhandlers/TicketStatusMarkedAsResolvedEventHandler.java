@@ -21,5 +21,8 @@ public class TicketStatusMarkedAsResolvedEventHandler {
         eventPublisher.publishEvent(
                 new EquipmentStatusAvailableIntegrationEvent(event.equipmentId(), event.ticketId())
         );
+
+
+
     }
 }

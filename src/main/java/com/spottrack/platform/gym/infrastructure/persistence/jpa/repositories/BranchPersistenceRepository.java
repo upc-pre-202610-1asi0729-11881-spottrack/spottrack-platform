@@ -10,4 +10,6 @@ public interface BranchPersistenceRepository extends JpaRepository<BranchPersist
     Optional<BranchPersistenceEntity> findByBranchId(String branchId);
     Optional<BranchPersistenceEntity> findByName(String name);
     List<BranchPersistenceEntity> findAllByName(String name);
+    List<BranchPersistenceEntity> findByGymId(String gymId);
+    int countByGymId(String gymId);
 }

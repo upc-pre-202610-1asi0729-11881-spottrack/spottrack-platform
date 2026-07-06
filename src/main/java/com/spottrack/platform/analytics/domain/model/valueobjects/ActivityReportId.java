@@ -1,8 +1,5 @@
 package com.spottrack.platform.analytics.domain.model.valueobjects;
 
-import jakarta.persistence.Embeddable;
-
-@Embeddable
 public record ActivityReportId(Long value) {
     public ActivityReportId {
         if (value == null || value < 0) {

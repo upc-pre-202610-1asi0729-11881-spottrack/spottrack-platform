@@ -7,5 +7,4 @@ import java.util.Optional;
 
 public interface MaintenancePersistenceRepository extends JpaRepository<MaintenancePersistenceEntity, Long> {
     Optional<MaintenancePersistenceEntity> findByMaintenanceId(String maintenanceId);
-    Optional<MaintenancePersistenceEntity> findByStatus(String status);
 }

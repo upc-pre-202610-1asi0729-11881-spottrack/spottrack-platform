@@ -5,6 +5,7 @@ import com.spottrack.platform.gym.domain.model.valueobjects.ManufacturerId;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 public record EquipmentResource(
         String equipmentId,
@@ -14,6 +15,7 @@ public record EquipmentResource(
         String manufacturerId,
         String zoneId,
         String purchaseCurrency,
-        BigDecimal purchaseAmount
+        BigDecimal purchaseAmount,
+        LocalDate maintenanceThreshold
 ) {
 }

@@ -50,7 +50,15 @@ public class WebSecurityConfiguration {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(
-                                "/api/v1/authentication/**",
+                                "/api/v1/authentication/sign-in",
+                                "/api/v1/authentication/sign-up",
+                                "/api/v1/authentication/sign-up-staff",
+                                "/api/v1/authentication/forgot-password",
+                                "/api/v1/authentication/forgot-password/verify",
+                                "/api/v1/webhooks/**",
+                                "/api/v1/monitoring/camera-sensors/**",
+                                "/api/v1/monitoring/motion-sensors/**",
+                                "/api/v1/register-business",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**"

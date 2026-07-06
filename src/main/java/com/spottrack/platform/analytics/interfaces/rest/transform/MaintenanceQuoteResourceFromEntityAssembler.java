@@ -8,6 +8,10 @@ public class MaintenanceQuoteResourceFromEntityAssembler {
         return new MaintenanceQuoteResource(
                 entity.getId(),
                 entity.getMaintenanceQuoteId() != null ? entity.getMaintenanceQuoteId().value() : null,
+                entity.getEquipmentId(),
+                entity.getCorrectiveActionsCost(),
+                entity.getSparePartsCost(),
+                entity.getPreventiveCost(),
                 entity.getTotalMaintenanceCost()
         );
     }

@@ -37,6 +37,6 @@ public class MaintenanceJob extends AbstractDomainAggregateRoot<MaintenanceJob> 
         }
         this.technicianId = command.technicianId();
         this.accepted = true;
-        registerDomainEvent(new MaintenanceJobAcceptedEvent(this.jobId.uuid(), this.technicianId));
+        registerDomainEvent(new MaintenanceJobAcceptedEvent(this.jobId.uuid(), this.maintenanceId, this.technicianId));
     }
 }

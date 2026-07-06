@@ -39,7 +39,7 @@ public class RoutineCommandServiceImpl implements RoutineCommandService {
                 return Result.failure(ApplicationError.notFound("Routine", command.routineId().toString()));
             }
 
-            routine.get().addExerciseBlock(command.exerciseName(), command.exerciseType(), command.order());
+            routine.get().addExerciseBlock(command.exerciseName(), command.exerciseType(), command.order(), command.sets(), command.reps());
 
             var savedRoutine = routineRepository.save(routine.get());
 

@@ -10,8 +10,7 @@ public class MaintenanceResourceFromEntityAssembler {
                 maintenance.getId().uuid(),
                 maintenance.getEquipmentId().uuid(),
                 maintenance.getRequestedBy(),
-                maintenance.getDescription(),
-                maintenance.getStatus()
+                maintenance.getDescription()
         );
     }
 }

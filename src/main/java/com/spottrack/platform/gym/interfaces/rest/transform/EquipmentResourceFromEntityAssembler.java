@@ -13,7 +13,8 @@ public class EquipmentResourceFromEntityAssembler {
                 equipment.getManufacturerId().uuid(),
                 equipment.getZoneId().uuid(),
                 equipment.getPurchasePrice().currency(),
-                equipment.getPurchasePrice().amount()
+                equipment.getPurchasePrice().amount(),
+                equipment.getMaintenanceThreshold()
         );
     }
 }

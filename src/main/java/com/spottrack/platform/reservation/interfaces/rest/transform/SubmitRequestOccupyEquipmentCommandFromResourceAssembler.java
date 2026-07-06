@@ -7,9 +7,9 @@ import com.spottrack.platform.reservation.interfaces.rest.resources.SubmitReques
 
 public class SubmitRequestOccupyEquipmentCommandFromResourceAssembler {
 
-    public static SubmitRequestOccupyEquipment toCommandFromResource(SubmitRequestOccupyEquipmentResource resource) {
+    public static SubmitRequestOccupyEquipment toCommandFromResource(SubmitRequestOccupyEquipmentResource resource, Long clientId) {
         return new SubmitRequestOccupyEquipment(
-                new ClientId(resource.clientId()),
+                new ClientId(clientId),
                 new EquipmentId(resource.equipmentId())
         );
     }

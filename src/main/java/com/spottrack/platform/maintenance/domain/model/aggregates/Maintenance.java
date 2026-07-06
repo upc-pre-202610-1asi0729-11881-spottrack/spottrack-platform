@@ -41,11 +41,11 @@ public class Maintenance extends AbstractDomainAggregateRoot<Maintenance> {
         registerDomainEvent(new MaintenanceRequestedEvent(this.id.uuid(), this.equipmentId, this.requestedBy));
     }
 
-    public Maintenance(String maintenanceId, String equipmentId, String requestedBy, String description, String status){
+    public Maintenance(String maintenanceId, String equipmentId, String requestedBy, String description, MaintenanceStatus status) {
         this.id = new MaintenanceId(maintenanceId);
         this.equipmentId = new EquipmentId(equipmentId);
         this.requestedBy = requestedBy;
         this.description = description;
-        this.status = MaintenanceStatus.valueOf(status);
+        this.status = status != null ? status : MaintenanceStatus.REQUESTED;
     }
 }

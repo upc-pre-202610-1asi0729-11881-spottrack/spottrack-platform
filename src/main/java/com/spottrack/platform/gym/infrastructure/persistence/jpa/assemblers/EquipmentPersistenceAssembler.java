@@ -22,6 +22,7 @@ public class EquipmentPersistenceAssembler {
         equipment.setZoneId(entity.getZoneId() != null && !entity.getZoneId().isBlank() ? new ZoneId(entity.getZoneId()) : null);
         equipment.setPurchasePrice(entity.getPurchasePrice());
         equipment.setMaintenanceThreshold(entity.getMaintenanceThreshold());
+        equipment.setMaintenanceAlertSent(entity.isMaintenanceAlertSent());
         return equipment;
     }
 
@@ -36,6 +37,7 @@ public class EquipmentPersistenceAssembler {
         equipment.setZoneId(domain.getZoneId() != null ? domain.getZoneId().uuid() : null);
         equipment.setPurchasePrice(domain.getPurchasePrice());
         equipment.setMaintenanceThreshold(domain.getMaintenanceThreshold());
+        equipment.setMaintenanceAlertSent(domain.isMaintenanceAlertSent());
         return equipment;
     }
 

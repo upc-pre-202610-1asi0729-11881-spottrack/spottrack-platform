@@ -23,6 +23,9 @@ public class GymPersistenceEntity extends AuditableAbstractPersistenceEntity {
     @Column(nullable = false)
     private String name;
 
+    @Column(nullable = true)
+    private Long adminUserId;
+
     @OneToMany
     List<BranchPersistenceEntity> branches;
 
