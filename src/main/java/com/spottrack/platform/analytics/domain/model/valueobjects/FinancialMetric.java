@@ -8,6 +8,9 @@ public record FinancialMetric(Double expectedRoiPercentage, Double projectedReve
         if (expectedRoiPercentage == null) {
             throw new IllegalArgumentException("Expected ROI percentage cannot be null");
         }
+        if (expectedRoiPercentage < -100) {
+            throw new IllegalArgumentException("Expected ROI percentage cannot be below -100%");
+        }
         if (projectedRevenue == null || projectedRevenue < 0) {
             throw new IllegalArgumentException("Projected revenue cannot be negative");
         }
