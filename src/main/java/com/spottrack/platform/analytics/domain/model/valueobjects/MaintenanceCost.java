@@ -11,5 +11,8 @@ public record MaintenanceCost(Double amount, String currency) {
         if (currency == null || currency.isBlank()) {
             throw new IllegalArgumentException("Currency type cannot be empty");
         }
+        if (!currency.matches("[A-Z]{3}")) {
+            throw new IllegalArgumentException("Currency must be a 3-letter ISO code");
+        }
     }
 }
