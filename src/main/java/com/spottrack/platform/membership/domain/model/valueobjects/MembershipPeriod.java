@@ -20,5 +20,9 @@ public record MembershipPeriod(LocalDate startDate, LocalDate endDate) {
             throw new IllegalArgumentException("membership.error.membershipPeriod.invalid.endDateEqualsStartDate");
         }
 
+        if (endDate.isAfter(startDate.plusYears(5))){
+            throw new IllegalArgumentException("membership.error.membershipPeriod.invalid.durationTooLong");
+        }
+
     }
 }
