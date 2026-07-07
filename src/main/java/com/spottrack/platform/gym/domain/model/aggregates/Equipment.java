@@ -64,7 +64,26 @@ public class Equipment extends AbstractDomainAggregateRoot<Equipment> {
         this.manufacturerId = command.manufacturerId();
         this.zoneId = command.zoneId();
         this.purchasePrice = command.purchasePrice();
-        this.maintenanceThreshold = command.maintenanceThreshold() != null ? command.maintenanceThreshold() : LocalDate.now();
+        if (command.maintenanceThreshold() != null) {
+            validateMaintenanceThreshold(command.maintenanceThreshold());
+            this.maintenanceThreshold = command.maintenanceThreshold();
+        } else {
+            this.maintenanceThreshold = LocalDate.now();
+        }
+    }
+
+    /**
+     * A maintenance threshold is a future due date: it must not be in the past and
+     * must not be set unrealistically far ahead. Applied only to user-supplied dates,
+     * never to the assembler's reconstruction setter.
+     */
+    private void validateMaintenanceThreshold(LocalDate date) {
+        if (date.isBefore(LocalDate.now())) {
+            throw new IllegalArgumentException("gym.error.equipment.maintenanceThreshold.past");
+        }
+        if (date.isAfter(LocalDate.now().plusYears(5))) {
+            throw new IllegalArgumentException("gym.error.equipment.maintenanceThreshold.tooFarInFuture");
+        }
     }
 
 
@@ -99,6 +118,7 @@ public class Equipment extends AbstractDomainAggregateRoot<Equipment> {
      * This method is the actual DefineMaintenanceThreshold command behavior.
      */
     public void defineMaintenanceThreshold(LocalDate date){
+        validateMaintenanceThreshold(date);
         this.maintenanceThreshold = date;
         // A newly-defined threshold hasn't been reached yet — clear the flag so the
         // threshold-reached policy can fire again against the new date.
